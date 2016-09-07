@@ -2,4 +2,7 @@
 
 /usr/libexec/s2i/assemble
 
-chmod g+w /opt/app/http.d/resolver.conf
+mkdir /opt/app/client_body_temp
+
+chmod g+w /opt/app/http.d/resolver.conf \
+	  /opt/app/client_body_temp
