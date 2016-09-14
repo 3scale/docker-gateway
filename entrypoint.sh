@@ -83,7 +83,7 @@ NAMESERVER=$(pick_dns_server)
 export RESOLVER=${RESOLVER:-${NAMESERVER}}
 
 sed -E -i "s/listen\s+80;/listen 8080;/g" /opt/openresty/nginx/conf/nginx.conf
-nginx -g "daemon off; error_log stderr info;" &
+nginx -g "daemon off;" &
 
 download_threescale_config
 deploy_threescale_config
