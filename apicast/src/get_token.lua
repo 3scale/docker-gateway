@@ -1,5 +1,6 @@
 local cjson = require 'cjson'
 local ts = require 'threescale_utils'
+local inspect = require 'inspect'
 
 -- As per RFC for Authorization Code flow: extract params from Authorization header and body
 -- If implementation deviates from RFC, this function should be over-ridden
@@ -9,6 +10,7 @@ local function extract_params()
 
   params.authorization = {}
 
+  ngx.log(0, inspect(params))
   if header_params['Authorization'] then
     params.authorization = ngx.decode_base64(header_params['Authorization']:split(" ")[2]):split(":")
   end

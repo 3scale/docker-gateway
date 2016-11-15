@@ -9,7 +9,7 @@ The command to do so is
 
 `docker-compose up -d`
 
-from the directory containing the docker-compose.yml file. 
+from the directory containing the docker-compose.yml file (in this case /apicast/examples/oauth2)
 
 The `-d` flag starts the containers up in detached mode, if you want to see the output when starting the containers, you should omit this. 
 
@@ -42,7 +42,30 @@ The docker compose file spins up 3 services:
 
 1. APIcast
 2. Redis 
-3. A very simple "Authorization Server" written in Ruby
+3. A very simple "Authorization Server" (auth-server) written in Ruby
+
+3scale Setup
+------------
+
+To get this working with a 3scale instance 
+
+
+Alternatively, you can use sample_config.json to run this instead. 
+
+
+
+Requesting an access token
+--------------------------
+
+Once you have APIcast configured to point to your local oauth testing instance, you can use a tool such as POSTMAN to request an access token. 
+
+You will need to have an application set up in 3scale and set the redirect url to `
+https://www.getpostman.com/oauth2/callback` 
+
+The Auth URL will be the /authorize endpoint on your API Gateway instance.
+The Access Toekn URL will be the /oauth/token endpoint on your API Gateway instance. 
+
+You can then click "Request Token" to initiate the access token request process. 
 
 auth-server.rb
 --------------
@@ -52,4 +75,6 @@ A very simple Sinatra app acting as an Authorization Server.
 The app will display a log in page (/auth/login) which will accept any values for username and password.
 Once logged in, a consent page will be displayed to accept or deny the request. 
 
-The authorization server will callback apicast on request acceptance or denial 
+The authorization server will callback apicast to issue an authorization code on request acceptance and the redirect_uri directly on denial. 
+
+Once the Authorization Code is sent to the redirect url ( POSTMAN callback endpoint in this case ) the exchange of authorization code for an access token is done transparently by POSTMAN behind the scenes. 
