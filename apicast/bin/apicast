@@ -54,13 +54,18 @@ usage () {
 	  -c <file> Path to custom config file (JSON).
 	  -d Daemonize
 	  -v Increase verbosity (can be repeated)
+	  -i Auto update interval in seconds.
+	  -r Reload configuration on every request. WARNING: not for production. It has to download configuration on every request.
 USAGE
 }
 
-while getopts ":dc:hvq" opt; do
+while getopts ":dc:hvqi:r" opt; do
   case "${opt}" in
     d)
       daemon=on
+      ;;
+    r)
+      export APICAST_RELOAD_CONFIG=1
       ;;
     c)
       export THREESCALE_CONFIG_FILE="$OPTARG"
@@ -71,6 +76,9 @@ while getopts ":dc:hvq" opt; do
     q)
 	    log_level=$((log_level == 0 ? 0 : log_level-1))
       ;;
+    i)
+      export AUTO_UPDATE_INTERVAL="${OPTARG}"
+    ;;
     h)
       usage
       exit 0

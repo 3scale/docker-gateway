@@ -6,6 +6,7 @@ my $apicast = $ENV{TEST_NGINX_APICAST_PATH} || "$pwd/apicast";
 
 $ENV{TEST_NGINX_LUA_PATH} = "$apicast/src/?.lua;;";
 $ENV{TEST_NGINX_BACKEND_CONFIG} = "$apicast/conf.d/backend.conf";
+$ENV{TEST_NGINX_UPSTREAM_CONFIG} = "$apicast/http.d/upstream.conf";
 $ENV{TEST_NGINX_APICAST_CONFIG} = "$apicast/conf.d/apicast.conf";
 
 $ENV{TEST_NGINX_REDIS_HOST} ||= $ENV{REDIS_HOST} || "127.0.0.1";
@@ -320,3 +321,40 @@ GET /t
 --- response_body_like
 {"token_type":"bearer","expires_in":604800,"access_token":"\w+"}
 --- error_code: 200
+
+
+=== TEST 1: calling with correct access_token proxies to the api upstream
+--- http_config
+  lua_package_path "$TEST_NGINX_LUA_PATH";
+  include $TEST_NGINX_UPSTREAM_CONFIG;
+
+  init_by_lua_block {
+    require('configuration').save({
+      services = {
+        {
+          backend_version = 'oauth',
+          proxy = {
+          api_backend = "http://127.0.0.1:$TEST_NGINX_SERVER_PORT/api-backend/",
+            proxy_rules = {
+              { pattern = '/', http_method = 'GET', metric_system_name = 'hits' }
+            }
+          }
+        }
+      }
+    })
+
+    ngx.shared.api_keys:set('default:foobar:usage[hits]=0', 200)
+  }
+  lua_shared_dict api_keys 1m;
+--- config
+  include $TEST_NGINX_APICAST_CONFIG;
+  include $TEST_NGINX_BACKEND_CONFIG;
+
+  location /api-backend/ {
+    echo "yay, upstream";
+  }
+--- request
+GET /?access_token=foobar
+--- error_code: 200
+--- response_body
+yay, upstream

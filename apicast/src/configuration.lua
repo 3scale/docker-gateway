@@ -180,6 +180,28 @@ function _M.parse_service(service)
         -- if there was no match, usage is set to nil and it will respond a 404, this behavior can be changed
         return usage_t, concat(matched_rules, ", ")
       end,
+      -- Given a request, extracts from its params the credentials of the
+      -- service according to its backend version.
+      -- This method returns a table that contains:
+      --     user_key when backend version == 1
+      --     app_id and app_key when backend version == 2
+      --     access_token when backen version == oauth
+      --     empty when backend version is unknown
+      extract_credentials = function(_, request)
+        local auth_params = get_auth_params(split(request, " ")[1])
+
+        local result = {}
+        if backend_version == '1' then
+          result.user_key = auth_params.user_key
+        elseif backend_version == '2' then
+          result.app_id = auth_params.app_id
+          result.app_key = auth_params.app_key
+        elseif backend_version == 'oauth' then
+          result.access_token = auth_params.access_token
+        end
+
+        return result
+      end,
       rules = map(function(proxy_rule)
         return {
           method = proxy_rule.http_method,
