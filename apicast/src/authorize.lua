@@ -1,5 +1,6 @@
 local random = require 'resty.random'
 local ts = require 'threescale_utils'
+local inspect = require 'inspect'
 
 -- returns a unique string for the client_id. it will be short lived
 local function nonce(client_id)
@@ -22,6 +23,7 @@ local function extract_params()
   params.scope =  uri_params.scope
   params.state = uri_params.state
 
+  ngx.log(0, inspect(params))
   return params
 end
 
@@ -91,6 +93,8 @@ local function check_client_credentials(params)
       copy_all_vars = true,
       ctx = ngx.ctx
     })
+
+  ngx.log(0, inspect(res))
 
   if res.status == 200 then
     return { ["status"] = res.status, ["body"] = res.body }
