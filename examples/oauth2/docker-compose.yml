@@ -1,7 +1,7 @@
 version: '2'
 services:
   gateway:
-    image: apicast-oauth:latest
+    image: apicast-test:latest
     depends_on:
     - redis
     - oauth
