@@ -39,20 +39,32 @@ local _M = {
 }
 
 function _M.configure(contents)
-  local config = configuration.parse(contents)
+  local config, err = configuration.parse(contents)
+
+  if err then
+    ngx.log(ngx.WARN, 'not configured: ', err)
+    return nil, err
+  end
 
   _M.contents = configuration.encode(contents)
-  _M.configured = true
-  _M.configuration = config
-  _M.services = config.services or {} -- for compatibility reasons
+
+  if config then
+    _M.configured = true
+    _M.configuration = config
+    _M.services = config.services or {} -- for compatibility reasons
+    return config
+  else
+    _M.configured = false
+    _M.services = false
+  end
 end
 
 function _M.init(config)
-  _M.configure(config)
-
   math.randomseed(ngx.now())
   -- First calls to math.random after a randomseed tend to be similar; discard them
   for _=1,3 do math.random() end
+
+  return _M.configure(config)
 end
 
 -- Error Codes

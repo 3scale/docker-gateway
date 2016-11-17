@@ -19,6 +19,7 @@ describe('resty.resolver', function()
     local resolver = resty_resolver.new(dns)
 
     it('returns servers', function()
+      dns.TYPE_A = 1
       dns.query = spy.new(function()
         return {
           { name = '3scale.net' , address = '127.0.0.1' }
@@ -29,7 +30,7 @@ describe('resty.resolver', function()
 
       assert.falsy(err)
       assert.equal(1, #servers)
-      assert.spy(dns.query).was.called_with(dns, '3scale.net')
+      assert.spy(dns.query).was.called_with(dns, '3scale.net', { qtype = 1 })
     end)
 
     it('returns servers for ip', function()

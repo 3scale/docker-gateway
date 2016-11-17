@@ -18,6 +18,8 @@ local assert = assert
 local lower = string.lower
 local insert = table.insert
 local concat = table.concat
+local pcall = pcall
+local setmetatable = setmetatable
 
 local util = require 'util'
 local split = util.string_split
@@ -221,16 +223,21 @@ function _M.decode(contents, encoder)
   if not contents then return nil end
   if type(contents) == 'string' and len(contents) == 0 then return nil end
   if type(contents) == 'table' then return contents end
+  if contents == '\n' then return nil end
 
   encoder = encoder or cjson
 
-  local config = encoder.decode(contents)
+  local ok, ret = pcall(encoder.decode, contents)
 
-  if config == encoder.null then
+  if not ok then
+    return nil, ret
+  end
+
+  if ret == encoder.null then
     return nil
   end
 
-  return config
+  return ret
 end
 
 function _M.encode(contents, encoder)
@@ -242,9 +249,13 @@ function _M.encode(contents, encoder)
 end
 
 function _M.parse(contents, encoder)
-  local config = _M.decode(contents, encoder)
+  local config, err = _M.decode(contents, encoder)
 
-  return _M.new(config)
+  if config then
+    return _M.new(config)
+  else
+    return nil, err
+  end
 end
 
 function _M.read(path)
@@ -425,11 +436,19 @@ function _M.download(endpoint)
 
   local body = res and (res.body or res:read_body())
 
-  if body then
+  if body and res.status == 200 then
     ngx.log(ngx.DEBUG, 'configuration response received:' .. body)
-    return body
+
+    local ok
+    ok, err = _M.decode(body)
+    if ok then
+      return body
+    else
+      ngx.log(ngx.WARN, 'configuration could not be decoded: ', body)
+      return nil, err
+    end
   else
-    return nil, err
+    return nil, err or res.reason
   end
 end
 
@@ -470,7 +489,7 @@ function _M.curl(endpoint)
 
   url = concat({ scheme, '://', concat({user or '', pass or ''}, ':'), '@', host, path or '/admin/api/nginx/spec.json' }, '')
 
-  local config, exit, code = util.system('curl --silent --show-error --fail --max-time 3 ' .. url)
+  local config, exit, code = util.system('curl --silent --show-error --fail --max-time 3 --location ' .. url)
 
   ngx.log(ngx.INFO, 'configuration request sent: ' .. url)
 

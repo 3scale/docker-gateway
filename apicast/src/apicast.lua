@@ -3,13 +3,15 @@ local provider = require('provider')
 local balancer = require('balancer')
 local util = require('util')
 local pcall = pcall
+local tonumber = tonumber
+local getenv = os.getenv
 local reload_config = util.env_enabled('APICAST_RELOAD_CONFIG')
 
 local _M = {
   _VERSION = '0.1'
 }
 
-local missing_configuration = os.getenv('APICAST_MISSING_CONFIGURATION') or 'log'
+local missing_configuration = getenv('APICAST_MISSING_CONFIGURATION') or 'log'
 local request_logs = util.env_enabled('APICAST_REQUEST_LOGS')
 
 local function handle_missing_configuration(err)
@@ -26,26 +28,25 @@ end
 
 function _M.init()
   local config, err = configuration.init()
+  local init = config and provider.init(config)
 
-  if config then
-    provider.init(config)
-  else
+  if not init then
     handle_missing_configuration(err)
   end
 end
 
-function _M.init_worker()
-  local interval = tonumber(os.getenv('AUTO_UPDATE_INTERVAL'), 10)
+local function refresh_config()
+  local config, err = configuration.boot()
 
-  local function refresh()
-    local config, err = configuration.boot()
-
-    if config then
-      provider.init(config)
-    else
-      ngx.log(ngx.ERR, 'failed to refresh configuration: ', err)
-    end
+  if config then
+    provider.init(config)
+  else
+    ngx.log(ngx.ERR, 'failed to refresh configuration: ', err)
   end
+end
+
+function _M.init_worker()
+  local interval = tonumber(getenv('AUTO_UPDATE_INTERVAL'), 10) or 0
 
   local function schedule(...)
     local ok, err = ngx.timer.at(...)
@@ -63,7 +64,7 @@ function _M.init_worker()
 
     ngx.log(ngx.INFO, 'auto updating configuration')
 
-    local updated, err = pcall(refresh)
+    local updated, err = pcall(refresh_config)
 
     if updated then
       ngx.log(ngx.INFO, 'auto updating configuration finished successfuly')

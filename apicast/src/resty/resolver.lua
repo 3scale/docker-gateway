@@ -46,6 +46,7 @@ function _M.parse_nameservers(path)
     output = handle:read("*a")
     handle:close()
   else
+    ngx.log(ngx.ERR, 'resolver could not get nameservers: ', err)
     return nil, err
   end
 
@@ -59,7 +60,8 @@ function _M.parse_nameservers(path)
 end
 
 function _M.init_nameservers()
-  for _,nameserver in ipairs(_M.parse_nameservers()) do
+  local nameservers = _M.parse_nameservers() or {}
+  for _,nameserver in ipairs(nameservers) do
     ngx.log(ngx.INFO, 'adding ', concat(nameserver,':'), ' as default nameserver')
     insert(_M._nameservers, nameserver)
   end
@@ -157,7 +159,7 @@ function _M.get_servers(self, qname, opts)
       ngx.log(ngx.DEBUG, 'host is ip address: ', qname)
       answers = { new_answer(qname) }
     else
-      answers, err = dns:query(qname)
+      answers, err = dns:query(qname, { qtype = dns.TYPE_A })
     end
 
     cache:save(answers)
