@@ -298,7 +298,7 @@ Location: http://example.com/redirect\?code=\w+&state=\w+
   }
 
     set $backend_endpoint 'http://127.0.0.1:$TEST_NGINX_SERVER_PORT/backend';
-    set $backend_host '127.0.0.1:$TEST_NGINX_SERVER_PORT';
+    set $backend_host '127.0.0.1';
     set $backend_authentication_type 'provider_key';
     set $backend_authentication_value 'fookey';
 
