@@ -60,6 +60,7 @@ Location: http://example.com/redirect?error=invalid_client
   include $TEST_NGINX_APICAST_CONFIG;
 
   set $backend_endpoint 'http://127.0.0.1:$TEST_NGINX_SERVER_PORT/backend';
+  set $backend_host '127.0.0.1';
   set $service_id 42;
   set $backend_authentication_type 'provider_key';
   set $backend_authentication_value 'fookey';
@@ -67,7 +68,7 @@ Location: http://example.com/redirect?error=invalid_client
   location = /backend/transactions/oauth_authorize.xml {
     content_by_lua_block {
       expected = "provider_key=fookey&service_id=42&redirect_uri=otheruri&app_id=id"
-      if ngx.var.args == expected then
+      if ngx.var.args == expected and ngx.var.host == ngx.var.backend_host then
         ngx.exit(200)
       else
         ngx.exit(403)
@@ -103,12 +104,13 @@ Location: http://example.com/redirect\?scope=whatever&response_type=code&state=\
   include $TEST_NGINX_APICAST_CONFIG;
 
   set $backend_endpoint 'http://127.0.0.1:$TEST_NGINX_SERVER_PORT/backend';
+  set $backend_host '127.0.0.1';
   set $backend_authentication_type 'provider_key';
   set $backend_authentication_value 'fookey';
 
   location = /backend/transactions/oauth_authorize.xml {
     content_by_lua_block {
-      if ngx.var.args == "provider_key=fookey&service_id=42&redirect_uri=otheruri&app_id=id" then
+      if ngx.var.args == "provider_key=fookey&service_id=42&redirect_uri=otheruri&app_id=id" and ngx.var.host == ngx.var.backend_host then
         ngx.exit(200)
       else
         ngx.exit(403)
@@ -295,14 +297,15 @@ Location: http://example.com/redirect\?code=\w+&state=\w+
     }
   }
 
-  set $backend_endpoint 'http://127.0.0.1:$TEST_NGINX_SERVER_PORT/backend';
+    set $backend_endpoint 'http://127.0.0.1:$TEST_NGINX_SERVER_PORT/backend';
+    set $backend_host '127.0.0.1';
     set $backend_authentication_type 'provider_key';
     set $backend_authentication_value 'fookey';
 
     location = /backend/transactions/oauth_authorize.xml {
       content_by_lua_block {
         expected = "provider_key=fookey&service_id=42&app_key=client_secret&redirect_uri=redirect_uri&app_id=client_id"
-        if ngx.var.args == expected then
+        if ngx.var.args == expected and ngx.var.host == ngx.var.backend_host then
           ngx.exit(200)
         else
           ngx.log(ngx.ERR, 'expected: ' .. expected .. ' got: ' .. ngx.var.args)
@@ -323,7 +326,7 @@ GET /t
 --- error_code: 200
 
 
-=== TEST 1: calling with correct access_token proxies to the api upstream
+=== TEST 11: calling with correct access_token proxies to the api upstream
 --- http_config
   lua_package_path "$TEST_NGINX_LUA_PATH";
   include $TEST_NGINX_UPSTREAM_CONFIG;

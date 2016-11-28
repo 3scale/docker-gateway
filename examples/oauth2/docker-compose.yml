@@ -1,0 +1,20 @@
+version: '2'
+services:
+  gateway:
+    image: apicast-test:latest
+    depends_on:
+    - redis
+    - oauth
+    ports:
+      - "8080:8080"
+      - "8090:8090"
+    env_file: .env
+  redis:
+    image: redis
+  oauth:
+    build: ./auth-server
+    image: auth-server
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./auth-server:/auth-server
