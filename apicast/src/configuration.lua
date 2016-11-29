@@ -46,26 +46,19 @@ local function regexpify(path)
 end
 
 local function check_rule(req, rule, usage_t, matched_rules)
-  local param = {}
   local pattern = rule.regexpified_pattern
   local match = ngx.re.match(req.path, format("^%s", pattern), 'oj')
 
   if match and req.method == rule.method then
     local args = req.args
 
-    if rule.querystring_params(args) then -- may return an empty table
-      -- when no querystringparams
-      -- in the rule. it's fine
-      for i,p in ipairs(rule.parameters or {}) do
-        param[p] = match[i]
-      end
-
+    -- querystring_params returns 'true' if the querystring matches the rule, and 'false' otherwise
+    if rule.querystring_params(args) then
       insert(matched_rules, rule.pattern)
       usage_t[rule.system_name] = set_or_inc(usage_t, rule.system_name, rule.delta)
     end
   end
 end
-
 
 local function first_values(a)
   local r = {}
