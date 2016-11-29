@@ -15,7 +15,6 @@ local type = type
 local pairs = pairs
 local ipairs = ipairs
 local insert = table.insert
-local lower = string.lower
 
 local concat = table.concat
 local tostring = tostring
@@ -102,20 +101,6 @@ local function error_service_not_found(host)
   ngx.exit(ngx.status)
 end
 -- End Error Codes
-
--- Aux function to split a string
-
-local function first_values(a)
-  local r = {}
-  for k,v in pairs(a) do
-    if type(v) == "table" then
-      r[lower(k)] = v[1] -- TODO: use metatable to convert all access to lowercase
-    else
-      r[lower(k)] = v
-    end
-  end
-  return r
-end
 
 local function build_querystring_formatter(fmt)
   return function (query)
@@ -346,7 +331,6 @@ end
 function _M.access(service)
   local scheme, _, _, host, port, path = unpack(configuration.url(service.api_backend) or {})
   local backend_version = service.backend_version
-  local params = {}
   local usage
   local matched_patterns
 
@@ -362,7 +346,7 @@ function _M.access(service)
 
   local auth_params, cached_key = service:extract_credentials(method)
 
-  if not cached_key then 
+  if not cached_key then
     return error_no_credentials(service)
   end
 
