@@ -56,6 +56,8 @@ local function check_rule(req, rule, usage_t, matched_rules)
     if rule.querystring_params(args) then -- may return an empty table
       -- when no querystringparams
       -- in the rule. it's fine
+
+      -- XXX: this params table is not used anywhere else
       for i,p in ipairs(rule.parameters or {}) do
         param[p] = match[i]
       end
@@ -171,6 +173,9 @@ function _M.parse_service(service)
         local usage_t =  {}
         local matched_rules = {}
 
+        -- XXX: get_auth_params gets the params from the body for the not-GET calls, which probably 
+        -- doesn't make sense for the pattern matching, as we only can use queryparams in the 
+        -- mapping rules
         local args = get_auth_params(method)
 
         ngx.log(ngx.DEBUG, '[mapping] service ' .. config.id .. ' has ' .. #config.rules .. ' rules')
@@ -189,6 +194,12 @@ function _M.parse_service(service)
       --     app_id and app_key when backend version == 2
       --     access_token when backen version == oauth
       --     empty when backend version is unknown
+
+      -- XXX: This actually will not return the correct credentials, because it doesn't take into
+      -- account the credentials location and the names of the user_key and app_id (configured in
+      -- the service)
+      -- also, this replicates the behavior made in provider.access(), so I suggest to implement this
+      -- function properly (see comments in provider.access()), and reuse it in provider.access()
       extract_credentials = function(_, request)
         local auth_params = get_auth_params(split(request, " ")[1])
 

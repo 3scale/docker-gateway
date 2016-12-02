@@ -139,6 +139,8 @@ local build_query = build_querystring_formatter("%s=%s")
   Authorization logic
 ]]--
 
+-- XXX: configuration.lua has a method with the same name, but a bit different parameters and
+-- implementation
 local function get_auth_params(where, method)
   local params
   if where == "headers" then
@@ -374,6 +376,8 @@ function _M.access(service)
 
   ngx.var.secret_token = service.secret_token
 
+  -- XXX: this block can be extracted as a service function, this way each service can change the way 
+  -- the credentials are extracted, in case some customization is needed for that
   if backend_version == '1' then
     params.user_key = parameters[credentials.user_key]
     ngx.var.cached_key = concat({service.id, params.user_key}, ':')
@@ -382,9 +386,16 @@ function _M.access(service)
     params.app_id = parameters[credentials.app_id]
     params.app_key = parameters[credentials.app_key] -- or ""  -- Uncoment the first part if you want to allow not passing app_key
 
+    -- XXX: why do we need to include the app_key into the cached key? the app (and its access) are identified
+    -- just by the app_id
     ngx.var.cached_key = concat({service.id, params.app_id, params.app_key}, ':')
 
   elseif backend_version == 'oauth' then
+    -- XXX: for OAuth the access_token is usually passed in the Authorization header:
+    -- Authorization: Bearer <access_token> 
+    -- we need to cover this
+    -- XXX: we should be able to build $credentials (access_token=<access_token) the same way as for 
+    -- other modes to use it in 'oauth_authorize', so maybe no need for this variable
     ngx.var.access_token = parameters.access_token
     params.access_token = parameters.access_token
     ngx.var.cached_key = concat({service.id, params.access_token}, ':')
@@ -392,6 +403,8 @@ function _M.access(service)
     error('unknown backend version: ' .. tostring(backend_version))
   end
 
+  -- XXX: the name 'get_credentials' is confusing, because we are actually using it 
+  -- as a "boolean" function
   if not service:get_credentials(params) then
     return error_no_credentials(service)
   end
