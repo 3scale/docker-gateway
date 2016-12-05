@@ -46,26 +46,19 @@ local function regexpify(path)
 end
 
 local function check_rule(req, rule, usage_t, matched_rules)
-  local param = {}
   local pattern = rule.regexpified_pattern
   local match = ngx.re.match(req.path, format("^%s", pattern), 'oj')
 
   if match and req.method == rule.method then
     local args = req.args
 
-    if rule.querystring_params(args) then -- may return an empty table
-      -- when no querystringparams
-      -- in the rule. it's fine
-      for i,p in ipairs(rule.parameters or {}) do
-        param[p] = match[i]
-      end
-
+    -- querystring_params returns 'true' if the querystring matches the rule, and 'false' otherwise
+    if rule.querystring_params(args) then
       insert(matched_rules, rule.pattern)
       usage_t[rule.system_name] = set_or_inc(usage_t, rule.system_name, rule.delta)
     end
   end
 end
-
 
 local function first_values(a)
   local r = {}
@@ -83,6 +76,19 @@ local function get_auth_params(method)
   local params
 
   if method == "GET" then
+    params = ngx.req.get_uri_args()
+  else
+    ngx.req.read_body()
+    params = ngx.req.get_post_args()
+  end
+  return first_values(params)
+end
+
+local function get_auth_params_by_method(where, method)
+  local params
+  if where == "headers" then
+    params = ngx.req.get_headers()
+  elseif method == "GET" then
     params = ngx.req.get_uri_args()
   else
     ngx.req.read_body()
@@ -117,12 +123,19 @@ local function check_querystring_params(params, args)
 end
 
 function _M.parse_service(service)
+  local service_id = service.id or 'default'
   local backend_version = tostring(service.backend_version)
   local proxy = service.proxy or {}
   local backend = proxy.backend or {}
+  local credentials = {
+    location = proxy.credentials_location or 'query',
+    user_key = lower(proxy.auth_user_key or 'user_key'),
+    app_id = lower(proxy.auth_app_id or 'app_id'),
+    app_key = lower(proxy.auth_app_key or 'app_key') -- TODO: use App-Key if location is headers
+  }
 
   return {
-      id = service.id or 'default',
+      id = service_id,
       backend_version = backend_version,
       hosts = proxy.hosts or { 'localhost' }, -- TODO: verify localhost is good default
       api_backend = proxy.api_backend,
@@ -146,25 +159,7 @@ function _M.parse_service(service)
         endpoint = backend.endpoint,
         host = backend.host
       },
-      credentials = {
-        location = proxy.credentials_location or 'query',
-        user_key = lower(proxy.auth_user_key or 'user_key'),
-        app_id = lower(proxy.auth_app_id or 'app_id'),
-        app_key = lower(proxy.auth_app_key or 'app_key') -- TODO: use App-Key if location is headers
-      },
-      get_credentials = function(_, params)
-        local credentials
-        if backend_version == '1' then
-          credentials = params.user_key
-        elseif backend_version == '2' then
-          credentials = (params.app_id and params.app_key)
-        elseif backend_version == 'oauth' then
-          credentials = (params.access_token or params.authorization)
-        else
-          error("Unknown backend version: " .. tostring(backend_version))
-        end
-        return credentials
-      end,
+      credentials = credentials,
       extract_usage = function (config, request, _)
         local method, url = unpack(split(request," "))
         local path, _ = unpack(split(url, "?"))
@@ -184,25 +179,36 @@ function _M.parse_service(service)
       end,
       -- Given a request, extracts from its params the credentials of the
       -- service according to its backend version.
-      -- This method returns a table that contains:
-      --     user_key when backend version == 1
-      --     app_id and app_key when backend version == 2
-      --     access_token when backen version == oauth
-      --     empty when backend version is unknown
-      extract_credentials = function(_, request)
-        local auth_params = get_auth_params(split(request, " ")[1])
-
-        local result = {}
+      -- This method returns:
+      --   1) auth_params: a table that contains:
+      --      - user_key when backend version == 1,
+      --      - app_id and app_key when backend version == 2,
+      --      - access_token when backen version == oauth,
+      --   2) cached_key: returns key in format "<service_id>:<credentials>" if valid credentials are present, where:
+      --      - <service_id> is the ID of the service
+      --      - <credentials> is the value of user_key, app_id:app_key or access_token, depending on the authentication mode
+      --      if no valid credentials are found, the returned cached_key is nil
+      extract_credentials = function(_, method)
+        local app_credentials
+        local auth_params = {}
+        local params = get_auth_params_by_method(credentials.location, method)
         if backend_version == '1' then
-          result.user_key = auth_params.user_key
+          auth_params.user_key = params[credentials.user_key]
+          app_credentials = auth_params.user_key
         elseif backend_version == '2' then
-          result.app_id = auth_params.app_id
-          result.app_key = auth_params.app_key
+          auth_params.app_id = params[credentials.app_id]
+          auth_params.app_key = params[credentials.app_key] -- or ""  -- Uncoment the first part if you want to allow not passing app_key
+          if auth_params.app_id and auth_params.app_key then
+            app_credentials = concat({auth_params.app_id, auth_params.app_key}, ':')
+          end
         elseif backend_version == 'oauth' then
-          result.access_token = auth_params.access_token
+          auth_params.access_token = params.access_token
+          app_credentials = auth_params.access_token
+        else
+          error("Unknown backend version: " .. tostring(backend_version))
         end
-
-        return result
+        local cached_key = app_credentials and concat({service_id, app_credentials or ''}, ':') or nil
+        return auth_params, cached_key
       end,
       rules = map(function(proxy_rule)
         return {

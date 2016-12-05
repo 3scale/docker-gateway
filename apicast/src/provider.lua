@@ -15,7 +15,6 @@ local type = type
 local pairs = pairs
 local ipairs = ipairs
 local insert = table.insert
-local lower = string.lower
 
 local concat = table.concat
 local tostring = tostring
@@ -103,20 +102,6 @@ local function error_service_not_found(host)
 end
 -- End Error Codes
 
--- Aux function to split a string
-
-local function first_values(a)
-  local r = {}
-  for k,v in pairs(a) do
-    if type(v) == "table" then
-      r[lower(k)] = v[1] -- TODO: use metatable to convert all access to lowercase
-    else
-      r[lower(k)] = v
-    end
-  end
-  return r
-end
-
 local function build_querystring_formatter(fmt)
   return function (query)
     local function kvmap(f, t)
@@ -138,19 +123,6 @@ local build_query = build_querystring_formatter("%s=%s")
 --[[
   Authorization logic
 ]]--
-
-local function get_auth_params(where, method)
-  local params
-  if where == "headers" then
-    params = ngx.req.get_headers()
-  elseif method == "GET" then
-    params = ngx.req.get_uri_args()
-  else
-    ngx.req.read_body()
-    params = ngx.req.get_post_args()
-  end
-  return first_values(params)
-end
 
 local function get_debug_value()
   return ngx.var.http_x_3scale_debug == _M.configuration.debug_header
@@ -359,7 +331,6 @@ end
 function _M.access(service)
   local scheme, _, _, host, port, path = unpack(configuration.url(service.api_backend) or {})
   local backend_version = service.backend_version
-  local params = {}
   local usage
   local matched_patterns
 
@@ -368,38 +339,24 @@ function _M.access(service)
     ngx.exit(403)
   end
 
-  local request = ngx.var.request
-  local credentials = service.credentials
-  local parameters = get_auth_params(credentials.location, split(request, " ")[1] )
-
   ngx.var.secret_token = service.secret_token
 
-  if backend_version == '1' then
-    params.user_key = parameters[credentials.user_key]
-    ngx.var.cached_key = concat({service.id, params.user_key}, ':')
+  local request = ngx.var.request
+  local method =  split(request, " ")[1]
 
-  elseif backend_version == '2' then
-    params.app_id = parameters[credentials.app_id]
-    params.app_key = parameters[credentials.app_key] -- or ""  -- Uncoment the first part if you want to allow not passing app_key
+  local auth_params, cached_key = service:extract_credentials(method)
 
-    ngx.var.cached_key = concat({service.id, params.app_id, params.app_key}, ':')
-
-  elseif backend_version == 'oauth' then
-    ngx.var.access_token = parameters.access_token
-    params.access_token = parameters.access_token
-    ngx.var.cached_key = concat({service.id, params.access_token}, ':')
-  else
-    error('unknown backend version: ' .. tostring(backend_version))
-  end
-
-  if not service:get_credentials(params) then
+  if not cached_key then
     return error_no_credentials(service)
   end
 
   usage, matched_patterns = service:extract_usage(request)
 
   ngx.log(ngx.INFO, inspect{usage, matched_patterns})
-  ngx.var.credentials = build_query(params)
+  
+  ngx.var.access_token = auth_params.access_token
+  ngx.var.cached_key = cached_key
+  ngx.var.credentials = build_query(auth_params)
   ngx.var.usage = build_querystring(usage)
 
   -- WHAT TO DO IF NO USAGE CAN BE DERIVED FROM THE REQUEST.
