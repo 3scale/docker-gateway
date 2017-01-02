@@ -15,11 +15,7 @@ Once that is done, we will see an additional field in the Integration Screen ( *
 
 All other fields on the Integration Screen should be configured as per the "APIcast Overview" document. Since we will be running all components locally for this example, my "Public Base URL" where APIcast is running will be `http://localhost:8080`.
 
-(Screenshot)
-
 In order to show a sample integration with an Authorization Server we will use a very simple ruby app to act as an Authorization Server. This app will run on localhost port 3000 with the authorization endpoint at `http://localhost:3000/auth/login`.
-
-(Screenshot)
 
 The sample code for this app can be found in the `apicast/examples` directory under `oauth2/auth-server`. There we can also find a `docker-compose.yml` file to allow us to deploy a test environment to test our API Integration and OAuth2 Authorization Code Flow. 
 
@@ -42,8 +38,6 @@ Our Authorization Server should also be up and running and ready to receive requ
 In order to test that our API is integrated correctly we will act as a Developer would and use a sample client to request an access token from APIcast. This is another simple ruby app that will act as a client (as per the client role defined in [RFC6749#1.1](https://tools.ietf.org/html/rfc6749#section-1.1).) The sample code for the client app can be found in the `apicast/examples` folder under `oauth2/client`.
 
 We will be running this application on `localhost:3001`. The application has a `/callback` endpoint defined to receive and process any authorization codes and access tokens from APIcast. As such, this location will need to be set up on our 3scale account, under a test application, as the *Redirect URL*.
-
-(Screenshot)
 
 ### Requesting an Authorization Code
 
