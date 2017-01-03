@@ -1,9 +1,3 @@
--- provider_key: <%= provider_key %> --
--- -*- mode: lua; -*-
--- Generated on: <%= Time.now %> --
--- Version:
--- Error Messages per service
-
 local cjson = require 'cjson'
 local custom_config = os.getenv('APICAST_CUSTOM_CONFIG')
 local configuration = require 'configuration'
@@ -105,8 +99,6 @@ local function error_service_not_found(host)
 end
 -- End Error Codes
 
--- Aux function to split a string
-
 local function first_values(a)
   local r = {}
   for k,v in pairs(a) do
@@ -135,11 +127,6 @@ end
 
 local build_querystring = build_querystring_formatter("usage[%s]=%s")
 local build_query = build_querystring_formatter("%s=%s")
-
-
---[[
-  Authorization logic
-]]--
 
 local function get_auth_params(where, method)
   local params
@@ -230,7 +217,6 @@ local function oauth_authrep(service)
   if is_known ~= 200 then
     local res = http.get("/threescale_oauth_authrep")
 
-    -- IN HERE YOU DEFINE THE ERROR IF CREDENTIALS ARE PASSED, BUT THEY ARE NOT VALID
     if res.status ~= 200   then
       access_tokens:delete(ngx.var.cached_key)
       ngx.status = res.status
@@ -502,5 +488,3 @@ if custom_config then
 end
 
 return _M
-
--- END OF SCRIPT
