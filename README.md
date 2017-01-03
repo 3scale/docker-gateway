@@ -80,7 +80,7 @@ Run container in background and print container ID. When it is not specified, th
 
 See the Docker [commands reference](https://docs.docker.com/engine/reference/commandline/) for more information on available options.
 
-### Auto updating (not working yet)
+### Auto updating
 
 The gateway is able of checking the configuration from time to time and self update, you can enable this by adjusting the AUTO_UPDATE_INTERVAL (seconds) to some value greater than 60:
 
