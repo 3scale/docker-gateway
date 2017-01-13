@@ -7,6 +7,7 @@ local inspect = require 'inspect'
 local oauth = require 'oauth'
 local util = require 'util'
 local resty_url = require 'resty.url'
+local hawkular = require 'resty.hawkular'
 
 local type = type
 local pairs = pairs
@@ -159,7 +160,7 @@ else
 end
 
 local http = {
-  get = function(url)
+  get = hawkular.wrap('backend', function(url)
     ngx.log(ngx.INFO, '[http] requesting ' .. url)
     local backend_upstream = ngx.ctx.backend_upstream
     local previous_real_url = ngx.var.real_url
@@ -177,7 +178,7 @@ local http = {
     ngx.var.real_url = ''
 
     return res
-  end
+  end)
 }
 
 local function oauth_authrep(service)

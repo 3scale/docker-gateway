@@ -2,6 +2,7 @@ local mock_loader = require 'configuration_loader.mock'
 local file_loader = require 'configuration_loader.file'
 local remote_loader_v1 = require 'configuration_loader.remote_v1'
 local util = require 'util'
+local hawkular = require 'resty.hawkular'
 
 local tostring = tostring
 local error = error
@@ -11,9 +12,9 @@ local _M = {
   _VERSION = '0.1'
 }
 
-function _M.boot(host)
+_M.boot = hawkular.wrap('configuration', function(host)
   return mock_loader.call() or file_loader.call() or remote_loader_v1.call(host) or error('missing configuration')
-end
+end)
 
 _M.save = mock_loader.save
 
