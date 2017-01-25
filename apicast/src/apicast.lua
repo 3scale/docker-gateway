@@ -145,6 +145,10 @@ _M.log = function()
   local port = env.get('STATSD_PORT')
   local statsd = resty_statsd.new(host, port, 'apicast')
 
+  if not statsd then
+    return
+  end
+
   statsd:time('backend', ngx.var.post_action_impact * 1000)
   statsd:time('request', ngx.var.request_time * 1000)
   statsd:time('upstream', ngx.var.upstream_response_time * 1000)

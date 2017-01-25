@@ -5,15 +5,8 @@ local mt      = {__index = Methods }
 
 local insert = table.insert
 local concat = table.concat
+local setmetatable = setmetatable
 local queue_name = 'queue'
-
-local function get_dict(self)
-  local dict = ngx.shared[self.dict]
-  if not dict then
-    error('The dictionary ' .. self.dict .. ' was not found. Please create it by adding `lua_shared_dict ' .. self.dict .. ' 20k;` to the ngx config file')
-  end
-  return dict
-end
 
 function Methods:time(bucket, time)
   self:register(bucket, time, "ms")
@@ -36,7 +29,7 @@ function Methods:incr(bucket, n)
 end
 
 function Methods:register(bucket, amount, suffix)
-  local dict = get_dict(self)
+  local dict = self.shdict
 
   if self.namespace then bucket = self.namespace .. '.' .. bucket end
 
@@ -44,16 +37,15 @@ function Methods:register(bucket, amount, suffix)
 end
 
 function Methods:flush(force)
-  local dict = get_dict(self)
+  local dict = self.shdict
   local buffer_size = self.buffer_size
   local batch_size = self.batch_size
   local buffer = {}
-  local err
   local llen = dict:llen(queue_name) or 0
   local value = llen > buffer_size or force
 
   while value and #buffer < batch_size do
-    value, err = dict:lpop(queue_name)
+    value = dict:lpop(queue_name)
     insert(buffer,value)
   end
 
@@ -73,11 +65,17 @@ function Methods:flush(force)
 end
 
 statsd.new = function(host, port, namespace, dict, buffer_size)
+  local shdict = ngx.shared[(dict or 'statsd')]
+
+  if not shdict then
+    return nil, 'invalid shared dictionary'
+  end
+
   return setmetatable({
     host        = host or '127.0.0.1',
     port        = port or 8125,
     namespace   = namespace, -- or nil
-    dict        = dict or 'statsd',
+    shdict      = shdict,
     buffer_size = buffer_size or 20,
     batch_size  = buffer_size or 100
   }, mt)
