@@ -1,79 +1,34 @@
-local module = require 'module'
+local env = require 'resty.env'
+
+local function cleanup()
+  package.loaded['module'] = nil
+end
 
 describe('module', function()
-  before_each(function() module.flush() end)
+  after_each(cleanup)
+  before_each(cleanup)
 
-  describe('.new', function()
-    it ('accepts name', function()
-      local m = module.new('foobar')
-
-      assert.equal('foobar', m.name)
-    end)
-  end)
-
-  describe('.call', function()
-    after_each(function() module.flush() end)
-
-    it('returns', function()
-      package.loaded['foobar'] = { phase = function() return 'foobar' end }
-
-      local m = module.new('foobar')
-
-      local ok, err = m:call('phase')
-
-      assert.truthy(ok)
-      assert.falsy(err)
-    end)
-
-  end)
-
-  describe(':require', function()
-    it('returns a module', function()
-      local foobar = { _VERSION = '1.1', _NAME = 'Foo Bar' }
+  describe('require', function()
+    it ('takes module name from env', function()
+      env.set('APICAST_MODULE', 'foobar')
+      local foobar = { 'foobar' }
       package.loaded['foobar'] = foobar
 
-      local m = module.new('foobar')
-
-      local mod, err = m:require()
-
-      assert.equal(mod, foobar)
-      assert.falsy(err)
-    end)
-  end)
-
-  describe('.load', function()
-    local new = { rewrite = function() end }
-    local foobar = { new = function() return new end, init = function() end }
-
-    it('returns module instance', function()
-      package.loaded['foobar'] = foobar
-
-      local f, mod = module.load('foobar', 'rewrite')
-
-      assert(f, mod)
-      assert.equal(new, mod)
-      assert.equal(new.rewrite, f)
+      assert.equal(foobar, require('module'))
     end)
 
-    it('caches the instance', function()
-      package.loaded['foobar'] = foobar
-      stub(foobar, 'new').returns(new)
+    it('calls .new on the module', function()
+      env.set('APICAST_MODULE', 'foobar')
+      local foobar = { 'foobar' }
+      package.loaded['foobar'] = { new = function() return foobar end }
 
-      local _, mod = assert(module.load('foobar', 'rewrite'))
-      assert(module.load('foobar', 'rewrite'))
-
-      assert.spy(foobar.new).was.called(1)
-      assert.equal(mod, ngx.ctx.module)
+      assert.equal(foobar, require('module'))
     end)
 
-    it('does not try module instance for init', function()
-      package.loaded['foobar'] = foobar
+    it('defaults to apicast', function()
+      local apicast = require('apicast')
 
-      local f, mod = module.load('foobar', 'init')
-
-      assert(f, mod)
-      assert.falsy(mod)
-      assert.equal(foobar.init, f)
+      assert.same(apicast.new(), require('module'))
     end)
   end)
 end)
