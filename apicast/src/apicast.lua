@@ -8,6 +8,7 @@ local setmetatable = setmetatable
 local env = require('resty.env')
 local reload_config = env.enabled('APICAST_RELOAD_CONFIG')
 local user_agent = require('user_agent')
+local resty_statsd = require('resty.statsd')
 
 local _M = {
   _VERSION = '3.0.0-pre',
@@ -139,6 +140,22 @@ end
 
 _M.balancer = balancer.call
 
-_M.log = function() end
+_M.log = function()
+  local host = env.get('STATSD_HOST')
+  local port = env.get('STATSD_PORT')
+  local statsd = resty_statsd.new(host, port, 'apicast')
+
+  if not statsd then
+    return
+  end
+
+  statsd:time('backend', ngx.var.post_action_impact * 1000)
+  statsd:time('request', ngx.var.request_time * 1000)
+  statsd:time('upstream', ngx.var.upstream_response_time * 1000)
+  statsd:set('connection', ngx.var.hostname .. '-' .. ngx.var.connection)
+  statsd:set('upstream_addr', ngx.var.upstream_addr)
+
+  ngx.timer.at(0, function() statsd:flush() end)
+end
 
 return _M
