@@ -30,14 +30,11 @@ Vagrant.configure("2") do |config|
   # backing providers for Vagrant. These expose provider-specific options.
   # Example for VirtualBox:
   #
-  # config.vm.provider "virtualbox" do |vb|
-  #   # Display the VirtualBox GUI when booting the machine
-  #   vb.gui = true
-  #
-  #   # Customize the amount of memory on the VM:
-  #   vb.memory = "1024"
-  # end
-  #
+   config.vm.provider "virtualbox" do |vb|
+     vb.memory = "1024"
+     vb.cpus = 2
+   end
+
   # View the documentation for the provider you are using for more
   # information on available options.
 
@@ -59,5 +56,6 @@ Vagrant.configure("2") do |config|
      ln -sf /usr/local/stapxx/samples/*.sxx /usr/local/bin/
      ln -sf /usr/local/openresty-systemtap-toolkit/fix-lua-bt /usr/local/bin/
      usermod -a -G stapusr,stapdev vagrant
+     echo -e 'vagrant\t\t\t-\tnofile\t\t1000000' > /etc/security/limits.d/90-nofile.conf
   SHELL
 end
