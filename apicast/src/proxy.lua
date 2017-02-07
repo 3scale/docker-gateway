@@ -373,9 +373,12 @@ function _M:access(service)
 
   usage, matched_patterns = service:extract_usage(request)
 
-  ngx.log(ngx.INFO, inspect{usage, matched_patterns})
-  ngx.var.credentials = build_query(credentials)
-  ngx.var.usage = build_querystring(usage)
+  usage = build_querystring(usage)
+  credentials = build_query(credentials)
+
+  ngx.var.credentials = credentials
+  ngx.var.usage = usage
+  ngx.log(ngx.INFO, 'usage: ', usage, ' credentials: ', credentials)
 
   -- WHAT TO DO IF NO USAGE CAN BE DERIVED FROM THE REQUEST.
   if ngx.var.usage == '' then
