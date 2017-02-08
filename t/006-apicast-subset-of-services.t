@@ -10,7 +10,7 @@ $ENV{TEST_NGINX_BACKEND_CONFIG} = "$apicast/conf.d/backend.conf";
 $ENV{TEST_NGINX_APICAST_CONFIG} = "$apicast/conf.d/apicast.conf";
 
 log_level('debug');
-repeat_each(1);
+repeat_each(2);
 no_root_location();
 run_tests();
 

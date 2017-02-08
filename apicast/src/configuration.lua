@@ -121,7 +121,7 @@ function _M.parse_service(service)
   local _, _, _, backend_host_override = unpack(resty_url.split(backend_endpoint_override) or {})
 
   return Service.new({
-      id = service.id or 'default',
+      id = tostring(service.id or 'default'),
       backend_version = backend_version,
       hosts = proxy.hosts or { 'localhost' }, -- TODO: verify localhost is good default
       api_backend = proxy.api_backend,
@@ -217,8 +217,11 @@ function _M.filter_services(services, subset)
   local s = {}
 
   for i = 1, #services do
-    if subset[services[i].id] then
-      insert(s, services[i])
+    local service = services[i]
+    if subset[service.id] then
+      insert(s, service)
+    else
+      ngx.log(ngx.WARN, 'filtering out service ', service.id)
     end
   end
 

@@ -9,7 +9,7 @@ $ENV{TEST_NGINX_BACKEND_CONFIG} = "$apicast/conf.d/backend.conf";
 $ENV{TEST_NGINX_APICAST_CONFIG} = "$apicast/conf.d/apicast.conf";
 
 log_level('debug');
-repeat_each(1);
+repeat_each(2);
 run_tests();
 
 __DATA__
@@ -25,6 +25,7 @@ __DATA__
       path = package.path
       require('proxy')
       assert(path == package.path)
+      package.loaded.proxy = nil
       ngx.exit(ngx.HTTP_OK)
     }
   }
