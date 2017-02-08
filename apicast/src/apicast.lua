@@ -9,6 +9,8 @@ local env = require('resty.env')
 local reload_config = env.enabled('APICAST_RELOAD_CONFIG')
 local user_agent = require('user_agent')
 
+local noop = function() end
+
 local _M = {
   _VERSION = '3.0.0-pre',
   _NAME = 'APIcast'
@@ -107,8 +109,7 @@ function _M:rewrite()
     p:configure(config)
   end
 
-  p.set_service()
-  p.set_upstream()
+  p.set_upstream(p.set_service(host))
 end
 
 function _M.post_action()
@@ -121,24 +122,28 @@ function _M:access()
   return fun()
 end
 
-function _M.body_filter()
-  if not request_logs then return end
+if request_logs then
+  ngx.log(ngx.WARN, 'ENABLED REQUEST LOGS')
 
-  ngx.ctx.buffered = (ngx.ctx.buffered or "") .. string.sub(ngx.arg[1], 1, 1000)
+  function _M.body_filter()
+    ngx.ctx.buffered = (ngx.ctx.buffered or "") .. string.sub(ngx.arg[1], 1, 1000)
 
-  if ngx.arg[2] then
-    ngx.var.resp_body = ngx.ctx.buffered
+    if ngx.arg[2] then
+      ngx.var.resp_body = ngx.ctx.buffered
+    end
   end
-end
 
-function _M.header_filter()
-  if not request_logs then return end
+  function _M.header_filter()
 
-  ngx.var.resp_headers = require('cjson').encode(ngx.resp.get_headers())
+    ngx.var.resp_headers = require('cjson').encode(ngx.resp.get_headers())
+  end
+else
+  _M.body_filter = noop
+  _M.header_filter = noop
 end
 
 _M.balancer = balancer.call
 
-_M.log = function() end
+_M.log = noop
 
 return _M
