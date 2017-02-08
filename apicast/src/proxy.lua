@@ -266,7 +266,7 @@ function _M.set_service(host)
   end
 
   ngx.ctx.service = service
-  ngx.var.service_id = tostring(service.id)
+  ngx.var.service_id = service.id
 
   return service
 end
