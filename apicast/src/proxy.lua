@@ -7,12 +7,15 @@ local configuration_store = require 'configuration_store'
 local inspect = require 'inspect'
 local oauth = require 'oauth'
 local resty_url = require 'resty.url'
+local url_rewrite = env.enabled('APICAST_URL_REWRITE')
 
 local type = type
 local pairs = pairs
 local ipairs = ipairs
 local next = next
 local insert = table.insert
+local sub = string.sub
+local find = string.find
 
 local concat = table.concat
 local tostring = tostring
@@ -166,7 +169,7 @@ local function find_service_cascade(self, host)
     end
   end
 
-  return find_service_strict(host)
+  return find_service_strict(self, host)
 end
 
 if configuration_store.path_routing then
@@ -258,6 +261,18 @@ function _M.authorize(backend_version, service)
   end
 end
 
+local function rewrite_url(uri)
+  local i = find(uri, '/', 2)
+  
+  if i ~= nil and i > 0 then
+    path = sub(uri, i)
+  else
+    local j = find(uri, '?')
+    path = j ~= nil and j > 0 and sub(uri, j) or '/'
+  end
+  return path
+end
+
 function _M.set_service(host)
   host = host or ngx.var.host
   local service = _M:find_service(host)
@@ -279,6 +294,12 @@ function _M.get_upstream(service)
   if not port then
     port = resty_url.default_port(scheme)
   end
+  
+  if url_rewrite then
+    request_uri = ngx.var.request_uri
+    path = rewrite_url(request_uri)
+  end
+  
 
   return {
     server = host,
