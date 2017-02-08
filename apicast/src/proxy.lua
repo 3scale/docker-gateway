@@ -4,7 +4,6 @@ local custom_config = env.get('APICAST_CUSTOM_CONFIG')
 local configuration_parser = require 'configuration_parser'
 local configuration_store = require 'configuration_store'
 
-local inspect = require 'inspect'
 local oauth = require 'oauth'
 local resty_url = require 'resty.url'
 

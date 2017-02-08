@@ -1,5 +1,4 @@
 local setmetatable = setmetatable
-local ipairs = ipairs
 local next = next
 local open = io.open
 local gmatch = string.gmatch

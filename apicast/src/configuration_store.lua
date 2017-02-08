@@ -1,7 +1,6 @@
 local setmetatable = setmetatable
 local ipairs = ipairs
 local pairs = pairs
-local tostring = tostring
 local insert = table.insert
 local concat = table.concat
 local next = next

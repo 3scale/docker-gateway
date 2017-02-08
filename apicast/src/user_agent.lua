@@ -1,6 +1,5 @@
 local ffi = require 'ffi'
 local env = require 'resty.env'
-local type = type
 
 local setmetatable = setmetatable
 
@@ -31,7 +30,7 @@ function _M.platform()
   end
 
   local version = module._VERSION
-  local name = module._NAME or m.name
+  local name = module._NAME
 
   if not name then
     return nil, 'missing module name'

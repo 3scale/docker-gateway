@@ -2,15 +2,10 @@ local resty_lrucache = require "resty.lrucache"
 local inspect = require 'inspect'
 
 local setmetatable = setmetatable
-local ipairs = ipairs
 local pairs = pairs
 local min = math.min
 local insert = table.insert
 local concat = table.concat
-
-local co_yield = coroutine.yield
-local co_create = coroutine.create
-local co_resume = coroutine.resume
 
 local lrucache = resty_lrucache.new(1000)
 
