@@ -36,7 +36,28 @@ function _M.all(self)
   return services
 end
 
-function _M.find(self, host)
+function _M.find_by_id(self, service_id)
+  local all = self.services
+
+  if not all then
+    return nil, 'not initialized'
+  end
+
+  if service_id then
+    return all[service_id]
+  end
+  return nil
+end
+
+function _M.find_by_host(self, host)
+  local hosts = self.hosts
+  if not hosts then
+    return nil, 'not initialized'
+  end
+  return hosts[host] or { }
+end
+
+function _M.find(self, host_or_id)
   local hosts = self.hosts
   local all = self.services
 
@@ -44,13 +65,12 @@ function _M.find(self, host)
     return nil, 'not initialized'
   end
 
-  local exact_match = all[host]
-
+  local exact_match = all[host_or_id]
   if exact_match then
     return { exact_match }
   end
 
-  return hosts[host] or { }
+  return hosts[host_or_id] or { }
 end
 
 function _M.store(self, config)

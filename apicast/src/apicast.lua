@@ -118,7 +118,7 @@ end
 
 function _M:access()
   local p = self.proxy
-  local fun = p:call()
+  local fun = p:call() -- proxy:access() or oauth handler
   return fun()
 end
 

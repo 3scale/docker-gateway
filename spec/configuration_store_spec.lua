@@ -33,6 +33,47 @@ describe('Configuration Store', function()
     end)
   end)
 
+  describe('.find_by_id', function()
+    it('finds service by id', function()
+      local store = configuration.new()
+      local service = { 'service' }
+
+      store.services['42'] = service
+
+      assert.same({ service }, store:find('42'))
+    end)
+    it('it does not seach by host', function()
+      local store = configuration.new()
+      local service =  { 'service' }
+
+      store.services['42'] = service
+      store.hosts['example.com'] = { ['42'] = service }
+
+      assert.is_nil(store:find_by_id('example.com'))
+    end)
+  end)
+
+  describe('.find_by_host', function()
+    it('returns stored services by host', function()
+      local store = configuration.new()
+      local service =  { 'service' }
+
+      store.hosts['example.com'] = { ['42'] = service }
+
+      assert.same({ ['42'] = service }, store:find('example.com'))
+    end)
+
+    it('does not search by id', function()
+      local store = configuration.new()
+      local service = { 'service' }
+
+      store.hosts['example.com'] = { ['42'] = service }
+      store.services['42'] = service
+
+      assert.same({}, store:find_by_host('42'))
+    end)
+  end)
+
   describe('.reset', function()
     local store
 

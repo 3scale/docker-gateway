@@ -70,7 +70,7 @@ function _M:configured(host)
   local configuration = self.configuration
   if not configuration or not configuration.find then return nil, 'not initialized' end
 
-  local hosts = configuration:find(host)
+  local hosts = configuration:find_by_host(host)
 
   return next(hosts) and true
 end
@@ -135,7 +135,7 @@ local function get_debug_value(service)
 end
 
 local function find_service_strict(self, host)
-  for _,service in pairs(self.configuration:find(host)) do
+  for _,service in pairs(self.configuration:find_by_host(host)) do
     if service.id == host then
       return service
     end
@@ -151,7 +151,7 @@ end
 
 local function find_service_cascade(self, host)
   local request = ngx.var.request
-  for _,service in pairs(self.configuration:find(host)) do
+  for _,service in pairs(self.configuration:find_by_host(host)) do
     for _,_host in ipairs(service.hosts or {}) do
       if _host == host then
         local name = service.system_name or service.id
@@ -270,6 +270,8 @@ function _M.set_service(host)
   end
 
   ngx.ctx.service = service
+  ngx.var.service_id = tostring(service.id)
+
   return service
 end
 
@@ -289,8 +291,8 @@ function _M.get_upstream(service)
   }
 end
 
-function _M.set_upstream()
-  local upstream = _M.get_upstream()
+function _M.set_upstream(service)
+  local upstream = _M.get_upstream(service)
 
   ngx.ctx.dns = dns_resolver:new{ nameservers = resty_resolver.nameservers() }
   ngx.ctx.resolver = resty_resolver.new(ngx.ctx.dns)
@@ -300,20 +302,12 @@ function _M.set_upstream()
   ngx.req.set_header('Host', upstream.host or ngx.var.host)
 end
 
-function _M:call(host)
-  host = host or ngx.var.host
-
-  if not ngx.ctx.service then
-    self.set_service(host)
-  end
-
-  local service = ngx.ctx.service
+function _M:set_backend_upstream(service)
+  service = service or ngx.ctx.service
 
   ngx.var.backend_authentication_type = service.backend_authentication.type
   ngx.var.backend_authentication_value = service.backend_authentication.value
   ngx.var.backend_host = service.backend.host or ngx.var.backend_host
-
-  ngx.var.service_id = service.id
 
   ngx.var.version = self.configuration.version
 
@@ -340,13 +334,32 @@ function _M:call(host)
     end
   end
 
+end
+
+function _M:call(host)
+  host = host or ngx.var.host
+  local service = ngx.ctx.service or self.set_service(host)
+
+  self:set_backend_upstream(service)
+
+  if service.backend_version == 'oauth' then
+    local f, params = oauth.call()
+
+    if f then
+      ngx.log(ngx.DEBUG, 'apicast oauth flow')
+      return function() return f(params) end
+    end
+  end
+
   return function()
     -- call access phase
     return self:access(service)
   end
+
 end
 
 function _M:access(service)
+
   local backend_version = service.backend_version
   local usage
   local matched_patterns
@@ -422,16 +435,16 @@ local function request_logs_encoded_data()
   return ngx.escape_uri(ngx.encode_args(request_log))
 end
 
-function _M.post_action()
-  local p = _M.new()
-  ngx.ctx.proxy = p
-  p:call(ngx.var.service_id) -- initialize resolver and get backend upstream peers
+function _M:post_action()
 
   local cached_key = ngx.var.cached_key
-  local service = ngx.ctx.service
 
   if cached_key and cached_key ~= "null" then
     ngx.log(ngx.INFO, '[async] reporting to backend asynchronously, cached_key: ', cached_key)
+
+    local service_id = tonumber(ngx.var.service_id, 10)
+    local service = ngx.ctx.service or self.configuration:find_by_id(service_id)
+    self:set_backend_upstream(service)
 
     local auth_uri = service.backend_version == 'oauth' and 'threescale_oauth_authrep' or 'threescale_authrep'
     local res = http.get("/".. auth_uri .."?log=" .. request_logs_encoded_data())

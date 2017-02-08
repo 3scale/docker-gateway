@@ -50,6 +50,7 @@ The message is configurable and status also.
     require('configuration_loader').save({
       services = {
         {
+          id = 42,
           backend_version = 1,
           proxy = {
             error_no_match = 'no mapping rules!',
