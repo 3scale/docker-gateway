@@ -45,7 +45,7 @@ function _M.find(self, host)
     return nil, 'not initialized'
   end
 
-  local exact_match = all[tostring(host)]
+  local exact_match = all[host]
 
   if exact_match then
     return { exact_match }
@@ -83,7 +83,7 @@ function _M.add(self, service)
     return nil, 'not initialized'
   end
 
-  local id = tostring(service.id)
+  local id = service.id
 
   for _,host in ipairs(service.hosts) do
     local index = hosts[host] or {}
