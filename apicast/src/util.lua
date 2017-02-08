@@ -57,7 +57,7 @@ function _M.system(command)
   -- os.execute returns exit code as first return value on OSX
   -- even though the documentation says otherwise (true/false)
   if success == 0 or success == true then
-    if len(tmperr) then
+    if len(tmperr) > 0 then
       ngx.log(ngx.WARN, 'os execute stderr: \n', tmperr)
     end
 
