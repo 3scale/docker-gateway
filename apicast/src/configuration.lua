@@ -194,11 +194,7 @@ local function to_hash(table)
   local t = {}
 
   for i = 1, #table do
-    local n = tonumber(table[i])
-
-    if n then
-      t[n] = true
-    end
+    t[table[i]] = true
   end
 
   return t
