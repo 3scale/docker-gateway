@@ -15,6 +15,7 @@ local lower = string.lower
 local insert = table.insert
 local concat = table.concat
 local setmetatable = setmetatable
+local re_match = ngx.re.match
 
 local inspect = require 'inspect'
 local re = require 'ngx.re'
@@ -41,7 +42,7 @@ end
 
 local function check_rule(req, rule, usage_t, matched_rules)
   local pattern = rule.regexpified_pattern
-  local match = ngx.re.match(req.path, format("^%s", pattern), 'oj')
+  local match = re_match(req.path, format("^%s", pattern), 'oj')
 
   if match and req.method == rule.method then
     local args = req.args
@@ -89,7 +90,7 @@ local regex_variable = '\\{[-\\w_]+\\}'
 
 local function check_querystring_params(params, args)
   for param, expected in pairs(params) do
-    local m, err = ngx.re.match(expected, regex_variable, 'oj')
+    local m, err = re_match(expected, regex_variable, 'oj')
     local value = args[param]
 
     if m then

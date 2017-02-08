@@ -8,7 +8,7 @@ local insert = table.insert
 local getenv = os.getenv
 local concat = table.concat
 local io_type = io.type
-
+local re_match = ngx.re.match
 local semaphore = require "ngx.semaphore"
 local resolver_cache = require 'resty.resolver.cache'
 
@@ -141,7 +141,7 @@ local function new_answer(address, port)
 end
 
 local function is_ip(address)
-  local m, err = ngx.re.match(address, '^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$', 'oj')
+  local m, err = re_match(address, '^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$', 'oj')
 
   if m then
     return next(m)

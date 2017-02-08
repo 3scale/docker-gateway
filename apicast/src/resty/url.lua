@@ -1,6 +1,5 @@
 local tostring = tostring
-local match = ngx.re.match
-local pack = table.pack
+local re_match = ngx.re.match
 local concat = table.concat
 
 local _M = {
@@ -20,7 +19,7 @@ function _M.split(url)
     return nil, 'missing endpoint'
   end
 
-  local m = match(url, "^(https?):\\/\\/(?:(.+)@)?([^\\/\\s]+?)(?::(\\d+))?(\\/.*)?$", 'oj')
+  local m = re_match(url, "^(https?):\\/\\/(?:(.+)@)?([^\\/\\s]+?)(?::(\\d+))?(\\/.*)?$", 'oj')
 
   if not m then
     return nil, 'invalid endpoint' -- TODO: maybe improve the error message?
@@ -32,7 +31,7 @@ function _M.split(url)
   if path == '/' then path = nil end
 
   if userinfo then
-    local m2 = match(tostring(userinfo), "^([^:\\s]+)?(?::(.*))?$", 'oj') or {}
+    local m2 = re_match(tostring(userinfo), "^([^:\\s]+)?(?::(.*))?$", 'oj') or {}
     user, pass = m2[1], m2[2]
   end
 
