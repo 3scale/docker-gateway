@@ -16,11 +16,13 @@ local lower = string.lower
 local insert = table.insert
 local concat = table.concat
 local setmetatable = setmetatable
+local custom_metric_name = custom_metric_name
 
 local inspect = require 'inspect'
 local re = require 'ngx.re'
 local env = require 'resty.env'
 local resty_url = require 'resty.url'
+local custom_metric = env.enabled('APICAST_CUSTOM_METRIC')
 
 local mt = { __index = _M }
 
@@ -40,10 +42,25 @@ local function regexpify(path)
   return path:gsub('?.*', ''):gsub("{.-}", '([\\w_.-]+)'):gsub("%.", "\\.")
 end
 
+local function check_custom_metric(custom_metric, req)
+  local metric = ngx.req.get_headers()["X-Custom-Metric"]
+  ngx.log(ngx.INFO, "metric :" .. inspect(metric))
+  if not metric or metric == '' then
+    ngx.log(ngx.INFO, "No Custom-Metric Header found")
+  end
+  return metric
+end
+
 local function check_rule(req, rule, usage_t, matched_rules)
   local pattern = rule.regexpified_pattern
   local match = ngx.re.match(req.path, format("^%s", pattern), 'oj')
-
+  local custom_metric_name = req.custom_metric_name
+  ngx.log(ngx.INFO, "custom_metric_name :" .. inspect(custom_metric_name))
+  
+  if custom_metric_name == rule.system_name then
+    rule.system_name = custom_metric_name
+  end
+    
   if match and req.method == rule.method then
     local args = req.args
 
@@ -156,14 +173,25 @@ function _M.parse_service(service)
         local path, _ = unpack(re.split(url, "\\?", 'oj'))
         local usage_t =  {}
         local matched_rules = {}
+        
+        if custom_metric then
+          custom_metric_name = check_custom_metric(custom_metric, request)
+          ngx.log(ngx.INFO, "custom_metric_name :" .. inspect(custom_metric_name))
+        end
 
         local args = get_auth_params(method)
 
         ngx.log(ngx.DEBUG, '[mapping] service ' .. config.id .. ' has ' .. #config.rules .. ' rules')
-
-        for _,r in ipairs(config.rules) do
-          check_rule({path=path, method=method, args=args}, r, usage_t, matched_rules)
-        end
+        
+        --if custom_metric ~= nil and custom_metric != "" then
+          for _,r in ipairs(config.rules) do
+            check_rule({path=path, method=method, args=args, custom_metric_name=custom_metric_name}, r, usage_t, matched_rules)
+          end
+        --else
+          --for _,r in ipairs(config.rules) do
+            --check_rule({path=path, method=method, args=args}, r, usage_t, matched_rules)
+          --end
+        --end
 
         -- if there was no match, usage is set to nil and it will respond a 404, this behavior can be changed
         return usage_t, concat(matched_rules, ", ")
