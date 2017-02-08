@@ -5,7 +5,6 @@ local _M = {
 local len = string.len
 local format = string.format
 local pairs = pairs
-local ipairs = ipairs
 local type = type
 local unpack = unpack
 local error = error
@@ -152,17 +151,19 @@ function _M.parse_service(service)
         app_key = lower(proxy.auth_app_key or 'app_key') -- TODO: use App-Key if location is headers
       },
       extract_usage = function (config, request, _)
-        local method, url = unpack(re.split(request, " ", 'oj'))
-        local path, _ = unpack(re.split(url, "\\?", 'oj'))
+        local req = re.split(request, " ", 'oj')
+        local method, url = req[1], req[2]
+        local path = re.split(url, "\\?", 'oj')[1]
         local usage_t =  {}
         local matched_rules = {}
+        local rules = config.rules
 
         local args = get_auth_params(method)
 
-        ngx.log(ngx.DEBUG, '[mapping] service ' .. config.id .. ' has ' .. #config.rules .. ' rules')
+        ngx.log(ngx.DEBUG, '[mapping] service ', config.id, ' has ', #config.rules, ' rules')
 
-        for _,r in ipairs(config.rules) do
-          check_rule({path=path, method=method, args=args}, r, usage_t, matched_rules)
+        for i = 1, #rules do
+          check_rule({path=path, method=method, args=args}, rules[i], usage_t, matched_rules)
         end
 
         -- if there was no match, usage is set to nil and it will respond a 404, this behavior can be changed
@@ -191,8 +192,8 @@ end
 local function to_hash(table)
   local t = {}
 
-  for _,id in ipairs(table) do
-    local n = tonumber(id)
+  for i = 1, #table do
+    local n = tonumber(table[i])
 
     if n then
       t[n] = true
@@ -218,9 +219,9 @@ function _M.filter_services(services, subset)
 
   local s = {}
 
-  for _, service in ipairs(services) do
-    if subset[service.id] then
-      s[#s+1] = service
+  for i = 1, #services do
+    if subset[services[i].id] then
+      insert(s, services[i])
     end
   end
 

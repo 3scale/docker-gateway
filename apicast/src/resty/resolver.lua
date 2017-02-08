@@ -77,21 +77,21 @@ function _M.init_nameservers()
   local nameservers = _M.parse_nameservers() or {}
   local search = nameservers.search or {}
 
-  for _,nameserver in ipairs(nameservers) do
-    ngx.log(ngx.INFO, 'adding ', concat(nameserver,':'), ' as default nameserver')
-    insert(_M._nameservers, nameserver)
+  for i=1, #nameservers do
+    ngx.log(ngx.INFO, 'adding ', nameservers[i][1],':', nameservers[i][2], ' as default nameserver')
+    insert(_M._nameservers, nameservers[i])
   end
 
-  for _,domain in ipairs(search) do
-    ngx.log(ngx.INFO, 'adding ', domain, ' as search domain')
-    insert(_M.search, domain)
+  for i=1, #search do
+    ngx.log(ngx.INFO, 'adding ', search[i], ' as search domain')
+    insert(_M.search, search[i])
   end
 end
 
 function _M.nameservers()
   local ok, _ = init:wait(0)
 
-  if ok and not next(_M._nameservers) then
+  if ok and #(_M._nameservers) == 0 then
     _M.init()
   end
 
@@ -161,8 +161,8 @@ end
 local function convert_answers(answers, port)
   local servers = {}
 
-  for _, answer in ipairs(answers) do
-    servers[#servers+1] = new_server(answer, port)
+  for i=1, #answers do
+    servers[#servers+1] = new_server(answers[i], port)
   end
 
   servers.answers = answers
@@ -200,10 +200,10 @@ function _M.get_servers(self, qname, opts)
       answers, err = dns:query(qname, { qtype = dns.TYPE_A })
 
       if not has_tld(qname) and not have_addresses(answers) then
-        for _, domain in ipairs(search) do
+        for i=1, #search do
 
-          local query = qname .. '.' .. domain
-          ngx.log(ngx.DEBUG, 'resolver query: ', qname, ' search: ', domain, ' query: ', query)
+          local query = qname .. '.' .. search[i]
+          ngx.log(ngx.DEBUG, 'resolver query: ', qname, ' search: ', search[i], ' query: ', query)
           answers, err = dns:query(query, { qtype = dns.TYPE_A })
 
           if answers and not answers.errcode and #answers > 0 then break end

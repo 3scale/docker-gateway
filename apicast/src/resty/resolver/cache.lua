@@ -30,7 +30,8 @@ local function compact_answers(servers)
   local hash = {}
   local compact = {}
 
-  for _, server in ipairs(servers) do
+  for i=1, #servers do
+    local server = servers[i]
     local name = server.name or server.address
 
     local packed = hash[name]
@@ -127,9 +128,9 @@ local function fetch(cache, name, stale)
   local function yieldfetch(hostname)
     local answers = fetch_answers(hostname)
 
-    for _,answer in ipairs(answers) do
-      yieldfetch(answer.cname)
-      co_yield(answer)
+    for i=1, #answers do
+      yieldfetch(answers[i].cname)
+      co_yield(answers[i])
     end
   end
 

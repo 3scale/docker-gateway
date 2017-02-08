@@ -56,9 +56,10 @@ end
 
 function _M.store(self, config)
   self.configured = true
+  local services = config.services
 
-  for _,service in ipairs(config.services) do
-    _M.add(self, service)
+  for i = 1, #services do
+    _M.add(self, services[i])
   end
 
   return config

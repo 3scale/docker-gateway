@@ -1,6 +1,4 @@
 local setmetatable = setmetatable
-local ipairs = ipairs
-local unpack = unpack
 local insert = table.insert
 local tonumber = tonumber
 
@@ -40,8 +38,8 @@ local function convert_servers(servers, port)
   local peers = {}
   local query = servers.query
 
-  for _, server in ipairs(servers) do
-    local peer = new_peer(server, port)
+  for i =1, #servers do
+    local peer = new_peer(servers[i], port)
 
     if peer and #peer == 2 then
       insert(peers, peer)
@@ -99,7 +97,7 @@ function _M.set_peer(self, peers)
     return nil, err or 'no peer found'
   end
 
-  address, port = unpack(peer)
+  address, port = peer[1], peer[2]
 
   if not address or not port then
     return nil, 'peer missing address or port'
