@@ -37,7 +37,7 @@ end
 function _M.system(command)
   local tmpout = tmpname()
   local tmperr = tmpname()
-  ngx.log(ngx.DEBUG, 'os execute ' .. command)
+  ngx.log(ngx.DEBUG, 'os execute ', command)
 
   local success, exit, code = execute('(' .. command .. ')' .. ' > ' .. tmpout .. ' 2> ' .. tmperr)
   local err

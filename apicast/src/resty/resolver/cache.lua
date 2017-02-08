@@ -147,6 +147,12 @@ local function fetch(cache, name, stale)
   end
 end
 
+local answers_mt = {
+  __tostring = function(t)
+    return concat(t.addresses, ', ')
+  end
+}
+
 function _M.get(self, name)
   local cache = self.cache
 
@@ -154,9 +160,11 @@ function _M.get(self, name)
     return nil, 'not initialized'
   end
 
-  local answers = { addresses = {} }
+  local answers = setmetatable({ addresses = {} }, answers_mt)
+  local has_answers
 
   for data in fetch(cache, name) do
+    has_answers = answers
     insert(answers, data)
 
     if data.address then
@@ -164,13 +172,13 @@ function _M.get(self, name)
     end
   end
 
-  if #answers == 0 then
+  if has_answers then
     ngx.log(ngx.DEBUG, 'resolver cache miss: ', name)
-    return nil
   else
-    ngx.log(ngx.DEBUG, 'resolver cache hit: ', name, ' ', concat(answers.addresses, ', '))
-    return answers
+    ngx.log(ngx.DEBUG, 'resolver cache hit: ', name, ' ', answers)
   end
+
+  return has_answers
 end
 
 return _M

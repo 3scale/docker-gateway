@@ -8,6 +8,7 @@ local inspect = require 'inspect'
 local oauth = require 'oauth'
 local resty_url = require 'resty.url'
 
+local assert = assert
 local type = type
 local pairs = pairs
 local ipairs = ipairs
@@ -20,7 +21,7 @@ local format = string.format
 local gsub = string.gsub
 local tonumber = tonumber
 local setmetatable = setmetatable
-
+local exit = ngx.exit
 local resty_resolver = require 'resty.resolver'
 local dns_resolver = require 'resty.resolver.dns'
 local empty = {}
@@ -123,7 +124,7 @@ local function build_querystring_formatter(fmt)
       return res
     end
 
-    return concat(kvmap(function(k,v) return format(fmt, k, v) end, query or {}), "&")
+    return concat(kvmap(function(k,v) return format(fmt, k, tostring(v)) end, query or {}), "&")
   end
 end
 
@@ -178,7 +179,7 @@ end
 
 local http = {
   get = function(url)
-    ngx.log(ngx.INFO, '[http] requesting ' .. url)
+    ngx.log(ngx.INFO, '[http] requesting ', url)
     local backend_upstream = ngx.ctx.backend_upstream
     local previous_real_url = ngx.var.real_url
     ngx.log(ngx.DEBUG, '[ctx] copying backend_upstream of size: ', #backend_upstream)
@@ -187,9 +188,9 @@ local http = {
     local real_url = ngx.var.real_url
 
     if real_url ~= previous_real_url then
-      ngx.log(ngx.INFO, '[http] ', real_url, ' (',tostring(res.status), ')')
+      ngx.log(ngx.INFO, '[http] ', real_url, ' (',res.status, ')')
     else
-      ngx.log(ngx.INFO, '[http] status: ', tostring(res.status))
+      ngx.log(ngx.INFO, '[http] status: ', res.status)
     end
 
     ngx.var.real_url = ''
@@ -267,6 +268,7 @@ function _M.set_service(host)
   end
 
   ngx.ctx.service = service
+  return service
 end
 
 function _M.get_upstream(service)
@@ -298,6 +300,7 @@ end
 
 function _M:call(host)
   host = host or ngx.var.host
+
   if not ngx.ctx.service then
     self.set_service(host)
   end
@@ -396,6 +399,10 @@ end
 local function request_logs_encoded_data()
   local request_log = {}
 
+  if not request_logs and not response_codes then
+    return ''
+  end
+
   if request_logs then
     local method, path, headers = ngx.req.get_method(), ngx.var.request_uri, ngx.req.get_headers()
 
@@ -431,7 +438,7 @@ function _M.post_action()
       local api_keys = ngx.shared.api_keys
 
       if api_keys then
-        ngx.log(ngx.NOTICE, 'apicast cache delete key: ' .. cached_key .. ' cause status ' .. tostring(res.status))
+        ngx.log(ngx.NOTICE, 'apicast cache delete key: ', cached_key, ' cause status ', res.status)
         api_keys:delete(cached_key)
       else
         ngx.log(ngx.ALERT, 'apicast cache error missing shared memory zone api_keys')
@@ -441,7 +448,7 @@ function _M.post_action()
     ngx.log(ngx.INFO, '[async] skipping after action, no cached key')
   end
 
-  ngx.exit(ngx.HTTP_OK)
+  exit(ngx.HTTP_OK)
 end
 
 if custom_config then
