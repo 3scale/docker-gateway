@@ -94,57 +94,49 @@ function _M.save(self, answers)
   return ans
 end
 
+local function fetch_answers(hostname, cache, stale, circular_reference)
+  if not hostname then
+    return {}, 'missing name'
+  end
+
+  if circular_reference[hostname] then
+    error('circular reference detected when querying '.. hostname)
+    return
+  else
+    circular_reference[hostname] = true
+  end
+
+  local answers, stale_answers = cache:get(hostname)
+
+  if not answers then
+    if stale and stale_answers then
+      return stale_answers
+    else
+      return {}
+    end
+  end
+
+  ngx.log(ngx.DEBUG, 'resolver cache read ', hostname, ' ', #answers, ' entries')
+
+  return answers
+end
+
+local function yieldfetch(found, hostname, cache, stale, circular_reference)
+  local answers = fetch_answers(hostname, cache, stale, circular_reference)
+  local ret = found or {}
+
+  for i=1, #answers do
+    yieldfetch(ret, answers[i].cname, cache, stale, circular_reference)
+    insert(ret, answers[i])
+  end
+
+  return ret
+end
 
 local function fetch(cache, name, stale)
   local circular_reference = {}
 
-  local function fetch_answers(hostname)
-    if not hostname then
-      return {}, 'missing name'
-    end
-
-    if circular_reference[hostname] then
-      error('circular reference detected when querying '.. hostname)
-      return
-    else
-      circular_reference[hostname] = true
-    end
-
-    local answers, stale_answers = cache:get(hostname)
-
-    if not answers then
-      if stale and stale_answers then
-        return stale_answers
-      else
-        return {}
-      end
-    end
-
-    ngx.log(ngx.DEBUG, 'resolver cache read ', hostname, ' ', #answers, ' entries')
-
-    return answers
-  end
-
-  local function yieldfetch(hostname)
-    local answers = fetch_answers(hostname)
-
-    for i=1, #answers do
-      yieldfetch(answers[i].cname)
-      co_yield(answers[i])
-    end
-  end
-
-  local co = co_create(function () yieldfetch(name) end)
-
-  return function ()
-    local code, res = co_resume(co)
-
-    if code then
-      return res
-    else
-      return nil, 'error when trying to fetch from cache'
-    end
-  end
+  return yieldfetch(nil, name, cache, stale, circular_reference)
 end
 
 local answers_mt = {
@@ -161,24 +153,20 @@ function _M.get(self, name)
   end
 
   local answers = setmetatable({ addresses = {} }, answers_mt)
-  local has_answers
+  local records = fetch(cache, name)
 
-  for data in fetch(cache, name) do
-    has_answers = answers
-    insert(answers, data)
-
-    if data.address then
-      insert(answers.addresses, data.address)
-    end
+  for i=1, #records do
+    insert(answers, records[i])
+    insert(answers.addresses, records[i].address)
   end
 
-  if has_answers then
+  if #records == 0 then
     ngx.log(ngx.DEBUG, 'resolver cache miss: ', name)
   else
     ngx.log(ngx.DEBUG, 'resolver cache hit: ', name, ' ', answers)
   end
 
-  return has_answers
+  return answers
 end
 
 return _M
