@@ -136,7 +136,7 @@ end
 
 local function find_service_strict(self, host)
   for _,service in pairs(self.configuration:find(host)) do
-    if type(host) == 'number' and service.id == host then
+    if service.id == host then
       return service
     end
 
@@ -313,7 +313,7 @@ function _M:call(host)
   ngx.var.backend_authentication_value = service.backend_authentication.value
   ngx.var.backend_host = service.backend.host or ngx.var.backend_host
 
-  ngx.var.service_id = tostring(service.id)
+  ngx.var.service_id = service.id
 
   ngx.var.version = self.configuration.version
 
@@ -423,11 +423,9 @@ local function request_logs_encoded_data()
 end
 
 function _M.post_action()
-  local service_id = tonumber(ngx.var.service_id, 10)
-
   local p = _M.new()
   ngx.ctx.proxy = p
-  p:call(service_id) -- initialize resolver and get backend upstream peers
+  p:call(ngx.var.service_id) -- initialize resolver and get backend upstream peers
 
   local cached_key = ngx.var.cached_key
   local service = ngx.ctx.service
