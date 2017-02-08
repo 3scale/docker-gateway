@@ -267,7 +267,6 @@ function _M.set_service(host)
 
   ngx.ctx.service = service
   ngx.var.service_id = service.id
-
   return service
 end
 
@@ -321,15 +320,6 @@ function _M:set_backend_upstream(service)
 
   ngx.var.backend_endpoint = scheme .. '://backend_upstream' .. path
 
-  if service.backend_version == 'oauth' then
-    local f, params = oauth.call()
-
-    if f then
-      ngx.log(ngx.DEBUG, 'apicast oauth flow')
-      return function() return f(params) end
-    end
-  end
-
 end
 
 function _M:call(host)
@@ -351,11 +341,9 @@ function _M:call(host)
     -- call access phase
     return self:access(service)
   end
-
 end
 
 function _M:access(service)
-
   local backend_version = service.backend_version
   local usage
   local matched_patterns
