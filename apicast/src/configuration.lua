@@ -121,7 +121,7 @@ function _M.parse_service(service)
   local _, _, _, backend_host_override = unpack(resty_url.split(backend_endpoint_override) or {})
 
   return Service.new({
-      id = tostring(service.id or 'default'),
+      id = service.id or 'default',
       backend_version = backend_version,
       hosts = proxy.hosts or { 'localhost' }, -- TODO: verify localhost is good default
       api_backend = proxy.api_backend,
