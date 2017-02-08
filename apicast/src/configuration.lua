@@ -9,7 +9,6 @@ local type = type
 local unpack = unpack
 local error = error
 local tostring = tostring
-local tonumber = tonumber
 local next = next
 local lower = string.lower
 local insert = table.insert

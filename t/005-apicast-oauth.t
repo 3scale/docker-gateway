@@ -359,7 +359,7 @@ GET /t
 
   set $backend_endpoint 'http://127.0.0.1:$TEST_NGINX_SERVER_PORT/backend';
 
-  location = /backend/transactions/oauth_authorize.xml {
+  location = /backend/transactions/oauth_authrep.xml {
     echo 'ok';
   }
 --- request
@@ -433,6 +433,11 @@ Location: http://example.com/redirect\?code=\w+&state=12345
 
   location /api-backend/ {
     echo "yay, upstream";
+  }
+  set $backend_endpoint 'http://127.0.0.1:$TEST_NGINX_SERVER_PORT/backend';
+
+  location = /backend/transactions/oauth_authrep.xml {
+    echo 'ok';
   }
 --- request
 GET /
