@@ -199,11 +199,14 @@ local http = {
 }
 
 local function oauth_authrep(service)
-  ngx.var.cached_key = ngx.var.cached_key .. ":" .. ngx.var.usage
+  local cached_key = ngx.var.cached_key .. ":" .. ngx.var.usage
   local access_tokens = assert(ngx.shared.api_keys, 'missing shared dictionary: api_keys')
-  local is_known = access_tokens:get(ngx.var.cached_key)
+  local is_known = access_tokens:get(cached_key)
 
-  if is_known ~= 200 then
+  if is_known == 200 then
+    ngx.log(ngx.DEBUG, 'apicast cache hit key: ', cached_key)
+    ngx.var.cached_key = cached_key
+  else
     local res = http.get("/threescale_oauth_authrep")
 
     if res.status ~= 200   then
@@ -430,7 +433,7 @@ function _M.post_action()
   local service = ngx.ctx.service
 
   if cached_key and cached_key ~= "null" then
-    ngx.log(ngx.INFO, '[async] reporting to backend asynchronously')
+    ngx.log(ngx.INFO, '[async] reporting to backend asynchronously, cached_key: ', cached_key)
 
     local auth_uri = service.backend_version == 'oauth' and 'threescale_oauth_authrep' or 'threescale_authrep'
     local res = http.get("/".. auth_uri .."?log=" .. request_logs_encoded_data())
