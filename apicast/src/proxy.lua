@@ -79,7 +79,7 @@ _M.init = function(config) return _M.configure(_M, config) end
 
 -- Error Codes
 local function error_no_credentials(service)
-  ngx.log(ngx.INFO, 'no credentials provided for service ' .. tostring(service.id))
+  ngx.log(ngx.INFO, 'no credentials provided for service ', service.id)
   ngx.var.cached_key = nil
   ngx.status = service.auth_missing_status
   ngx.header.content_type = service.auth_missing_headers
@@ -88,7 +88,7 @@ local function error_no_credentials(service)
 end
 
 local function error_authorization_failed(service)
-  ngx.log(ngx.INFO, 'authorization failed for service ' .. tostring(service.id))
+  ngx.log(ngx.INFO, 'authorization failed for service ', service.id)
   ngx.var.cached_key = nil
   ngx.status = service.auth_failed_status
   ngx.header.content_type = service.auth_failed_headers
@@ -97,7 +97,7 @@ local function error_authorization_failed(service)
 end
 
 local function error_no_match(service)
-  ngx.log(ngx.INFO, 'no rules matched for service ' .. tostring(service.id))
+  ngx.log(ngx.INFO, 'no rules matched for service ', service.id)
   ngx.var.cached_key = nil
   ngx.status = service.no_match_status
   ngx.header.content_type = service.no_match_headers
@@ -146,7 +146,7 @@ local function find_service_strict(self, host)
       end
     end
   end
-  ngx.log(ngx.ERR, 'service not found for host ' .. host)
+  ngx.log(ngx.ERR, 'service not found for host ', host)
 end
 
 local function find_service_cascade(self, host)
@@ -155,11 +155,11 @@ local function find_service_cascade(self, host)
     for _,_host in ipairs(service.hosts or {}) do
       if _host == host then
         local name = service.system_name or service.id
-        ngx.log(ngx.DEBUG, 'service ' .. name .. ' matched host ' .. _host)
+        ngx.log(ngx.DEBUG, 'service ', name, ' matched host ', _host)
         local usage, matched_patterns = service:extract_usage(request)
 
         if next(usage) and matched_patterns ~= '' then
-          ngx.log(ngx.DEBUG, 'service ' .. name .. ' matched patterns ' .. matched_patterns)
+          ngx.log(ngx.DEBUG, 'service ', name, ' matched patterns ', matched_patterns)
           return service
         end
       end
@@ -225,17 +225,17 @@ local function authrep(service)
   local is_known = api_keys and api_keys:get(cached_key)
 
   if is_known == 200 then
-    ngx.log(ngx.DEBUG, 'apicast cache hit key: ' .. cached_key)
+    ngx.log(ngx.DEBUG, 'apicast cache hit key: ', cached_key)
     ngx.var.cached_key = cached_key
   else
-    ngx.log(ngx.INFO, 'apicast cache miss key: ' .. cached_key)
+    ngx.log(ngx.INFO, 'apicast cache miss key: ', cached_key)
     local res = http.get("/threescale_authrep")
 
-    ngx.log(ngx.DEBUG, '[backend] response status: ' .. tostring(res.status) .. ' body: ' .. tostring(res.body))
+    ngx.log(ngx.DEBUG, '[backend] response status: ', res.status, ' body: ', res.body)
 
     if res.status == 200 then
       if api_keys then
-        ngx.log(ngx.INFO, 'apicast cache write key: ' .. tostring(cached_key))
+        ngx.log(ngx.INFO, 'apicast cache write key: ', cached_key)
         api_keys:set(cached_key, 200)
       end
     else -- TODO: proper error handling
@@ -459,13 +459,13 @@ if custom_config then
 
   if ok then
     if type(c) == 'table' and type(c.setup) == 'function' then
-      ngx.log(ngx.DEBUG, 'executing custom config ' .. custom_config)
+      ngx.log(ngx.DEBUG, 'executing custom config ', custom_config)
       c.setup(_M)
     else
-      ngx.log(ngx.ERR, 'failed to load custom config ' .. tostring(custom_config) .. ' because it does not return table with function setup')
+      ngx.log(ngx.ERR, 'failed to load custom config ', custom_config, ' because it does not return table with function setup')
     end
   else
-    ngx.log(ngx.ERR, 'failed to load custom config ' .. tostring(custom_config) .. ' with ' .. tostring(c))
+    ngx.log(ngx.ERR, 'failed to load custom config ', custom_config, ' with ', c)
   end
 end
 
