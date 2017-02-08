@@ -6,8 +6,6 @@ local dns_resolver = require 'resty.resolver.dns'
 local resty_resolver = require 'resty.resolver'
 local resty_balancer = require 'resty.balancer'
 
-local unpack = unpack
-
 local _M = {} -- public interface
 
 -- private
@@ -107,7 +105,8 @@ function _M.resolve(host, port)
   local ip = host
 
   if peer then
-    ip, port = unpack(peer)
+    ip = peer[1]
+    port = peer[2]
   end
 
   return ip, port

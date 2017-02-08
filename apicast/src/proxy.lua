@@ -18,12 +18,12 @@ local concat = table.concat
 local tostring = tostring
 local format = string.format
 local gsub = string.gsub
-local unpack = unpack
 local tonumber = tonumber
 local setmetatable = setmetatable
 
 local resty_resolver = require 'resty.resolver'
 local dns_resolver = require 'resty.resolver.dns'
+local empty = {}
 
 local response_codes = env.enabled('APICAST_RESPONSE_CODES')
 local request_logs = env.enabled('APICAST_REQUEST_LOGS')
@@ -272,18 +272,15 @@ end
 function _M.get_upstream(service)
   service = service or ngx.ctx.service
 
-  -- The default values are only for tests. We need to set at least the scheme.
-  local scheme, _, _, host, port, path =
-    unpack(resty_url.split(service.api_backend) or { 'http' })
-
-  if not port then
-    port = resty_url.default_port(scheme)
-  end
+  local url = resty_url.split(service.api_backend) or empty
+  local scheme = url[1] or 'http'
+  local host, port, path =
+    url[4], url[5] or resty_url.default_port(url[1]), url[6] or ''
 
   return {
     server = host,
     host = service.hostname_rewrite or host,
-    uri  = scheme .. '://upstream' .. (path or ''),
+    uri  = scheme .. '://upstream' .. path,
     port = tonumber(port)
   }
 end
@@ -316,11 +313,9 @@ function _M:call(host)
   ngx.var.version = self.configuration.version
 
   -- set backend
-  local scheme, _, _, server, port, path = unpack(resty_url.split(service.backend.endpoint or ngx.var.backend_endpoint))
-
-  if not port then
-    port = resty_url.default_port(scheme)
-  end
+  local url = resty_url.split(service.backend.endpoint or ngx.var.backend_endpoint)
+  local scheme, _, _, server, port, path =
+    url[1], url[2], url[3], url[4], url[5] or resty_url.default_port(url[1]), url[6] or ''
 
   ngx.ctx.dns = ngx.ctx.dns or dns_resolver:new{ nameservers = resty_resolver.nameservers() }
   ngx.ctx.resolver = ngx.ctx.resolver or resty_resolver.new(ngx.ctx.dns)
@@ -328,7 +323,8 @@ function _M:call(host)
   local backend_upstream = ngx.ctx.resolver:get_servers(server, { port = port or nil })
   ngx.log(ngx.DEBUG, '[resolver] resolved backend upstream: ', #backend_upstream)
   ngx.ctx.backend_upstream = backend_upstream
-  ngx.var.backend_endpoint = scheme .. '://backend_upstream' .. (path or '')
+
+  ngx.var.backend_endpoint = scheme .. '://backend_upstream' .. path
 
   if service.backend_version == 'oauth' then
     local f, params = oauth.call()
