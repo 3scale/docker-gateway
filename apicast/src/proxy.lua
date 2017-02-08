@@ -438,7 +438,7 @@ function _M:post_action()
   if cached_key and cached_key ~= "null" then
     ngx.log(ngx.INFO, '[async] reporting to backend asynchronously, cached_key: ', cached_key)
 
-    local service_id = tonumber(ngx.var.service_id, 10)
+    local service_id = ngx.var.service_id
     local service = ngx.ctx.service or self.configuration:find_by_id(service_id)
     self:set_backend_upstream(service)
 
