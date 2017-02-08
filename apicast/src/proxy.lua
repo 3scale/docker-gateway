@@ -166,7 +166,7 @@ local function find_service_cascade(self, host)
     end
   end
 
-  return find_service_strict(host)
+  return find_service_strict(self, host)
 end
 
 if configuration_store.path_routing then
