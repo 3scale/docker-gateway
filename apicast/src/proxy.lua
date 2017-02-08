@@ -136,10 +136,6 @@ end
 
 local function find_service_strict(self, host)
   for _,service in pairs(self.configuration:find_by_host(host)) do
-    if service.id == host then
-      return service
-    end
-
     for _,_host in ipairs(service.hosts or {}) do
       if _host == host then
         return service
