@@ -41,15 +41,15 @@ describe('Configuration object', function()
     local filter_services = configuration.filter_services
 
     it('works with nil', function()
-      local services = { { id = 42 } }
+      local services = { { id = '42' } }
       assert.equal(services, filter_services(services))
     end)
 
     it('works with table with ids', function()
-      local services = { { id = 42 } }
+      local services = { { id = '42' } }
 
-      assert.same(services, filter_services(services, { 42 }))
-      assert.same({}, filter_services(services, { 21 }))
+      assert.same(services, filter_services(services, { '42' }))
+      assert.same({}, filter_services(services, { '21' }))
     end)
   end)
 
@@ -61,7 +61,7 @@ describe('Configuration object', function()
 
       local services = services_limit()
 
-      assert.same({ [42] = true, [21] = true }, services)
+      assert.same({ ['42'] = true, ['21'] = true }, services)
     end)
 
     it('reads from environment', function()

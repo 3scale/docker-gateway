@@ -5,7 +5,7 @@ describe('Configuration Store', function()
   describe('.store', function()
     it('stores configuration', function()
       local store = configuration.new()
-      local service = { id = 42, hosts = { 'example.com' } }
+      local service = { id = '42', hosts = { 'example.com' } }
 
       store:store({services = { service }})
 
