@@ -223,7 +223,7 @@ function _M.get_servers(self, qname, opts)
   init:post(1)
 
   if err then
-    newrelic_agent.notice_error('Failed to execute DNS query', err, traceback(), '\n')
+    newrelic.notice_transaction_error(ngx.ctx.nr_transation_id or ngx.var.nr_transaction_id, 'Failed to execute DNS query', err, traceback(), '\n')
     return {}, err
   end
 
