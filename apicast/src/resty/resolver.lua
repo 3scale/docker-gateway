@@ -190,7 +190,8 @@ function _M.get_servers(self, qname, opts)
   -- TODO: implement cache
   -- TODO: pass proper options to dns resolver (like SRV query type)
 
-  local answers, err = cache:get(qname)
+  local ok = init:wait(0)
+  local answers, err = cache:get(qname, not ok)
 
   if not answers or #answers.addresses == 0 then
     newrelic.record_metric('resolver/cache_miss', 1)
@@ -218,6 +219,8 @@ function _M.get_servers(self, qname, opts)
   else
     newrelic.record_metric('resolver/cache_hit', 1)
   end
+
+  init:post(1)
 
   if err then
     newrelic_agent.notice_error('Failed to execute DNS query', err, traceback(), '\n')
