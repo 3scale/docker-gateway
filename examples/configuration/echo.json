@@ -4,15 +4,15 @@
       "id": 1234,
       "backend_version": 1,
       "proxy": {
-        "api_backend": "http://127.0.0.1:8081",
+        "api_backend": "http://127.0.0.1.xip.io:8081",
         "hostname_rewrite": "echo",
         "hosts": [
           "localhost",
           "127.0.0.1"
         ],
         "backend": {
-          "endpoint": "http://127.0.0.1:8081",
-          "host": "echo"
+          "endpoint": "http://127.0.0.1.xip.io:8081",
+          "host": "backend"
         },
         "proxy_rules": [
           {

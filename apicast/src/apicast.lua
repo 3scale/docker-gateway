@@ -9,6 +9,7 @@ local env = require('resty.env')
 local reload_config = env.enabled('APICAST_RELOAD_CONFIG')
 local user_agent = require('user_agent')
 local newrelic_agent = require('resty.newrelic_agent')
+local newrelic = require('resty.newrelic')
 
 local noop = function() end
 
@@ -104,6 +105,7 @@ end
 function _M:rewrite()
   newrelic_agent.start_web_transaction()
   ngx.var.nr_transaction_id = ngx.ctx.nr_transaction_id
+  newrelic.set_transaction_request_url(ngx.ctx.nr_transaction_id, ngx.var.uri)
 
   local host = ngx.var.host
   local p = self.proxy
@@ -119,6 +121,7 @@ function _M:rewrite()
 end
 
 function _M.post_action()
+  newrelic.add_transaction_attribute(ngx.ctx.nr_transaction_id or ngx.var.nr_transaction_id, 'duration', ngx.var.request_time)
   proxy:post_action()
 end
 
@@ -151,7 +154,7 @@ end
 _M.balancer = balancer.call
 
 _M.log = function()
-  ngx.ctx.nr_transaction_id = ngx.var.nr_transaction_id
+  ngx.ctx.nr_transaction_id = ngx.ctx.nr_transaction_id or ngx.var.nr_transaction_id
   newrelic_agent.finish_web_transaction()
 end
 

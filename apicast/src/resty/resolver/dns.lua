@@ -3,6 +3,10 @@ local newrelic = require 'resty.newrelic'
 
 local setmetatable = setmetatable
 local insert = table.insert
+local traceback = debug.traceback
+local concat = table.concat
+local tostring = tostring
+local format = string.format
 
 local _M = {
   _VERSION = '0.1'
@@ -21,15 +25,20 @@ function _M.new(_, options)
   }, mt)
 end
 
+local nameserver_mt = {
+  __tostring = function(t)
+    return concat(t, ':')
+  end
+}
 function _M:init_resolvers()
   local resolvers = self.resolvers
   local nameservers = self.nameservers
 
   local nr_transaction_id = ngx.ctx.nr_transaction_id or ngx.var.nr_transaction_id
-  local resolver_segment_id = nr_transaction_id and newrelic.begin_generic_segment(nr_transaction_id, newrelic.NEWRELIC_ROOT_SEGMENT, 'initialize resolver')
+  local resolver_segment_id = nr_transaction_id and newrelic.begin_generic_segment(nr_transaction_id, newrelic.NEWRELIC_AUTOSCOPE, 'initialize resolver')
 
   for i=1,#nameservers do
-    insert(resolvers, { nameservers[i], resty_resolver:new({ nameservers = { nameservers[i] }}) })
+    insert(resolvers, { setmetatable(nameservers[i], nameserver_mt), resty_resolver:new({ nameservers = { nameservers[i] }}) })
   end
 
   newrelic.end_segment(nr_transaction_id, resolver_segment_id)
@@ -47,21 +56,34 @@ function _M.query(self, qname, opts)
     resolvers = self:init_resolvers()
   end
 
-  local nr_transaction_id = ngx.ctx.nr_transaction_id
-  local dns_segment_id = newrelic.begin_generic_segment(nr_transaction_id, newrelic.NEWRELIC_ROOT_SEGMENT, 'dns query')
+  local nr_transaction_id = ngx.ctx.nr_transaction_id or ngx.var.nr_transaction_id
+
+  local resolver_segment_id = newrelic.begin_generic_segment(
+    nr_transaction_id, newrelic.NEWRELIC_AUTOSCOPE, 'DNS/query')
 
   for i=1, #resolvers do
+    local server = tostring(resolvers[i][1])
     newrelic.record_metric('dns/query', 1)
+
+    local query_segment_id = newrelic.begin_datastore_segment(
+      nr_transaction_id, newrelic.NEWRELIC_AUTOSCOPE, 'dns', newrelic.NEWRELIC_DATASTORE_SELECT, format("SELET `%s` FROM `%s`", qname, server))
 
     answers, err = resolvers[i][2]:query(qname, opts)
 
-    ngx.log(ngx.DEBUG, 'resolver query: ', qname, ' nameserver: ', resolvers[i][1][1],':', resolvers[i][1][2])
+    newrelic.end_segment(nr_transaction_id, query_segment_id)
+
+    ngx.log(ngx.DEBUG, 'resolver query: ', qname, ' nameserver: ', server)
 
     if answers and not answers.errcode and not err then
       break
     end
   end
-  newrelic.end_segment(nr_transaction_id, dns_segment_id)
+
+  if err then
+    newrelic.notice_transaction_error(nr_transaction_id, 'dns error', err, traceback(), "\n")
+  end
+
+  newrelic.end_segment(nr_transaction_id, resolver_segment_id)
 
   return answers, err
 end
