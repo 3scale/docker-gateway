@@ -55,8 +55,12 @@ push: ## Push image to the registry
 bash: export IMAGE_NAME = apicast-test
 bash: export SERVICE = gateway
 bash: ## Run bash inside the builder image
-	$(DOCKER_COMPOSE) run --user=root --rm --entrypoint=bash $(SERVICE) -i
+	$(DOCKER_COMPOSE) run --user=root --rm --entrypoint=bash $(SERVICE)
 
+dev: export IMAGE_NAME = apicast-test
+dev: export SERVICE = dev
+dev: ## Run APIcast inside the container mounted to local volume
+	$(DOCKER_COMPOSE) run --user=root --service-ports --rm --entrypoint=bash $(SERVICE) -i
 test-builder-image: export IMAGE_NAME = apicast-test
 test-builder-image: builder-image clean ## Smoke test the builder image. Pass any docker image in IMAGE_NAME parameter.
 	@echo -e $(SEPARATOR)
