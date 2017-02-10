@@ -8,6 +8,7 @@ local setmetatable = setmetatable
 local env = require('resty.env')
 local reload_config = env.enabled('APICAST_RELOAD_CONFIG')
 local user_agent = require('user_agent')
+local newrelic_agent = require('resty.newrelic_agent')
 
 local noop = function() end
 
@@ -64,6 +65,8 @@ local function refresh_config()
 end
 
 function _M.init_worker()
+  newrelic_agent.enable()
+
   local interval = tonumber(env.get('AUTO_UPDATE_INTERVAL'), 10) or 0
 
   local function schedule(...)
@@ -99,6 +102,9 @@ function _M.init_worker()
 end
 
 function _M:rewrite()
+  newrelic_agent.start_web_transaction()
+  ngx.var.nr_transaction_id = ngx.ctx.nr_transaction_id
+
   local host = ngx.var.host
   local p = self.proxy
   -- load configuration if not configured
@@ -144,6 +150,9 @@ end
 
 _M.balancer = balancer.call
 
-_M.log = noop
+_M.log = function()
+  ngx.ctx.nr_transaction_id = ngx.var.nr_transaction_id
+  newrelic_agent.finish_web_transaction()
+end
 
 return _M

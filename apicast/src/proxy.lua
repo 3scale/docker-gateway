@@ -20,6 +20,7 @@ local exit = ngx.exit
 local encode_args = ngx.encode_args
 local resty_resolver = require 'resty.resolver'
 local dns_resolver = require 'resty.resolver.dns'
+local newrelic = require('resty.newrelic')
 local empty = {}
 
 local response_codes = env.enabled('APICAST_RESPONSE_CODES')
@@ -173,9 +174,19 @@ local http = {
   get = function(url)
     ngx.log(ngx.INFO, '[http] requesting ', url)
     local backend_upstream = ngx.ctx.backend_upstream
+    local nr_transaction_id = ngx.ctx.nr_transaction_id
     local previous_real_url = ngx.var.real_url
     ngx.log(ngx.DEBUG, '[ctx] copying backend_upstream of size: ', #backend_upstream)
-    local res = ngx.location.capture(assert(url), { share_all_vars = true, ctx = { backend_upstream = backend_upstream } })
+    local http_get_segment_id = newrelic.begin_external_segment(
+      nr_transaction_id, newrelic.NEWRELIC_ROOT_SEGMENT, ngx.var.backend_endpoint .. url, 'GET')
+    local res = ngx.location.capture(assert(url), {
+      share_all_vars = true,
+      ctx = {
+        backend_upstream = backend_upstream,
+        nr_transaction_id = nr_transaction_id
+      }
+    })
+    newrelic.end_segment(nr_transaction_id, http_get_segment_id)
 
     local real_url = ngx.var.real_url
 
@@ -287,9 +298,14 @@ end
 function _M.set_upstream(service)
   local upstream = _M.get_upstream(service)
 
+  local nr_transaction_id = ngx.ctx.nr_transaction_id
+  local resolver_get_servers_segment_id = newrelic.begin_datastore_segment(
+    nr_transaction_id, newrelic.NEWRELIC_ROOT_SEGMENT, 'resolver', 'get_upstream_servers')
+
   ngx.ctx.dns = dns_resolver:new{ nameservers = resty_resolver.nameservers() }
   ngx.ctx.resolver = resty_resolver.new(ngx.ctx.dns)
   ngx.ctx.upstream = ngx.ctx.resolver:get_servers(upstream.server, { port = upstream.port })
+  newrelic.end_segment(nr_transaction_id, resolver_get_servers_segment_id)
 
   ngx.var.proxy_pass = upstream.uri
   ngx.req.set_header('Host', upstream.host or ngx.var.host)
@@ -309,10 +325,17 @@ function _M:set_backend_upstream(service)
   local scheme, _, _, server, port, path =
     url[1], url[2], url[3], url[4], url[5] or resty_url.default_port(url[1]), url[6] or ''
 
+  local nr_transaction_id = ngx.ctx.nr_transaction_id
+  local resolver_get_servers_segment_id = newrelic.begin_datastore_segment(
+    nr_transaction_id, newrelic.NEWRELIC_ROOT_SEGMENT, 'resolver', 'get_backend_servers')
+
   ngx.ctx.dns = ngx.ctx.dns or dns_resolver:new{ nameservers = resty_resolver.nameservers() }
   ngx.ctx.resolver = ngx.ctx.resolver or resty_resolver.new(ngx.ctx.dns)
 
-  local backend_upstream = ngx.ctx.resolver:get_servers(server, { port = port or nil })
+  local backend_upstream, err = ngx.ctx.resolver:get_servers(server, { port = port or nil })
+
+  newrelic.end_segment(nr_transaction_id, resolver_get_servers_segment_id)
+
   ngx.log(ngx.DEBUG, '[resolver] resolved backend upstream: ', #backend_upstream)
   ngx.ctx.backend_upstream = backend_upstream
 
@@ -422,6 +445,13 @@ local function request_logs_encoded_data()
 end
 
 function _M:post_action()
+
+  local nr_transaction_id = ngx.var.nr_transaction_id
+  local upstream_transaction_id = tonumber(ngx.var.upstream_transaction_id)
+
+  if nr_transaction_id and upstream_transaction_id > 0 then
+    newrelic.end_segment(nr_transaction_id, upstream_transaction_id)
+  end
 
   local cached_key = ngx.var.cached_key
 
