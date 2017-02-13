@@ -95,6 +95,7 @@ dependencies:
 
 clean: ## Remove all running docker containers
 	$(DOCKER_COMPOSE) down --volumes --remove-orphans
+	- docker rmi apicast-test apicast-runtime-test
 
 doc: dependencies ## Generate documentation
 	ldoc -c doc/config.ld .
