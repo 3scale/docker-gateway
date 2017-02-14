@@ -10,6 +10,9 @@ local io_type = io.type
 local re_match = ngx.re.match
 local semaphore = require "ngx.semaphore"
 local resolver_cache = require 'resty.resolver.cache'
+local newrelic_agent = require 'resty.newrelic_agent'
+local newrelic = require 'resty.newrelic'
+local traceback = debug.traceback
 
 local init = semaphore.new(1)
 
@@ -187,9 +190,11 @@ function _M.get_servers(self, qname, opts)
   -- TODO: implement cache
   -- TODO: pass proper options to dns resolver (like SRV query type)
 
-  local answers, err = cache:get(qname)
+  local ok = init:wait(0)
+  local answers, err = cache:get(qname, not ok)
 
   if not answers or #answers.addresses == 0 then
+    newrelic.record_metric('resolver/cache_miss', 1)
     ngx.log(ngx.DEBUG, 'resolver query: ', qname)
 
     if is_ip(qname) then
@@ -211,9 +216,14 @@ function _M.get_servers(self, qname, opts)
     end
 
     cache:save(answers)
+  else
+    newrelic.record_metric('resolver/cache_hit', 1)
   end
 
+  init:post(1)
+
   if err then
+    newrelic.notice_transaction_error(ngx.ctx.nr_transation_id or ngx.var.nr_transaction_id, 'Failed to execute DNS query', err, traceback(), '\n')
     return {}, err
   end
 

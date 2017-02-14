@@ -8,6 +8,16 @@ services:
       - "8080:8080"
       - "8090:8090"
     env_file: .env
+  dev:
+    image: ${IMAGE_NAME}
+    depends_on:
+    - redis
+    ports:
+      - "8080:8080"
+      - "8090:8090"
+    volumes:
+      - .:/opt/app
+    env_file: .env
   test:
     image: ${IMAGE_NAME}
     depends_on:

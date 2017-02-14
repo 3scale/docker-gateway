@@ -46,6 +46,7 @@ log_level="${!log}"
 mkdir -p "${apicast_dir}/logs"
 
 daemon=off
+worker_processes=auto
 
 usage () {
 	cat <<-USAGE
@@ -87,7 +88,7 @@ while getopts ":dc:hvqi:rw:m:s:p:" opt; do
       export AUTO_UPDATE_INTERVAL="${OPTARG}"
     ;;
     w)
-      main+=("worker_processes ${OPTARG};")
+      worker_processes=${OPTARG}
     ;;
     m)
       main+=("master_process ${OPTARG};")
@@ -112,6 +113,7 @@ while getopts ":dc:hvqi:rw:m:s:p:" opt; do
 done
 
 main+=("daemon ${daemon};")
+main+=("worker_processes ${worker_processes};")
 
 function join_by { local IFS="$1"; shift; echo "$*"; }
 args=$(join_by '' "${args[@]}")

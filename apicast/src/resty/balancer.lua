@@ -1,6 +1,7 @@
 local setmetatable = setmetatable
 local insert = table.insert
 local tonumber = tonumber
+local concat = table.concat
 
 local ngx_balancer = require "ngx.balancer"
 
@@ -21,6 +22,12 @@ function _M.new(mode)
   }, mt)
 end
 
+local peer_mt = {
+  __tostring = function(t)
+    return concat(t, ':')
+  end
+}
+
 local function new_peer(server, port)
   local address = server.address
 
@@ -28,10 +35,10 @@ local function new_peer(server, port)
     return nil, 'server missing address'
   end
 
-  return {
+  return setmetatable({
     address,
     tonumber(server.port or port or 80, 10)
-  }
+  }, peer_mt)
 end
 
 local function convert_servers(servers, port)

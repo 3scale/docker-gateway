@@ -140,7 +140,7 @@ local answers_mt = {
   end
 }
 
-function _M.get(self, name)
+function _M.get(self, name, stale)
   local cache = self.cache
 
   if not cache then
@@ -148,7 +148,7 @@ function _M.get(self, name)
   end
 
   local answers = setmetatable({ addresses = {} }, answers_mt)
-  local records = fetch(cache, name)
+  local records = fetch(cache, name, stale)
 
   for i=1, #records do
     insert(answers, records[i])
