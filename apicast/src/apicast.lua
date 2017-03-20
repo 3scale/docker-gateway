@@ -67,7 +67,7 @@ function _M.post_action()
   local request_id = ngx.var.original_request_id
   local p = post_action_proxy[request_id]
   post_action_proxy[request_id] = nil
-  p:post_action()
+  if p then p:post_action() end
 end
 
 function _M.access()
