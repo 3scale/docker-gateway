@@ -33,6 +33,32 @@ Here we have added the `-v` flag to run APIcast in verbose mode, in order to all
 
 Our Authorization Server should also be up and running and ready to receive requests.
 
+## Running APIcast with OAuth (on OpenShift)
+
+APIcast in OAuth mode as mentioned previously has a Redis dependency that needs to be configured. In this case it will be necessary to deploy the Redis database separately using the template provided [here](https://github.com/3scale/apicast/tree/master/openshift).
+
+It's also worth mentioning that if you are using the provided Ruby client and Auth server then they must be exposed on a publicly available **DNS** to correctly route the requests from the OpenShift cluster. A free service like [Ngrok](https://ngrok.com/) is a useful tool for testing.
+
+## Pre-requisites
+
+- Cluster is up and running
+- New project has been created
+
+Proceed to the following steps if you have fulfilled the 2 previous requirements and then continue the set up as described in our [OpenShift tutorial](https://support.3scale.net/docs/deployment-options/apicast-openshift)
+
+### Steps
+
+The following commands are based on the **oc cluster up** installation.
+
+1. Log in as admin and create a persistent volume using `oc login -u system:admin` and `redis-persistent.json`
+  - mkdir -p /var/lib/docker/pv/01
+  - chmod g+w /var/lib/docker/pv/01
+  - chcon -Rt svirt_sandbox_file_t /var/lib/docker/pv/
+  - oc new-app --param PV=01 -f redis-persistent.json
+
+2. Log in as developer using `oc login -u developer:developer`
+  - oc new-app -f https://raw.githubusercontent.com/3scale/3scale-amp-openshift-templates/1.0.0.GA/apicast-gateway/apicast-gateway-template.yml --param REDIS_HOST=redis
+
 ## Testing the Flow
 
 In order to test that our API is integrated correctly we will act as a Developer would and use a sample client to request an access token from APIcast. This is another simple ruby app that will act as a client (as per the client role defined in [RFC6749#1.1](https://tools.ietf.org/html/rfc6749#section-1.1).) The sample code for the client app can be found in the `apicast/examples` folder under `oauth2/client`.
