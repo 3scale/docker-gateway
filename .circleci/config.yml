@@ -48,6 +48,7 @@ jobs:
       - run: make busted
       - run: prove # no carton on centos
       - run: make doc
+      - run: travis/install-stapxx.sh /usr/local/bin && make profile
   deploy:
     <<: *S2i
     steps:

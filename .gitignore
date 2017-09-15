@@ -6,3 +6,4 @@ node_modules
 .vagrant/
 apicast/logs/
 *.rock
+/tmp
