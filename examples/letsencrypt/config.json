@@ -1,0 +1,32 @@
+{
+  "id": 1234567890987,
+  "provider_key": "provider-key",
+  "services": [
+    {
+      "id": 654321,
+      "backend_version": "1",
+      "proxy": {
+        "api_backend": "http://127.0.0.1:8081",
+        "hostname_rewrite": "echo",
+        "hosts": [
+          "localhost",
+          "127.0.0.1"
+        ],
+        "backend": {
+          "endpoint": "http://127.0.0.1:8081",
+          "host": "backend"
+        },
+        "proxy_rules": [
+          {
+            "http_method": "GET",
+            "pattern": "/",
+            "metric_system_name": "hits",
+            "delta": 1,
+            "parameters": [],
+            "querystring_parameters": {}
+          }
+        ]
+      }
+    }
+  ]
+}
