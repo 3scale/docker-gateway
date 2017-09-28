@@ -122,7 +122,7 @@ function _M:index(host)
       end
       config.services[i] = proxy_config.content
     end
-    
+
     return cjson.encode(config)
   else
     return nil, 'invalid status'

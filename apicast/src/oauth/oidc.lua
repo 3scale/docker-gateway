@@ -3,7 +3,6 @@ local jwt_validators = require 'resty.jwt-validators'
 
 local http_ng = require 'resty.http_ng'
 local user_agent = require 'user_agent'
-local resty_url = require 'resty.url'
 local resty_env = require 'resty.env'
 local cjson = require 'cjson'
 
@@ -42,7 +41,7 @@ function _M.new(service, options)
   local issuer = oidc.issuer or oidc.issuer_endpoint
   local config = oidc.config or {}
   local openid = config.openid or {}
-  
+
   local opts = options or {}
   local http_client = http_ng.new{
     backend = opts.client,
@@ -97,12 +96,12 @@ local function introspect_token(self, jwt_token)
   if not openid_configuration then
     return false
   end
-  
+
   local cache = self.cache
   local introspect_key = format(introspection_key_format,self.service.id,  jwt_token)
 
   local token_info = cache:get(introspect_key)
-  if token_info then 
+  if token_info then
      return token_info.active
   end
 
@@ -125,11 +124,11 @@ local function introspect_token(self, jwt_token)
   token_info = cjson.decode(res.body)
   cache:set(introspect_key)
   return token_info.active
-end 
+end
 
 local function logout_from_idp(self)
   local openid_configuration = self.config.openid
-  
+
   ngx.req.read_body()
   local data = ngx.req.get_body_data() or ''
   local args = ngx.decode_args(data)
@@ -137,8 +136,8 @@ local function logout_from_idp(self)
   local logout_url = openid_configuration.end_session_endpoint
   local client_id = openid_configuration.client_id
   local client_secret = openid_configuration.client_secret
-  local refresh_token = args.refresh_token 
-  return self.http_client.post(logout_url, {client_id = client_id, client_secret=client_secret, refresh_token=refresh_token}, opts)
+  local refresh_token = args.refresh_token
+  return self.http_client.post(logout_url, {client_id = client_id, client_secret=client_secret, refresh_token=refresh_token})
 end
 
 -- Parses the token - in this case we assume it's a JWT token
@@ -153,7 +152,7 @@ local function parse_and_verify_token(self, jwt_token)
 
   local revoked_key = format(revoked_key_format, self.service.id, jwt_token)
   local revoked = cache:get(revoked_key)
-  
+
   if revoked then
     ngx.log(ngx.DEBUG, "JWT was revoked")
     return nil, 'token was revoked'
@@ -188,7 +187,7 @@ local function parse_and_verify_token(self, jwt_token)
     return jwt_obj, "JWT not verified"
   end
   local token_introspection_enabled = self.config.introspection_enabled
-  if token_introspection_enabled and not introspect_token(self, jwt_token) then 
+  if token_introspection_enabled and not introspect_token(self, jwt_token) then
     return nil, '[jwt] JWT is not active'
   end
 
@@ -201,22 +200,22 @@ end
 
 function _M:revoke_credentials(service)
   local credentials, err = service:extract_credentials()
-  if err then 
-    ngx.status = 401
-    ngx.print(err)
-    ngx.exit(ngx.HTTP_UNAUTHORIZED)
-  end
-  local jwt_obj, err = parse_and_verify_token(self, credentials.access_token)
   if err then
     ngx.status = 401
     ngx.print(err)
     ngx.exit(ngx.HTTP_UNAUTHORIZED)
   end
-  local res, err = logout_from_idp(self)
+  local jwt_obj, jwt_err = parse_and_verify_token(self, credentials.access_token)
+  if jwt_err then
+    ngx.status = 401
+    ngx.print(err)
+    ngx.exit(ngx.HTTP_UNAUTHORIZED)
+  end
+  local res, logout_err = logout_from_idp(self)
   ngx.log(ngx.DEBUG, res.status)
   if res.status ~= 204 then
     ngx.status = res.status
-    ngx.print(res.body)
+    ngx.print(res.body or logout_err)
     ngx.exit(res.status)
   end
 
@@ -226,7 +225,7 @@ function _M:revoke_credentials(service)
 
   local introspect_key = format(introspection_key_format, service.id, credentials.access_token)
   cache:delete(introspect_key)
-  
+
   local revoked_key = format(revoked_key_format, service.id, credentials.access_token)
   local ttl = timestamp_to_seconds_from_now(jwt_obj.payload.exp, self.clock)
   cache:set(revoked_key, credentials.access_token, ttl)
@@ -269,7 +268,7 @@ end
 function _M:router(service)
   local oidc = self
   local r = router:new()
-  
+
   r:post('/oidc/logout', function() oidc:revoke_credentials(service) end)
   return r
 end

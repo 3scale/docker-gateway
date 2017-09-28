@@ -139,7 +139,7 @@ describe('OIDC', function()
     end)
   end)
 
-  describe(':transform_credentials with token introspection', function() 
+  describe(':transform_credentials with token introspection', function()
     local access_token = jwt:sign(rsa.private, {
         header = { typ = 'JWT', alg = 'RS256' },
         payload = {
@@ -162,19 +162,18 @@ describe('OIDC', function()
           }
         }
       },
-      extract_credentials = function() 
+      extract_credentials = function()
         return { ['access_token'] = access_token }
       end
     }
     local test_backend
 
     before_each(function() jwt_validators.set_system_clock(function() return 0 end) end)
-    before_each(function() 
+    before_each(function()
       test_backend = test_backend_client.new()
     end)
 
-    
-    it('executes token introspection to idp if enabled', function() 
+    it('executes token introspection to idp if enabled', function()
       local oidc = _M.new(service, {client = test_backend, introspection_enabled = true})
       test_backend.expect{ url = 'https://example.com/auth/realms/apicast/token/introspection' }.
         respond_with{
@@ -187,14 +186,14 @@ describe('OIDC', function()
       local credentials,_,err = oidc:transform_credentials({access_token = access_token})
       assert(credentials, err)
       assert.same({ app_id = 'foobar'}, credentials)
-      
+
       -- and do not call twice if caching results
-      credentials, _, err = oidc:transform_credentials({access_token = access_token})
+      credentials, _, _ = oidc:transform_credentials({access_token = access_token})
       assert.same({ app_id = 'foobar'}, credentials)
       test_backend.verify_no_outstanding_expectations()
     end)
 
-    it('fails transform_credentials after revoke', function() 
+    it('fails transform_credentials after revoke', function()
       local oidc = _M.new(service, {client = test_backend, introspection_enabled = true})
       test_backend.expect{ url = 'https://example.com/auth/realms/apicast/token/introspection' }.
         respond_with {
@@ -219,12 +218,12 @@ describe('OIDC', function()
 
       oidc:revoke_credentials(service)
       credentials,_,err = oidc:transform_credentials({access_token = access_token})
-      assert.falsy(credential)
+      assert.falsy(credentials)
       assert.truthy(err)
       test_backend.verify_no_outstanding_expectations()
     end)
 
-    it('fails transform_credentials if token is not active', function() 
+    it('fails transform_credentials if token is not active', function()
       local oidc = _M.new(service, {client = test_backend, introspection_enabled = true})
       test_backend.expect{ url = 'https://example.com/auth/realms/apicast/token/introspection' }.
         respond_with{
@@ -234,7 +233,7 @@ describe('OIDC', function()
           })
         }
       local credentials,_,err = oidc:transform_credentials({access_token = access_token})
-      assert.falsy(credential)
+      assert.falsy(credentials)
       assert.truthy(err)
       test_backend.verify_no_outstanding_expectations()
     end)
