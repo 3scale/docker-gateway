@@ -6,6 +6,9 @@ local setmetatable = setmetatable
 local configuration_loader = require('configuration_loader').new()
 local configuration_store = require('configuration_store')
 local user_agent = require('user_agent')
+local env = require 'resty.env'
+
+local url_rewriting = env.enabled('APICAST_URL_REWRITING')
 
 local noop = function() end
 
@@ -63,7 +66,10 @@ function _M:rewrite()
   local configuration = configuration_loader.rewrite(self.configuration, host)
 
   local p = proxy.new(configuration)
-  p.set_upstream(p:set_service(host))
+  local service = p:set_service(host)
+  if not url_rewriting then
+    p.set_upstream(service)
+  end
   ngx.ctx.proxy = p
 end
 

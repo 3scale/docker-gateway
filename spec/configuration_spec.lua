@@ -128,4 +128,40 @@ describe('Configuration object', function()
     end)
   end)
 
+  describe('.get_rewrite_url', function()
+    local get_rewrite_url = configuration.get_rewrite_url
+
+    it('fills in wildcard values', function()
+      local rule = { redirect_url = 'http://foo.bar/api/collection/{id}/item/{code}'}
+      local params = { id = 'one', code = 'two' }
+      ngx.var = { args = nil }
+      ngx.req.get_uri_args = function() return {} end
+      assert.equal('http://foo.bar/api/collection/one/item/two', get_rewrite_url(rule, params))
+    end)
+
+    it('merges the query parameters when rewrite_url has query parameters', function()
+      local rule = { redirect_url = 'http://foo.bar/api/collection/id?q=query'}
+      local params = {}
+      ngx.var = { args = 'param1=value1&param2=value2' }
+      ngx.req.get_uri_args = function() return { param1 = 'value1', param2 = 'value2' } end
+      assert.equal('http://foo.bar/api/collection/id?q=query&param1=value1&param2=value2', get_rewrite_url(rule, params))
+    end)
+
+    it('merges the query parameters when rewrite_url has no query parameters', function()
+      local rule = { redirect_url = 'http://foo.bar/api/collection/id'}
+      local params = {}
+      ngx.var = { args = 'param1=value1&param2=value2' }
+      ngx.req.get_uri_args = function() return { param1 = 'value1', param2 = 'value2' } end
+      assert.equal('http://foo.bar/api/collection/id?param1=value1&param2=value2', get_rewrite_url(rule, params))
+    end)
+
+    it('merges the query parameters when there are no params in the request', function()
+      local rule = { redirect_url = 'http://foo.bar/api/collection/id?q=query'}
+      local params = {}
+      ngx.var = { args = nil }
+      ngx.req.get_uri_args = function() return {} end
+      assert.equal('http://foo.bar/api/collection/id?q=query', get_rewrite_url(rule, params))
+    end)
+  end)
+
 end)

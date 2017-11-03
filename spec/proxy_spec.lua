@@ -1,5 +1,6 @@
 local configuration_store = require 'configuration_store'
 local Service = require 'configuration.service'
+local env = require 'resty.env'
 
 describe('Proxy', function()
   local configuration, proxy
@@ -130,6 +131,34 @@ describe('Proxy', function()
       proxy:authorize(service, usage, credentials)
 
       assert.spy(proxy.cache_handler).was.called_with(proxy.cache, 'client_id=blah:foo', response, nil)
+    end)
+  end)
+
+  describe('.set_upsteam_by_url', function()
+    env.set('APICAST_URL_REWRITING', 'true')
+    local service = { api_backend = 'http://foo.bar' }
+    stub(ngx.req, 'set_header', function(header, value) return 'GET' end)
+
+    it('sets the upstream to the rewrite URL if it is available', function()
+      ngx.var = {}
+      ngx.ctx = {}
+      local urls = { [1] = 'https://api.url:8443/rewrite/path' }
+      
+      proxy.set_upsteam_by_url(service, urls)
+
+      assert.same('https://upstream/rewrite/path', ngx.var.proxy_pass)
+      assert.same('api.url', ngx.ctx.upstream.query)
+    end)
+
+    it('sets the upstream to the Private Base URL with request path if rewrite URL is not available', function()
+      ngx.var = {}
+      ngx.ctx = {}
+      local urls = {}
+      
+      proxy.set_upsteam_by_url(service, urls)
+
+      assert.same('http://upstream', ngx.var.proxy_pass)
+      assert.same('foo.bar', ngx.ctx.upstream.query)
     end)
   end)
 end)

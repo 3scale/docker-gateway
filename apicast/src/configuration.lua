@@ -4,6 +4,7 @@ local _M = {
 
 local len = string.len
 local format = string.format
+local find = string.find
 local pairs = pairs
 local type = type
 local error = error
@@ -20,6 +21,8 @@ local re = require 'ngx.re'
 local env = require 'resty.env'
 local resty_url = require 'resty.url'
 local util = require 'util'
+
+local url_rewriting = env.enabled('APICAST_URL_REWRITING')
 
 local mt = { __index = _M, __tostring = function() return 'Configuration' end }
 
@@ -39,50 +42,39 @@ local function regexpify(path)
   return path:gsub('?.*', ''):gsub("{.-}", '([\\w_.-]+)'):gsub("%.", "\\.")
 end
 
-local function check_rule(req, rule, usage_t, matched_rules, params)
-  local pattern = rule.regexpified_pattern
-  local match = re_match(req.path, format("^%s", pattern), 'oj')
+function _M.get_rewrite_url(rule, params)
 
-  if match and req.method == rule.method then
-    local args = req.args
+  local rewrite_url = rule.redirect_url
+  if not rewrite_url or rewrite_url == "" then return nil end
 
-    if rule.querystring_params(args) then -- may return an empty table
-      local system_name = rule.system_name
-      -- FIXME: this had no effect, what is it supposed to do?
-      -- when no querystringparams
-      -- in the rule. it's fine
-      -- for i,p in ipairs(rule.parameters or {}) do
-      --   param[p] = match[i]
-      -- end
+  -- fill the wildcard with captures
+  for param, value in pairs(params) do
+    local wildcard = '{'..param..'}'
+    rewrite_url = rewrite_url:gsub(wildcard, value)
+  end
 
-      local value = set_or_inc(usage_t, system_name, rule.delta)
+  -- merge the query parameters from the request and the rewrite_url of the rule
+  local rule_query = re.split(rewrite_url,'\\?','oj')[2]
+  local args = ngx.req.get_uri_args()
+  local req_query = ngx.var.args or ''
 
-      usage_t[system_name] = value
-      params['usage[' .. system_name .. ']'] = value
-      insert(matched_rules, rule.pattern)
+  -- remove the query arg from the original request, if it is present in the rewrite URL
+  for key in pairs(args) do
+    local param = format("%s=",key)
+    local m = find(rewrite_url, param)
+    if m then
+      param = (param..'[^&]+&?')
+      req_query = req_query:gsub(param,'')
     end
   end
-end
 
-local function get_auth_params(method)
-  local params = ngx.req.get_uri_args()
-
-  if method == "GET" then
-    return params
-  else
-    ngx.req.read_body()
-    local body_params = ngx.req.get_post_args()
-
-    -- Adds to body_params URI params that are not included in the body. Doing
-    -- the reverse would be more expensive, because in general, we expect the
-    -- size of body_params to be larger than the size of params.
-    setmetatable(body_params, { __index = params })
-
-    return body_params
+  if req_query ~= '' then
+    local merge_char = (rule_query == nil or rule_query == '') and '?' or '&'
+    rewrite_url = rewrite_url .. merge_char .. req_query
   end
-end
 
-local regex_variable = '\\{[-\\w_]+\\}'
+  return rewrite_url
+end
 
 local function hash_to_array(hash)
   local array = {}
@@ -92,22 +84,33 @@ local function hash_to_array(hash)
   return array
 end
 
-local function check_querystring_params(params, args)
+local regex_variable = '\\{[-\\w_]+\\}'
+
+local function check_querystring_params(querystring_parameters, args)
+  local params = hash_to_array(querystring_parameters)
+
   local match = true
+  local matched_query_params = {}
 
   for i=1, #params do
     local param = params[i][1]
     local expected = params[i][2]
+
     local m, err = re_match(expected, regex_variable, 'oj')
     local value = args[param]
 
+    -- query parameter value is a defined as wildcard
     if m then
       if not value then -- regex variable have to have some value
         ngx.log(ngx.DEBUG, 'check query params ', param, ' value missing ', expected)
         match = false
         break
       end
+      -- TODO: see if there is a better way to do it, maybe with 'match'
+      local wildcard_name = m[0]:gsub('{',''):gsub('}','')
+      matched_query_params[wildcard_name] = value
     else
+      -- query parameter value is exact
       if err then ngx.log(ngx.ERR, 'check match error ', err) end
 
       -- if many values were passed use the last one
@@ -123,7 +126,67 @@ local function check_querystring_params(params, args)
     end
   end
 
-  return match
+  return match, matched_query_params
+end
+
+local function check_rule(req, rule, usage_t, matched_rules, params)
+  local rewrite_url = nil
+
+  local pattern = rule.regexpified_pattern
+  local match = re_match(req.path, format("^%s", pattern), 'oj')
+
+  if match and req.method == rule.method then
+    local args = req.args
+
+    local querystring_check_ok, matched_query_params = check_querystring_params(rule.querystring_parameters, args)
+
+    if querystring_check_ok then
+      local system_name = rule.system_name
+
+      if url_rewriting then
+
+        local parameters = {} -- parameters from wildcards
+
+        -- Extracting path parameters matching wildcards
+        for i,p in ipairs(rule.parameters or {}) do
+          parameters[p] = match[i]
+        end
+
+        -- add wildcards from query parameters
+        for k,v in pairs(matched_query_params) do
+          parameters[k] = v
+        end
+
+        rewrite_url = _M.get_rewrite_url(rule, parameters)
+      end
+
+      local value = set_or_inc(usage_t, system_name, rule.delta)
+
+      usage_t[system_name] = value
+      params['usage[' .. system_name .. ']'] = value
+      insert(matched_rules, rule.pattern)
+    end
+  end
+
+  return rewrite_url
+end
+
+local function get_params(method)
+  local params = ngx.req.get_uri_args()
+
+  if method == "GET" then
+    return params
+  else
+    ngx.req.read_body()
+    local body_params = ngx.req.get_post_args()
+
+    -- Adds to body_params URI params that are not included in the body. Doing
+    -- the reverse would be more expensive, because in general, we expect the
+    -- size of body_params to be larger than the size of params.
+    setmetatable(body_params, { __index = params })
+
+    return body_params
+  end
 end
 
 local Service = require 'configuration.service'
@@ -202,30 +265,34 @@ function _M.parse_service(service)
         local params = {}
         local rules = config.rules
 
-        local args = get_auth_params(method)
+        local args = get_params(method)
 
         ngx.log(ngx.DEBUG, '[mapping] service ', config.id, ' has ', #config.rules, ' rules')
 
+        -- Only for URL rewriting feature:
+        -- Stores the rewrite_urls taking into account the wildcards values
+        local rewrite_urls = {}
+
         for i = 1, #rules do
-          check_rule({path=path, method=method, args=args}, rules[i], usage_t, matched_rules, params)
+          local rewrite_url = check_rule({path=path, method=method, args=args}, rules[i], usage_t, matched_rules, params)
+          if rewrite_url then
+            insert(rewrite_urls, rewrite_url)
+          end
         end
 
         -- if there was no match, usage is set to nil and it will respond a 404, this behavior can be changed
-        return usage_t, concat(matched_rules, ", "), params
+        return usage_t, concat(matched_rules, ", "), params, rewrite_urls
       end,
       rules = map(function(proxy_rule)
-        local querystring_parameters = hash_to_array(proxy_rule.querystring_parameters)
-
         return {
           method = proxy_rule.http_method,
           pattern = proxy_rule.pattern,
           regexpified_pattern = regexpify(proxy_rule.pattern),
           parameters = proxy_rule.parameters,
-          querystring_params = function(args)
-            return check_querystring_params(querystring_parameters, args)
-          end,
+          querystring_parameters = proxy_rule.querystring_parameters,
           system_name = proxy_rule.metric_system_name or error('missing metric name of rule ' .. inspect(proxy_rule)),
-          delta = proxy_rule.delta
+          delta = proxy_rule.delta,
+          redirect_url = proxy_rule.redirect_url
         }
       end, proxy.proxy_rules or {}),
 
