@@ -132,7 +132,7 @@ describe('Configuration Remote Loader V2', function()
             environment = 'sandbox',
             content = {
               id = 42, backend_version = 1,
-              proxy = { oidc_issuer_endpoint = 'http://idp.example.com/auth/realms/foo/' }
+              proxy = { oidc_issuer_endpoint = 'http://admin:password@idp.example.com/auth/realms/foo/' }
             }
           }
         }
@@ -163,6 +163,8 @@ describe('Configuration Remote Loader V2', function()
       assert.same({
         config = {
           openid = {
+            client_id = 'admin',
+            client_secret = 'password',
             id_token_signing_alg_values_supported = { 'RS256' },
             issuer = 'https://idp.example.com/auth/realms/foo',
           },

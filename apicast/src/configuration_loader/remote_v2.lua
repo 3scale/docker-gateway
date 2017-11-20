@@ -275,6 +275,9 @@ function _M:oidc_issuer_configuration(service)
     ngx.log(ngx.ERR, 'invalid OIDC Issuer, expected application/json got:  ', res.headers.content_type, ' body: ', res.body)
     return nil, 'invalid JSON'
   end
+  local parts = resty_url.parse(service.oidc.issuer_endpoint)
+  config.client_id = parts.user
+  config.client_secret = parts.password
 
   issuer.openid = config
 
