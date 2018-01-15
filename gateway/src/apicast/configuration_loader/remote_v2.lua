@@ -159,7 +159,14 @@ function _M:call(environment)
 
   if not res and err then
     ngx.log(ngx.WARN, 'failed to get list of services: ', err, ' url: ', err.url)
-    return nil, err
+
+    local all = self:index()
+
+    if all then
+      return all
+    else
+      return nil, err
+    end
   end
 
   local config
