@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "name": "Maintenance Mode policy configuration",
+  "description": ["A policy which allows you reject incoming requests with a specified status code and message.",
+    "It's useful for maintenance periods or to temporarily block an API."
+  ],
+  "version": "1.0.0",
+  "configuration": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "integer",
+        "description": "HTTP status code to return",
+        "default": 503
+      },
+      "message": {
+        "type": "string",
+        "description": "HTTP response to return",
+        "default": "503 Service Unavailable - Maintenance"
+      }
+    },
+    "required": []
+  }
+}
