@@ -1,6 +1,6 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Caching policy configuration",
+  "$schema": "http://apicast.io/policy-v1/schema#manifest#",
+  "name": "Caching policy",
   "description":
     ["Configures a cache for the authentication calls against the 3scale ",
      "backend. The 3scale backend can authorize (status code = 200) and deny ",
@@ -19,12 +19,15 @@
      "Make sure to understand the implications of that before using this ",
      "mode. It makes sense only in very specific use cases.\n",
      "- None: disables caching."],
-  "type": "object",
-  "properties": {
-    "caching_type": {
-      "description": "Caching mode",
-      "type": "string",
-      "enum": ["resilient", "strict", "allow", "none"]
+  "version": "0.1",
+  "configuration": {
+    "type": "object",
+    "properties": {
+      "caching_type": {
+        "description": "Caching mode",
+        "type": "string",
+        "enum": ["resilient", "strict", "allow", "none"]
+      }
     }
   }
 }

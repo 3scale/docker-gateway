@@ -1,43 +1,46 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "URL rewriting policy configuration",
+  "$schema": "http://apicast.io/policy-v1/schema#manifest#",
+  "name": "URL rewriting policy",
   "description":
     ["This policy allows to modify the path of a request. ",
      "The operations supported are sub and gsub based on ngx.re.sub and ",
      "ngx.re.gsub provided by OpenResty. Please check ",
      "https://github.com/openresty/lua-nginx-module for more details on how ",
      "to define regular expressions and learn the options supported."],
-  "type": "object",
-  "properties": {
-    "commands": {
-      "description": "List of rewriting commands to be applied",
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "op": {
-            "description": "Operation to be applied (sub or gsub)",
-            "type": "string",
-            "enum": ["sub", "gsub"]
+  "version": "0.1",
+  "configuration": {
+    "type": "object",
+    "properties": {
+      "commands": {
+        "description": "List of rewriting commands to be applied",
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "op": {
+              "description": "Operation to be applied (sub or gsub)",
+              "type": "string",
+              "enum": ["sub", "gsub"]
+            },
+            "regex": {
+              "description": "Regular expression to be matched",
+              "type": "string"
+            },
+            "replace": {
+              "description": "String that will replace what is matched by the regex",
+              "type": "string"
+            },
+            "options": {
+              "description": "Options that define how the regex matching is performed",
+              "type": "string"
+            },
+            "break": {
+              "description": "when set to true, if the command rewrote the URL, it will be the last one applied",
+              "type": "boolean"
+            }
           },
-          "regex": {
-            "description": "Regular expression to be matched",
-            "type": "string"
-          },
-          "replace": {
-            "description": "String that will replace what is matched by the regex",
-            "type": "string"
-          },
-          "options": {
-            "description": "Options that define how the regex matching is performed",
-            "type": "string"
-          },
-          "break": {
-            "description": "when set to true, if the command rewrote the URL, it will be the last one applied",
-            "type": "boolean"
-          }
-        },
-        "required": ["op", "regex", "replace"]
+          "required": ["op", "regex", "replace"]
+        }
       }
     }
   }

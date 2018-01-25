@@ -1,41 +1,44 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "CORS policy configuration",
+  "$schema": "http://apicast.io/policy-v1/schema#manifest#",
+  "name": "CORS policy",
   "description": "This policy enables CORS (Cross Origin Resource Sharing) request handling.",
-  "type": "object",
-  "properties": {
-    "allow_headers": {
-      "description": "Allowed headers",
-      "type": "array",
-      "items": {
+  "version": "0.1",
+  "configuration": {
+    "type": "object",
+    "properties": {
+      "allow_headers": {
+        "description": "Allowed headers",
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "allow_methods": {
+        "description": "Allowed methods",
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": [
+            "GET",
+            "HEAD",
+            "POST",
+            "PUT",
+            "DELETE",
+            "PATCH",
+            "OPTIONS",
+            "TRACE",
+            "CONNECT"
+          ]
+        }
+      },
+      "allow_origin": {
+        "description": "Origins for which the response can be shared with",
         "type": "string"
+      },
+      "allow_credentials": {
+        "description": "Whether the request can be made using credentials",
+        "type": "boolean"
       }
-    },
-    "allow_methods": {
-      "description": "Allowed methods",
-      "type": "array",
-      "items": {
-        "type": "string",
-        "enum": [
-          "GET",
-          "HEAD",
-          "POST",
-          "PUT",
-          "DELETE",
-          "PATCH",
-          "OPTIONS",
-          "TRACE",
-          "CONNECT"
-        ]
-      }
-    },
-    "allow_origin": {
-      "description": "Origins for which the response can be shared with",
-      "type": "string"
-    },
-    "allow_credentials": {
-      "description": "Whether the request can be made using credentials",
-      "type": "boolean"
     }
   }
 }

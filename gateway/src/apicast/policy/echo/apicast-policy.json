@@ -1,19 +1,22 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Echo policy configuration",
+  "$schema": "http://apicast.io/policy-v1/schema#manifest#",
+  "name": "Echo policy",
   "description":
     ["This policy prints the request back to the client and optionally sets ",
      "a status code."],
-  "type": "object",
-  "properties": {
-    "status": {
-      "description": "HTTP status code to be returned",
-      "type": "integer"
-    },
-    "exit": {
-      "description": "Exit mode. 'request' interrupts the processing of the request, 'phase' only skips the rewrite phase.",
-      "type": "string",
-      "enum": ["request", "phase"]
+  "version": "0.1",
+  "configuration": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "description": "HTTP status code to be returned",
+        "type": "integer"
+      },
+      "exit": {
+        "description": "Exit mode. 'request' interrupts the processing of the request, 'phase' only skips the rewrite phase.",
+        "type": "string",
+        "enum": ["request", "phase"]
+      }
     }
   }
 }
