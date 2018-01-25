@@ -1,0 +1,58 @@
+{
+  "$id": "http://apicast.io/policy-v1/schema#manifest",
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "schema": {
+      "$ref": "http://json-schema.org/draft-07/schema#",
+      "default": {}
+    },
+    "version": {
+      "type": "string",
+      "title": "The Policy Version",
+      "description": "A semantic version of a policy.",
+      "examples": [
+        "1.3.4",
+        "0.1"
+      ],
+      "pattern": "^(\\d+\\.)?(\\d+\\.)?(\\*|\\d+)$"
+    }
+  },
+  "properties": {
+    "name": {
+      "$id": "/properties/name",
+      "type": "string",
+      "title": "The Policy Name",
+      "description": "Name of the policy.",
+      "examples": [
+        "Basic Authentication"
+      ],
+      "minLength": 1
+    },
+    "description": {
+      "$id": "/properties/description",
+      "oneOf": [
+        { "type": "string",
+          "minLength": 1 },
+        { "type": "array", "items": { "type": "string" },
+          "minItems": 1
+        }
+      ],
+      "title": "The Policy Description",
+      "description": "Longer description of what the policy does.",
+      "examples": [
+        "Extract authentication credentials from the HTTP Authorization header and pass them to 3scale backend.",
+        [ "Redirect request to different upstream: ", " - based on path", "- set different Host header"]
+      ]
+    },
+    "version": {
+      "$ref": "#/definitions/version"
+    },
+    "configuration": {
+      "$ref": "#/definitions/schema"
+    }
+  },
+  "required": ["name", "version", "configuration"]
+}
+
+

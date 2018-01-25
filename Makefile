@@ -158,6 +158,10 @@ lint-schema: apicast-source
 	    3scale/ajv validate \
 		-s /usr/local/lib/node_modules/ajv-cli/node_modules/ajv/lib/refs/json-schema-draft-07.json \
 		$(addprefix -d ,$(shell find gateway/src/apicast/policy -name 'schema.json'))
+	@ docker run --volumes-from ${COMPOSE_PROJECT_NAME}-source --workdir /opt/app-root/src \
+		3scale/ajv validate \
+		-s gateway/src/apicast/policy/manifest-schema.json \
+		$(addprefix -d ,$(shell find gateway/src/apicast/policy -name 'manifest.json'))
 
 node_modules/.bin/markdown-link-check:
 	yarn install

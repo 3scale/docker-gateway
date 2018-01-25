@@ -1,0 +1,14 @@
+{
+  "$schema": "http://apicast.io/policy-v1/schema#manifest",
+  "name": "Caching 3scale backend response",
+  "description": [
+    "Configures a cache for the authentication calls against the 3scale backend.",
+    "The 3scale backend can authorize (status code = 200) and deny (status code = 4xx) calls.",
+    "When it fails, it returns a 5xx code.."
+  ],
+  "version": "1.1",
+  "configuration": {
+    "$ref": "schema.json#"
+  }
+}
+
