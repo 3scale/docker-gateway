@@ -27,7 +27,7 @@ end
 
 local function change_upstream(url)
   ngx.ctx.upstream = resty_resolver:instance():get_servers(
-    url.host, { port = url.port })
+    url.host, { port = url.port or resty_url.default_port(url.scheme) })
 
   ngx.var.proxy_pass = proxy_pass(url)
   ngx.req.set_header('Host', url.host)

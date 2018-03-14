@@ -21,6 +21,7 @@ describe('Upstream policy', function()
 
       -- ngx functions and vars
       ngx.var = { uri = test_req_uri }
+      ngx.ctx = {}
       stub(ngx.req, 'set_header')
       stub(ngx, 'exec')
     end)
@@ -97,6 +98,25 @@ describe('Upstream policy', function()
         upstream:content(context)
         assert.is_falsy(context.upstream_changed)
       end)
+    end)
+
+    describe('when the port is not specified for the url', function()
+      local url_without_port = 'https://127.0.0.1/a_path'
+      local config_with_a_matching_rule = {
+        rules = {
+          { regex = '/', url = url_without_port }
+        }
+      }
+
+      local upstream = UpstreamPolicy.new(config_with_a_matching_rule)
+
+      it('sets a default port by scheme', function()
+        upstream:content(context)
+
+        assert.is_truthy(context.upstream_changed)
+        assert.equals(443, ngx.ctx.upstream[1].port)
+      end)
+
     end)
   end)
 
