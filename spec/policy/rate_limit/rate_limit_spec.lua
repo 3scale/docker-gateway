@@ -50,7 +50,10 @@ describe('Rate limit policy', function()
     local redis = require('resty.redis'):new()
     redis:connect(redis_host, redis_port)
     redis:select(1)
-    redis:del('connections_test1', 'leaky_bucket_test2', 'fixed_window_test3', 'bank_A_leaky_bucket_test4')
+    redis:del('connections_test1', 'leaky_bucket_test2', 'bank_A_leaky_bucket_test4')
+    redis:del('fixed_window_test3', 'fixed_window_test3_count', 'fixed_window_test3_window')
+    redis:del('connections_test1_seed', 'leaky_bucket_test2_seed')
+    redis:del('fixed_window_test3_seed', 'bank_A_leaky_bucket_test4_seed')
     init_val()
   end)
 
@@ -173,6 +176,86 @@ describe('Rate limit policy', function()
       rate_limit_policy:access()
       rate_limit_policy:access()
       assert.spy(ngx_sleep_spy).was_called_with(match.is_gt(0.001))
+    end)
+
+    it('initialize redis records', function()
+      local config = {
+        limiters = {
+          {name = "connections", key = {name = 'test1'}, conn = 20, burst = 10, delay = 0.5},
+          {name = "fixed_window", key = {name = 'test3'}, count = 10, window = 10}
+        },
+        redis_url = 'redis://'..redis_host..':'..redis_port..'/1'
+      }
+      local config2 = {
+        limiters = {
+          {name = "connections", key = {name = 'test1'}, conn = 20, burst = 10, delay = 0.5},
+          {name = "fixed_window", key = {name = 'test3'}, count = 15, window = 10}
+        },
+        redis_url = 'redis://'..redis_host..':'..redis_port..'/1'
+      }
+
+      local rate_limit_policy = RateLimitPolicy.new(config)
+      rate_limit_policy:access()
+
+      local redis = require('resty.redis'):new()
+      redis:connect(redis_host, redis_port)
+      redis:select(1)
+      local conn = redis:get('connections_test1')
+      local fixed_window = redis:get('fixed_window_test3')
+      local count = redis:get('fixed_window_test3_count')
+      local window = redis:get('fixed_window_test3_window')
+      assert.equal('1', conn)
+      assert.equal('9', fixed_window)
+      assert.equal('10', count)
+      assert.equal('10', window)
+
+      os.execute("sleep 1")
+      rate_limit_policy = RateLimitPolicy.new(config2)
+      rate_limit_policy:access()
+
+      conn = redis:get('connections_test1')
+      fixed_window = redis:get('fixed_window_test3')
+      count = redis:get('fixed_window_test3_count')
+      window = redis:get('fixed_window_test3_window')
+      assert.equal('1', conn)
+      assert.equal('14', fixed_window)
+      assert.equal('15', count)
+      assert.equal('10', window)
+
+    end)
+
+    it('do not initialize redis records', function()
+      local config = {
+        limiters = {
+          {name = "fixed_window", key = {name = 'test3'}, count = 10, window = 10}
+        },
+        redis_url = 'redis://'..redis_host..':'..redis_port..'/1'
+      }
+
+      local rate_limit_policy = RateLimitPolicy.new(config)
+      rate_limit_policy:access()
+
+      local redis = require('resty.redis'):new()
+      redis:connect(redis_host, redis_port)
+      redis:select(1)
+      local fixed_window = redis:get('fixed_window_test3')
+      local count = redis:get('fixed_window_test3_count')
+      local window = redis:get('fixed_window_test3_window')
+      assert.equal('9', fixed_window)
+      assert.equal('10', count)
+      assert.equal('10', window)
+
+      os.execute("sleep 1")
+      rate_limit_policy = RateLimitPolicy.new(config)
+      rate_limit_policy:access()
+
+      fixed_window = redis:get('fixed_window_test3')
+      count = redis:get('fixed_window_test3_count')
+      window = redis:get('fixed_window_test3_window')
+      assert.equal('8', fixed_window)
+      assert.equal('10', count)
+      assert.equal('10', window)
+
     end)
   end)
 

@@ -68,6 +68,9 @@ local function redis_shdict(url)
         return nil
       end
       return val
+    end,
+    del = function(_, key)
+      return redis:del(key)
     end
   }
 end
@@ -95,12 +98,47 @@ local function init_error_settings(config_error_settings)
   return error_settings
 end
 
+local function initialize_redis_records(redis, seed, limiters)
+  for _, limiter in ipairs(limiters) do
+    local key
+    if limiter.key.scope == "service" then
+      key = limiter.key.service_name.."_"..limiter.name.."_"..limiter.key.name
+    else
+      key = limiter.name.."_"..limiter.key.name
+    end
+
+    local seed_key = key.."_seed"
+    local seed_value = redis:get(seed_key)
+
+    if not seed_value or tonumber(seed_value) ~= seed then
+      redis:set(seed_key, seed)
+
+      if limiter.name == "connections" or limiter.name == "leaky_bucket" then
+        redis:del(key)
+      else
+        local count_key = key.."_count"
+        local count = redis:get(count_key)
+
+        local window_key = key.."_window"
+        local window = redis:get(window_key)
+
+        if not count or not window or tonumber(count) ~= limiter.count or tonumber(window) ~= limiter.window then
+          redis:del(key)
+          redis:set(count_key, limiter.count)
+          redis:set(window_key, limiter.window)
+        end
+      end
+    end
+  end
+end
+
 function _M.new(config)
   local self = new()
   self.config = config or {}
   self.limiters = config.limiters
   self.redis_url = config.redis_url
   self.error_settings = init_error_settings(config.error_settings)
+  self.seed = os.time(os.date("!*t"))
 
   return self
 end
@@ -118,6 +156,8 @@ function _M:access()
       error(self.error_settings, "configuration_issue")
       return
     end
+
+    initialize_redis_records(red, self.seed, self.limiters)
   end
 
   for _, limiter in ipairs(self.limiters) do
