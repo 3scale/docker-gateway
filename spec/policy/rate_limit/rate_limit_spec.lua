@@ -233,8 +233,7 @@ describe('Rate limit policy', function()
       assert.equal('10', count)
       assert.equal('10', window)
 
-      os.execute("sleep 1")
-      ngx.update_time()
+      ngx.sleep(1)
       rate_limit_policy = RateLimitPolicy.new(config2)
       rate_limit_policy:access(context)
 
@@ -270,8 +269,7 @@ describe('Rate limit policy', function()
       assert.equal('10', count)
       assert.equal('10', window)
 
-      os.execute("sleep 1")
-      ngx.update_time()
+      ngx.sleep(1)
       rate_limit_policy = RateLimitPolicy.new(config)
       rate_limit_policy:access(context)
 
