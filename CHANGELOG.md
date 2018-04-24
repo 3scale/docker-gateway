@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [3.2.0-rc1] - 2018-04-24
+
 ### Added
 
 - Rate Limit policy [PR #648](https://github.com/3scale/apicast/pull/648)
@@ -380,7 +382,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 - Major rewrite using JSON configuration instead of code generation.
 
-[Unreleased]: https://github.com/3scale/apicast/compare/v3.2.0-beta3...HEAD
+[Unreleased]: https://github.com/3scale/apicast/compare/v3.2.0-rc1...HEAD
 [2.0.0]: https://github.com/3scale/apicast/compare/v0.2...v2.0.0
 [3.0.0-alpha1]: https://github.com/3scale/apicast/compare/v2.0.0...v3.0.0-alpha1
 [3.0.0-alpha2]: https://github.com/3scale/apicast/compare/v3.0.0-alpha1...v3.0.0-alpha2
@@ -399,3 +401,4 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 [3.2.0-beta1]: https://github.com/3scale/apicast/compare/v3.2.0-alpha2...v3.2.0-beta1
 [3.2.0-beta2]: https://github.com/3scale/apicast/compare/v3.2.0-beta1...v3.2.0-beta2
 [3.2.0-beta3]: https://github.com/3scale/apicast/compare/v3.2.0-beta2...v3.2.0-beta3
+[3.2.0-rc1]: https://github.com/3scale/apicast/compare/v3.2.0-beta3...v3.2.0-rc1
