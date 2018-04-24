@@ -44,7 +44,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Avoid `nameserver` repetion from `RESOLVER` variable and `resolv.conf` file [PR #636](https://github.com/3scale/apicast/pull/636)
 - Bug in URL rewriting policy that ignored the `commands` attribute in the policy manifest [PR #641](https://github.com/3scale/apicast/pull/641)
 - Skip comentaries after `search` values in resolv.conf [PR #635](https://github.com/3scale/apicast/pull/635)
-- Bug that prevented using `CONFIGURATION_CACHE_LOADER=boot` without specifying `APICAST_CONFIGURATION_CACHE` in staging [PR #651](https://github.com/3scale/apicast/pull/651).
+- Bug that prevented using `CONFIGURATION_CACHE_LOADER=boot` without specifying `APICAST_CONFIGURATION_CACHE` in staging [PR #651](https://github.com/3scale/apicast/pull/651), [THREESCALE-756](https://issues.jboss.org/browse/THREESCALE-756).
 - `typ` is verified when it's present in keycloak tokens [PR #658](https://github.com/3scale/apicast/pull/658)
 
 ### Changed
@@ -56,14 +56,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ## Added
 
 - Definition of JSON schemas for policy configurations [PR #522](https://github.com/3scale/apicast/pull/522), [PR #601](https://github.com/3scale/apicast/pull/601)
-- URL rewriting policy [PR #529](https://github.com/3scale/apicast/pull/529)
+- URL rewriting policy [PR #529](https://github.com/3scale/apicast/pull/529), [THREESCALE-618](https://issues.jboss.org/browse/THREESCALE-618)
 - Liquid template can find files in current folder too [PR #533](https://github.com/3scale/apicast/pull/533)
 - `bin/apicast` respects `APICAST_OPENRESTY_BINARY` and `TEST_NGINX_BINARY` environment [PR #540](https://github.com/3scale/apicast/pull/540)
-- Caching policy [PR #546](https://github.com/3scale/apicast/pull/546), [PR #558](https://github.com/3scale/apicast/pull/558)
+- Caching policy [PR #546](https://github.com/3scale/apicast/pull/546), [PR #558](https://github.com/3scale/apicast/pull/558), [THREESCALE-587](https://issues.jboss.org/browse/THREESCALE-587), [THREESCALE-550](https://issues.jboss.org/browse/THREESCALE-550)
 - New phase: `content` for generating content or getting the upstream response [PR #535](https://github.com/3scale/apicast/pull/535)
-- Upstream policy [PR #562](https://github.com/3scale/apicast/pull/562)
+- Upstream policy [PR #562](https://github.com/3scale/apicast/pull/562), [THREESCALE-296](https://issues.jboss.org/browse/THREESCALE-296)
 - Policy JSON manifest [PR #565](https://github.com/3scale/apicast/pull/565)
-- SOAP policy [PR #567](https://github.com/3scale/apicast/pull/567)
+- SOAP policy [PR #567](https://github.com/3scale/apicast/pull/567), [THREESCALE-553](https://issues.jboss.org/browse/THREESCALE-553)
 - Ability to set custom directories to load policies from [PR #581](https://github.com/3scale/apicast/pull/581)
 - CLI is running with proper log level set by `APICAST_LOG_LEVEL` [PR #585](https://github.com/3scale/apicast/pull/585)
 - 3scale configuration (staging/production) can be passed as `-3` or `--channel` on the CLI [PR #590](https://github.com/3scale/apicast/pull/590)
@@ -72,7 +72,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Development environment (`--dev`) starts with Echo policy unless some configuration is passed [PR #593](https://github.com/3scale/apicast/pull/593)
 - Added support for passing whole configuration as Data URL [PR #593](https://github.com/3scale/apicast/pull/593)
 - More complete global environment when loading environment policies [PR #596](https://github.com/3scale/apicast/pull/596)
-- Support for Client Certificate authentication with upstream servers [PR #610](https://github.com/3scale/apicast/pull/596)
+- Support for Client Certificate authentication with upstream servers [PR #610](https://github.com/3scale/apicast/pull/610), [THREESCALE-328](http://issues.jboss.org/browse/THREESCALE-328)
 
 ## Fixed
 
@@ -89,7 +89,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fix setting twice the headers in a pre-flight request in the CORS policy [PR #570](https://github.com/3scale/apicast/pull/570)
 - Fix case where debug headers are returned without enabling the option [PR #577](https://github.com/3scale/apicast/pull/577)
 - Fix errors loading openresty libraries when rover is active [PR #598](https://github.com/3scale/apicast/pull/598)
-- Passthrough "invalid" headers [PR #612](https://github.com/3scale/apicast/pull/612)
+- Passthrough "invalid" headers [PR #612](https://github.com/3scale/apicast/pull/612), [THREESCALE-618](https://issues.jboss.org/browse/THREESCALE-618)
 
 ## Changed
 
@@ -118,7 +118,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Added
 
-- New policy chains system. This allows users to write custom policies to configure what Apicast can do on each of the Nginx phases [PR #450](https://github.com/3scale/apicast/pull/450)
+- New policy chains system. This allows users to write custom policies to configure what Apicast can do on each of the Nginx phases [PR #450](https://github.com/3scale/apicast/pull/450), [THREESCALE-553](https://issues.jboss.org/browse/THREESCALE-553)
 - Resolver can resolve nginx upstreams [PR #478](https://github.com/3scale/apicast/pull/478)
 - Add `resolver` directive in the nginx configuration [PR #508](https://github.com/3scale/apicast/pull/508)
 - Calls 3scale backend with the 'no_body' option enabled. This reduces network traffic in cases where APIcast does not need to parse the response body [PR #483](https://github.com/3scale/apicast/pull/483)
@@ -127,8 +127,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Ability to configure policy chain from the environment configuration [PR #496](https://github.com/3scale/apicast/pull/496)
 - Load environment variables defined in the configuration [PR #507](https://github.com/3scale/apicast/pull/507)
 - Allow configuration of the echo/management/fake backend ports [PR #506](https://github.com/3scale/apicast/pull/506)
-- Headers policy [PR #497](https://github.com/3scale/apicast/pull/497)
-- CORS policy [PR #487](https://github.com/3scale/apicast/pull/487)
+- Headers policy [PR #497](https://github.com/3scale/apicast/pull/497), [THREESCALE-552](https://issues.jboss.org/browse/THREESCALE-552)
+- CORS policy [PR #487](https://github.com/3scale/apicast/pull/487), [THREESCALE-279](https://issues.jboss.org/browse/THREESCALE-279)
 - Detect number of CPU shares when running on Kubernetes [PR #600](https://github.com/3scale/apicast/pull/600)
 
 ## Changed
@@ -146,10 +146,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## Added
 
-- Experimental option for true out of band reporting (`APICAST_REPORTING_WORKERS`) [PR #290](https://github.com/3scale/apicast/pull/290)
+- Experimental option for true out of band reporting (`APICAST_REPORTING_WORKERS`) [PR #290](https://github.com/3scale/apicast/pull/290), [THREESCALE-365](https://issues.jboss.org/browse/THREESCALE-365)
 - `/status/info` endpoint to the Management API [PR #290](https://github.com/3scale/apicast/pull/290)
 - `/_threescale/healthz` endpoint returns a success status code, this is used for health checking in kubernetes environments [PR #285](https://github.com/3scale/apicast/pull/285)
-- Usage limit errors are now configurable to distinguish them from other authorization errors [PR #453](https://github.com/3scale/apicast/pull/453).
+- Usage limit errors are now configurable to distinguish them from other authorization errors [PR #453](https://github.com/3scale/apicast/pull/453), [THREESCALE-317](https://issues.jboss.org/browse/THREESCALE-317).
 - Templating nginx configuration with liquid. [PR #449](https://github.com/3scale/apicast/pull/449)
 
 ## Changed
@@ -163,12 +163,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Update the s2i-openresty image to have the same path (`/opt/app-root/src`) in all images [PR #460](https://github.com/3scale/apicast/pull/460)
 - Launcher scripts are now Perl + Lua instead of Shell [PR #449](https://github.com/3scale/apicast/pull/449)
 - Unify how to connect to 3scale backend [PR #456](https://github.com/3scale/apicast/pull/456)
-- Upgraded OpenResty to 1.13.6.1 [PR #480](https://github.com/3scale/apicast/pull/480)
+- Upgraded OpenResty to 1.13.6.1 [PR #480](https://github.com/3scale/apicast/pull/480), [THREESCALE-362](https://issues.jboss.org/browse/THREESCALE-362)
 
 ### Fixed
 
-- Request headers are not passed to the backend, preventing sending invalid Content-Type to the access token store endpoint [PR #433](https://github.com/3scale/apicast/pull/433)
-- Live and ready endpoints now set correct Content-Type header in the response[PR #441](https://github.com/3scale/apicast/pull/441)
+- Request headers are not passed to the backend, preventing sending invalid Content-Type to the access token store endpoint [PR #433](https://github.com/3scale/apicast/pull/433), [THREESCALE-372](https://issues.jboss.org/browse/THREESCALE-372)
+- Live and ready endpoints now set correct Content-Type header in the response[PR #441](https://github.com/3scale/apicast/pull/441), [THREESCALE-377](https://issues.jboss.org/browse/THREESCALE-377)
 
 ## [3.1.0] - 2017-10-27
 - 3.1.0-rc2 was considered final and became 3.1.0.
