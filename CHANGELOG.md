@@ -34,7 +34,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 - New property `summary` in the policy manifests [PR #633](https://github.com/3scale/apicast/pull/633)
-- OAuth2.0 Token Introspection policy [PR #619](https://github.com/3scale/apicast/pull/619)
+- OAuth2.0 Token Introspection policy [THREESCALE-312](https://issues.jboss.org/browse/THREESCALE-312), [PR #619](https://github.com/3scale/apicast/pull/619)
 - New `metrics` phase that runs when prometheus is collecting metrics [PR #629](https://github.com/3scale/apicast/pull/629)
 - Validation of policy configs both in integration and unit tests [PR #646](https://github.com/3scale/apicast/pull/646)
 - Option to avoid refreshing the config when using the lazy loader with `APICAST_CONFIGURATION_CACHE` < 0 [PR #657](https://github.com/3scale/apicast/pull/657)
@@ -42,8 +42,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 
 - Error loading policy chain configuration JSON with null value [PR #626](https://github.com/3scale/apicast/pull/626)
-- Splitted `resolv.conf` in lines,to avoid commented lines  [PR #618](https://github.com/3scale/apicast/pull/618)
-- Avoid `nameserver` repetion from `RESOLVER` variable and `resolv.conf` file [PR #636](https://github.com/3scale/apicast/pull/636)
+- Split `resolv.conf` in lines, to avoid commented lines  [PR #618](https://github.com/3scale/apicast/pull/618)
+- Avoid `nameserver` repetition from `RESOLVER` variable and `resolv.conf` file [PR #636](https://github.com/3scale/apicast/pull/636)
 - Bug in URL rewriting policy that ignored the `commands` attribute in the policy manifest [PR #641](https://github.com/3scale/apicast/pull/641)
 - Skip comentaries after `search` values in resolv.conf [PR #635](https://github.com/3scale/apicast/pull/635)
 - Bug that prevented using `CONFIGURATION_CACHE_LOADER=boot` without specifying `APICAST_CONFIGURATION_CACHE` in staging [PR #651](https://github.com/3scale/apicast/pull/651), [THREESCALE-756](https://issues.jboss.org/browse/THREESCALE-756).
@@ -151,7 +151,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Experimental option for true out of band reporting (`APICAST_REPORTING_WORKERS`) [PR #290](https://github.com/3scale/apicast/pull/290), [THREESCALE-365](https://issues.jboss.org/browse/THREESCALE-365)
 - `/status/info` endpoint to the Management API [PR #290](https://github.com/3scale/apicast/pull/290)
 - `/_threescale/healthz` endpoint returns a success status code, this is used for health checking in kubernetes environments [PR #285](https://github.com/3scale/apicast/pull/285)
-- Usage limit errors are now configurable to distinguish them from other authorization errors [PR #453](https://github.com/3scale/apicast/pull/453), [THREESCALE-317](https://issues.jboss.org/browse/THREESCALE-317).
+- Usage limit errors are now configurable to distinguish them from other authorization errors [PR #453](https://github.com/3scale/apicast/pull/453), [THREESCALE-638](https://issues.jboss.org/browse/THREESCALE-638).
 - Templating nginx configuration with liquid. [PR #449](https://github.com/3scale/apicast/pull/449)
 
 ## Changed
@@ -170,7 +170,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 
 - Request headers are not passed to the backend, preventing sending invalid Content-Type to the access token store endpoint [PR #433](https://github.com/3scale/apicast/pull/433), [THREESCALE-372](https://issues.jboss.org/browse/THREESCALE-372)
-- Live and ready endpoints now set correct Content-Type header in the response[PR #441](https://github.com/3scale/apicast/pull/441), [THREESCALE-377](https://issues.jboss.org/browse/THREESCALE-377)
+- Live and ready endpoints now set correct Content-Type header in the response [PR #441](https://github.com/3scale/apicast/pull/441), [THREESCALE-377](https://issues.jboss.org/browse/THREESCALE-377)
 
 ## [3.1.0] - 2017-10-27
 - 3.1.0-rc2 was considered final and became 3.1.0.
@@ -212,7 +212,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
-- [THREESCALE-281](https://issues.jboss.org/browse/THREESCALE-281) Not loading services when APICAST\_SERVICES is empty [PR #401](https://github.com/3scale/apicast/pull/401)
+- [THREESCALE-281](https://issues.jboss.org/browse/THREESCALE-281) Not loading services when `APICAST_SERVICES` is empty [PR #401](https://github.com/3scale/apicast/pull/401)
 
 ## [3.1.0-beta1] - 2017-07-21
 
@@ -225,12 +225,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - APIcast module `balancer` method now accepts optional balancer [PR #362](https://github.com/3scale/apicast/pull/362)
 - Extracted lua-resty-url [PR #384](https://github.com/3scale/apicast/pull/384)
 - Extracted lua-resty-env [PR #386](https://github.com/3scale/apicast/pull/386)
-- Do not load all services when APICAST\_SERVICES is set [PR #388](https://github.com/3scale/apicast/pull/388)
+- Do not load all services when `APICAST_SERVICES` is set [PR #388](https://github.com/3scale/apicast/pull/388)
 
 ### Added
 
 - APIcast published to [luarocks.org](https://luarocks.org/modules/3scale/apicast) [PR #366](https://github.com/3scale/apicast/pull/366)
-- Support for passing remote configuratio URL through the CLI [PR #389](https://github.com/3scale/apicast/pull/389)
+- Support for passing remote configuration URL through the CLI [PR #389](https://github.com/3scale/apicast/pull/389)
 - CLI flag -b to load configuration on boot [PR #389](https://github.com/3scale/apicast/pull/389)
 - OIDC support [PR #382](https://github.com/3scale/apicast/pull/382)
 
@@ -243,7 +243,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 
 - Bump OpenResty version to [1.11.2.3](https://github.com/3scale/s2i-openresty/releases/tag/1.11.2.3-1) [PR #359](https://github.com/3scale/apicast/pull/359) 
-- Upgraded lua-resty-http and lua-resty-jwt [PR #361](https://github.com/3scale/apicast/pull/361)
+- Upgraded `lua-resty-http` and `lua-resty-jwt` [PR #361](https://github.com/3scale/apicast/pull/361)
 
 ### Added
 
@@ -357,8 +357,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 - Cache all calls to `os.getenv` via custom module [PR #231](https://github.com/3scale/apicast/pull/231)
 - Bump s2i-openresty to 1.11.2.2-1 [PR #239](https://github.com/3scale/apicast/pull/239)
-- Use resty-resolver over nginx resolver for HTTP [PR #237](https://github.com/3scale/apicast/pull/237)
-- Use resty-resolver over nginx resolver for Redis [PR #237](https://github.com/3scale/apicast/pull/237)
+- Use `resty-resolver` over nginx resolver for HTTP [PR #237](https://github.com/3scale/apicast/pull/237)
+- Use `resty-resolver` over nginx resolver for Redis [PR #237](https://github.com/3scale/apicast/pull/237)
 - Internal change to reduce global state [PR #233](https://github.com/3scale/apicast/pull/233)
 
 ### Fixed
