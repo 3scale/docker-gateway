@@ -12,8 +12,6 @@ local tonumber = tonumber
 local next = next
 local format = string.format
 local insert = table.insert
-local os_date = os.date
-local os_time = os.time
 local shdict_key = 'limiter'
 
 local new = _M.new
@@ -142,7 +140,7 @@ function _M.new(config)
   self.limiters = config.limiters
   self.redis_url = config.redis_url
   self.error_settings = init_error_settings(config.error_settings)
-  self.seed = os_time(os_date("!*t"))
+  self.seed = ngx.time()
 
   return self
 end
