@@ -30,7 +30,7 @@
                   "scope": {
                     "type": "string",
                     "description": "Scope of the key",
-                    "default": "global",
+                    "default": "service",
                     "oneOf": [{
                       "enum": ["global"],
                       "description": "Global scope, affecting to all services"
@@ -38,10 +38,6 @@
                       "enum": ["service"],
                       "description": "Service scope, affecting to one service"
                     }]
-                  },
-                  "service_name": {
-                    "type": "string",
-                    "description": "Name of service, necessary for service scope"
                   }
                 }
               },
@@ -80,7 +76,7 @@
                   "scope": {
                     "type": "string",
                     "description": "Scope of the key",
-                    "default": "global",
+                    "default": "service",
                     "oneOf": [{
                       "enum": ["global"],
                       "description": "Global scope, affecting to all services"
@@ -88,10 +84,6 @@
                       "enum": ["service"],
                       "description": "Service scope, affecting to one service"
                     }]
-                  },
-                  "service_name": {
-                    "type": "string",
-                    "description": "Name of service, necessary for service scope"
                   }
                 }
               },
@@ -125,7 +117,7 @@
                   "scope": {
                     "type": "string",
                     "description": "Scope of the key",
-                    "default": "global",
+                    "default": "service",
                     "oneOf": [{
                       "enum": ["global"],
                       "description": "Global scope, affecting to all services"
@@ -133,10 +125,6 @@
                       "enum": ["service"],
                       "description": "Service scope, affecting to one service"
                     }]
-                  },
-                  "service_name": {
-                    "type": "string",
-                    "description": "Name of service, necessary for service scope"
                   }
                 }
               },

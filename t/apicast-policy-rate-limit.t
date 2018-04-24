@@ -31,7 +31,7 @@ Return 200 code.
                   limiters = {
                     {
                       name = "connections",
-                      key = {name = "test1", scope = "service", service_name = "service_C"},
+                      key = {name = "test1", scope = "service"},
                       conn = 1,
                       burst = 1,
                       delay = 2
@@ -46,7 +46,7 @@ Return 200 code.
                   limiters = {
                     {
                       name = "connections",
-                      key = {name = "test1", scope = "service", service_name = "service_C"},
+                      key = {name = "test1", scope = "service"},
                       conn = 1,
                       burst = 1,
                       delay = 2
@@ -79,7 +79,85 @@ Return 200 code.
       local redis = require('resty.redis'):new()
       redis:connect(redis_host, redis_port)
       redis:select(1)
-      redis:del("service_C_connections_test1", "service_C_connections_test1_seed")
+      redis:del("42_connections_test1", "42_connections_test1_seed")
+    }
+  }
+
+--- pipelined_requests eval
+["GET /flush_redis","GET /"]
+--- error_code eval
+[200, 200]
+
+=== TEST 2: Delay (conn) default service scope.
+Return 200 code.
+--- http_config
+  include $TEST_NGINX_UPSTREAM_CONFIG;
+  lua_package_path "$TEST_NGINX_LUA_PATH";
+
+  init_by_lua_block {
+    require "resty.core"
+    ngx.shared.limiter:flush_all()
+    require('apicast.configuration_loader').mock({
+      services = {
+        {
+          id = 42,
+          proxy = {
+            policy_chain = {
+              {
+                name = "apicast.policy.rate_limit",
+                configuration = {
+                  limiters = {
+                    {
+                      name = "connections",
+                      key = {name = "test2"},
+                      conn = 1,
+                      burst = 1,
+                      delay = 2
+                    }
+                  },
+                  redis_url = "redis://$TEST_NGINX_REDIS_HOST:$TEST_NGINX_REDIS_PORT/1"
+                }
+              },
+              {
+                name = "apicast.policy.rate_limit",
+                configuration = {
+                  limiters = {
+                    {
+                      name = "connections",
+                      key = {name = "test2"},
+                      conn = 1,
+                      burst = 1,
+                      delay = 2
+                    }
+                  },
+                  redis_url = "redis://$TEST_NGINX_REDIS_HOST:$TEST_NGINX_REDIS_PORT/1"
+                }
+              }
+            }
+          }
+        }
+      }
+    })
+  }
+  lua_shared_dict limiter 1m;
+
+--- config
+  include $TEST_NGINX_APICAST_CONFIG;
+  resolver $TEST_NGINX_RESOLVER;
+
+  location /transactions/authrep.xml {
+    content_by_lua_block { ngx.exit(200) }
+  }
+
+  location /flush_redis {
+    content_by_lua_block {
+      local env = require('resty.env')
+      local redis_host = "$TEST_NGINX_REDIS_HOST" or '127.0.0.1'
+      local redis_port = "$TEST_NGINX_REDIS_PORT" or 6379
+      local redis = require('resty.redis'):new()
+      redis:connect(redis_host, redis_port)
+      redis:select(1)
+      redis:del("42_connections_test2", "42_connections_test2_seed")
     }
   }
 
@@ -109,7 +187,7 @@ Return 500 code.
                   limiters = {
                     {
                       name = "connections",
-                      key = {name = "test3"},
+                      key = {name = "test3", scope = "global"},
                       conn = 20,
                       burst = 10,
                       delay = 0.5
@@ -154,7 +232,7 @@ Return 200 code.
                   limiters = {
                     {
                       name = "connections",
-                      key = {name = "test4"},
+                      key = {name = "test4", scope = "global"},
                       conn = 1,
                       burst = 0,
                       delay = 2
@@ -172,7 +250,7 @@ Return 200 code.
                   limiters = {
                     {
                       name = "connections",
-                      key = {name = "test4"},
+                      key = {name = "test4", scope = "global"},
                       conn = 1,
                       burst = 0,
                       delay = 2
@@ -234,7 +312,7 @@ Return 200 code.
                   limiters = {
                     {
                       name = "connections",
-                      key = {name = "test5"},
+                      key = {name = "test5", scope = "global"},
                       conn = 20,
                       burst = 10,
                       delay = 0.5
@@ -280,20 +358,20 @@ Return 200 code.
                   limiters = {
                     {
                       name = "leaky_bucket",
-                      key = {name = "test6_1"},
+                      key = {name = "test6_1", scope = "global"},
                       rate = 20,
                       burst = 10
                     },
                     {
                       name = "connections",
-                      key = {name = "test6_2"},
+                      key = {name = "test6_2", scope = "global"},
                       conn = 20,
                       burst = 10,
                       delay = 0.5
                     },
                     {
                       name = "fixed_window",
-                      key = {name = "test6_3"},
+                      key = {name = "test6_3", scope = "global"},
                       count = 20,
                       window = 10
                     }
@@ -355,7 +433,7 @@ Return 429 code.
                   limiters = {
                     {
                       name = "connections",
-                      key = {name = "test7"},
+                      key = {name = "test7", scope = "global"},
                       conn = 1,
                       burst = 0,
                       delay = 2
@@ -370,7 +448,7 @@ Return 429 code.
                   limiters = {
                     {
                       name = "connections",
-                      key = {name = "test7"},
+                      key = {name = "test7", scope = "global"},
                       conn = 1,
                       burst = 0,
                       delay = 2
@@ -431,7 +509,7 @@ Return 503 code.
                   limiters = {
                     {
                       name = "leaky_bucket",
-                      key = {name = "test8"},
+                      key = {name = "test8", scope = "global"},
                       rate = 1,
                       burst = 0
                     }
@@ -557,7 +635,7 @@ Return 200 code.
                   limiters = {
                     {
                       name = "connections",
-                      key = {name = "test10"},
+                      key = {name = "test10", scope = "global"},
                       conn = 1,
                       burst = 1,
                       delay = 2
@@ -572,7 +650,7 @@ Return 200 code.
                   limiters = {
                     {
                       name = "connections",
-                      key = {name = "test10"},
+                      key = {name = "test10", scope = "global"},
                       conn = 1,
                       burst = 1,
                       delay = 2
@@ -635,7 +713,7 @@ Return 200 code.
                   limiters = {
                     {
                       name = "leaky_bucket",
-                      key = {name = "test11"},
+                      key = {name = "test11", scope = "global"},
                       rate = 1,
                       burst = 1
                     }
@@ -697,7 +775,7 @@ Return 429 code.
                   limiters = {
                     {
                       name = "connections",
-                      key = {name = "test12"},
+                      key = {name = "test12", scope = "global"},
                       conn = 1,
                       burst = 0,
                       delay = 2
@@ -711,7 +789,7 @@ Return 429 code.
                   limiters = {
                     {
                       name = "connections",
-                      key = {name = "test12"},
+                      key = {name = "test12", scope = "global"},
                       conn = 1,
                       burst = 0,
                       delay = 2
@@ -757,7 +835,7 @@ Return 429 code.
                   limiters = {
                     {
                       name = "leaky_bucket",
-                      key = {name = "test13"},
+                      key = {name = "test13", scope = "global"},
                       rate = 1,
                       burst = 0
                     }
@@ -804,7 +882,7 @@ Return 429 code.
                   limiters = {
                     {
                       name = "fixed_window",
-                      key = {name = "test14"},
+                      key = {name = "test14", scope = "global"},
                       count = 1,
                       window = 10
                     }
@@ -848,7 +926,7 @@ Return 200 code.
                   limiters = {
                     {
                       name = "connections",
-                      key = {name = "test15"},
+                      key = {name = "test15", scope = "global"},
                       conn = 1,
                       burst = 1,
                       delay = 2
@@ -862,7 +940,7 @@ Return 200 code.
                   limiters = {
                     {
                       name = "connections",
-                      key = {name = "test15"},
+                      key = {name = "test15", scope = "global"},
                       conn = 1,
                       burst = 1,
                       delay = 2
@@ -912,7 +990,7 @@ Return 200 code.
                   limiters = {
                     {
                       name = "leaky_bucket",
-                      key = {name = "test16"},
+                      key = {name = "test16", scope = "global"},
                       rate = 1,
                       burst = 1
                     }

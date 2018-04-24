@@ -102,13 +102,13 @@ local function init_error_settings(config_error_settings)
   return error_settings
 end
 
-local function initialize_redis_records(redis, seed, limiters)
+local function initialize_redis_records(redis, seed, limiters, service_id)
   for _, limiter in ipairs(limiters) do
     local key
-    if limiter.key.scope == "service" then
-      key = format("%s_%s_%s", limiter.key.service_name, limiter.name, limiter.key.name)
-    else
+    if limiter.key.scope == "global" then
       key = format("%s_%s", limiter.name, limiter.key.name)
+    else
+      key = format("%s_%s_%s", service_id, limiter.name, limiter.key.name)
     end
 
     local seed_key = format("%s_seed", key)
@@ -147,7 +147,7 @@ function _M.new(config)
   return self
 end
 
-function _M:access()
+function _M:access(context)
   local limiters = {}
   local keys = {}
 
@@ -161,7 +161,7 @@ function _M:access()
       return
     end
 
-    initialize_redis_records(red, self.seed, self.limiters)
+    initialize_redis_records(red, self.seed, self.limiters, context.service.id)
   end
 
   for _, limiter in ipairs(self.limiters) do
@@ -177,10 +177,10 @@ function _M:access()
     insert(limiters, lim)
 
     local key
-    if limiter.key.scope == "service" then
-      key = format("%s_%s_%s", limiter.key.service_name, limiter.name, limiter.key.name)
-    else
+    if limiter.key.scope == "global" then
       key = format("%s_%s", limiter.name, limiter.key.name)
+    else
+      key = format("%s_%s_%s", context.service.id, limiter.name, limiter.key.name)
     end
 
     insert(keys, key)
