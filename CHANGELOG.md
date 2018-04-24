@@ -212,7 +212,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
-- [THREESCALE-281](https://issues.jboss.org/browse/THREESCALE-281) Not loading services when `APICAST_SERVICES` is empty [PR #401](https://github.com/3scale/apicast/pull/401)
+- Not loading services when `APICAST_SERVICES` is empty [PR #401](https://github.com/3scale/apicast/pull/401),[THREESCALE-281](https://issues.jboss.org/browse/THREESCALE-281)
 
 ## [3.1.0-beta1] - 2017-07-21
 
