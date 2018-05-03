@@ -418,3 +418,125 @@ MHcCAQEEIFCV3VwLEFKz9+yTR5vzonmLPYO/fUvZiMVU1Hb11nN8oAoGCCqGSM49
 AwEHoUQDQgAEhkmo6Xp/9W9cGaoGFU7TaBFXOUkZxYbGXQfxyZZucIQPt89+4r1c
 bx0wVEzbYK5wRb7UiWhvvvYDltIzsD75vg==
 -----END EC PRIVATE KEY-----
+
+=== TEST 9: rules on original path with URL rewriting policy being after in the chain
+This test checks that when the upstream policy is configured to match the original path,
+it does so even when the URL rewrite policy rewrites it.
+--- backend
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+      local expected = "service_token=token-value&service_id=42&usage%5Bhits%5D=2&user_key=uk"
+      require('luassert').same(ngx.decode_args(expected), ngx.req.get_uri_args(0))
+    }
+  }
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "backend_version":  1,
+      "backend_authentication_type": "service_token",
+      "backend_authentication_value": "token-value",
+      "proxy": {
+        "api_backend": "http://example.com:80/",
+        "proxy_rules": [
+          { "pattern": "/", "http_method": "GET", "metric_system_name": "hits", "delta": 2 }
+        ],
+        "policy_chain": [
+          {
+            "name": "apicast.policy.upstream",
+            "configuration": {
+              "rules": [ { "regex": "/v1", "url": "http://test:$TEST_NGINX_SERVER_PORT" } ],
+              "match_original_path": true
+            }
+          },
+          {
+            "name": "apicast.policy.url_rewriting",
+            "configuration": {
+              "commands": [
+                { "op": "gsub", "regex": "/v1/a_path", "replace": "/rewritten_path" }
+              ]
+            }
+          },
+          { "name": "apicast.policy.apicast" }
+        ]
+      }
+    }
+  ]
+}
+--- upstream
+  location /rewritten_path {
+     content_by_lua_block {
+       require('luassert').are.equal('GET /rewritten_path?user_key=uk&a_param=a_value HTTP/1.1',
+                                     ngx.var.request)
+       ngx.say('yay, api backend');
+     }
+  }
+--- request
+GET /v1/a_path?user_key=uk&a_param=a_value
+--- response_body
+yay, api backend
+--- error_code: 200
+--- no_error_log
+[error]
+
+=== TEST 10: rules on original path with URL rewriting policy being before in the chain
+This test checks that when the upstream policy is configured to match the original path,
+it does so even when the URL rewrite policy rewrites it.
+--- backend
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+      local expected = "service_token=token-value&service_id=42&usage%5Bhits%5D=2&user_key=uk"
+      require('luassert').same(ngx.decode_args(expected), ngx.req.get_uri_args(0))
+    }
+  }
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "backend_version":  1,
+      "backend_authentication_type": "service_token",
+      "backend_authentication_value": "token-value",
+      "proxy": {
+        "api_backend": "http://example.com:80/",
+        "proxy_rules": [
+          { "pattern": "/", "http_method": "GET", "metric_system_name": "hits", "delta": 2 }
+        ],
+        "policy_chain": [
+          {
+            "name": "apicast.policy.url_rewriting",
+            "configuration": {
+              "commands": [
+                { "op": "gsub", "regex": "/v1/a_path", "replace": "/rewritten_path" }
+              ]
+            }
+          },
+          {
+            "name": "apicast.policy.upstream",
+            "configuration": {
+              "rules": [ { "regex": "/v1", "url": "http://test:$TEST_NGINX_SERVER_PORT" } ],
+              "match_original_path": true
+            }
+          },
+          { "name": "apicast.policy.apicast" }
+        ]
+      }
+    }
+  ]
+}
+--- upstream
+  location /rewritten_path {
+     content_by_lua_block {
+       require('luassert').are.equal('GET /rewritten_path?user_key=uk&a_param=a_value HTTP/1.1',
+                                     ngx.var.request)
+       ngx.say('yay, api backend');
+     }
+  }
+--- request
+GET /v1/a_path?user_key=uk&a_param=a_value
+--- response_body
+yay, api backend
+--- error_code: 200
+--- no_error_log
+[error]

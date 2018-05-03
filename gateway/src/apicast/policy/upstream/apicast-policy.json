@@ -29,6 +29,10 @@
           },
           "required": ["regex", "url"]
         }
+      },
+      "match_original_path": {
+        "description": "use the original path when matching",
+        "type": "boolean"
       }
     }
   }

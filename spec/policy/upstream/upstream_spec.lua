@@ -98,6 +98,72 @@ describe('Upstream policy', function()
         assert.is_falsy(context.upstream_changed)
       end)
     end)
+
+    describe('when configured to match the original path', function()
+      before_each(function()
+        context.original_uri = 'http://example.com/v1'
+
+        -- Define a modified URI without the '/v1' part.
+        ngx.var = { uri = 'http://example.com/rewritten' }
+      end)
+
+      local config_that_matches_original_uri = {
+        rules = {
+          { regex = '/rewritten', url = test_upstream_not_matched },
+          { regex = '/v1', url = test_upstream_matched }
+        },
+        match_original_path = true
+      }
+
+      local upstream = UpstreamPolicy.new(config_that_matches_original_uri)
+
+      it('matches the one in the context instead of the current URI', function()
+        upstream:content(context)
+
+        assert.equals(test_upstream_matched_proxy_pass, ngx.var.proxy_pass)
+        assert.stub(ngx.req.set_header).was_called_with('Host',
+          test_upstream_matched_host)
+        assert.stub(ngx.exec).was_called_with('@upstream')
+      end)
+
+      it('marks in the context that the upstream has changed', function()
+        upstream:content(context)
+        assert.is_truthy(context.upstream_changed)
+      end)
+    end)
+
+    describe('when configure to match the current path instead of the original one', function()
+      before_each(function()
+        context.original_uri = 'http://example.com/v1'
+
+        -- Define a modified URI without the '/v1' part.
+        ngx.var = { uri = 'http://example.com/rewritten' }
+      end)
+
+      local config_that_matches_current_uri = {
+        rules = {
+          { regex = '/v1', url = test_upstream_not_matched },
+          { regex = '/rewritten', url = test_upstream_matched }
+        },
+        match_original_path = false
+      }
+
+      local upstream = UpstreamPolicy.new(config_that_matches_current_uri)
+
+      it('matches the one in the context instead of the current URI', function()
+        upstream:content(context)
+
+        assert.equals(test_upstream_matched_proxy_pass, ngx.var.proxy_pass)
+        assert.stub(ngx.req.set_header).was_called_with('Host',
+          test_upstream_matched_host)
+        assert.stub(ngx.exec).was_called_with('@upstream')
+      end)
+
+      it('marks in the context that the upstream has changed', function()
+        upstream:content(context)
+        assert.is_truthy(context.upstream_changed)
+      end)
+    end)
   end)
 
   describe('.balancer', function()

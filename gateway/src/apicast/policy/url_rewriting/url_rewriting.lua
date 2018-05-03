@@ -62,7 +62,10 @@ function _M.new(config)
   return self
 end
 
-function _M:rewrite()
+function _M:rewrite(context)
+  -- Save original URI in the context in case other policies need it.
+  context.original_uri = ngx.var.uri
+
   for _, command in ipairs(self.commands) do
     local rewritten = apply_rewrite_command(command)
 

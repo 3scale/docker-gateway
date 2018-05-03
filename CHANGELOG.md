@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 - OpenTracing support [PR #669](https://github.com/3scale/apicast/pull/669)
+- Allows applying 'upstream' policy on the original path [PR 689#](https://github.com/3scale/apicast/pull/689), [THREESCALE-852](https://issues.jboss.org/browse/THREESCALE-852)
 
 ### Fixed
 

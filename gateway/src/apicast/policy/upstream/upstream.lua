@@ -40,7 +40,7 @@ local function change_upstream(url)
 end
 
 -- Parses the urls in the config so we do not have to do it on each request.
-local function init_config(config)
+local function init_rules(config)
   if not config or not config.rules then return {} end
 
   local res = {}
@@ -54,27 +54,34 @@ local function init_config(config)
 end
 
 --- Initialize an upstream policy.
--- @tparam[opt] table config Contains the host rewriting rules.
+-- @tparam[opt] table config Contains a boolean that indicates whether to match
+-- the original URI, and also the host rewriting rules.
 -- Each rule consists of:
 --
 --   - regex: regular expression to be matched.
 --   - url: new url in case of match.
 function _M.new(config)
   local self = new(config)
-  self.rules = init_config(config)
+  self.rules = init_rules(config)
+
+  -- This indicates whether to use the original URI when matching. It's useful
+  -- when this policy is combined with other policies that can rewrite the URI,
+  -- but we're interested in matching the original one.
+  self.match_original_path = (config and config.match_original_path) or false
   return self
 end
 
 function _M:content(context)
-  local req_uri = ngx.var.uri
+  local match_uri = (self.match_original_path and context.original_uri) or
+                    ngx.var.uri
 
   for _, rule in ipairs(self.rules) do
-    if match(req_uri, rule.regex) then
-      ngx.log(ngx.DEBUG, 'upstream policy uri: ', req_uri, ' regex: ', rule.regex, ' match: true')
+    if match(match_uri, rule.regex) then
+      ngx.log(ngx.DEBUG, 'upstream policy uri: ', match_uri, ' regex: ', rule.regex, ' match: true')
       context.upstream_changed = true
       return change_upstream(rule.url)
     elseif ngx.config.debug then
-      ngx.log(ngx.DEBUG, 'upstream policy uri: ', req_uri, ' regex: ', rule.regex, ' match: false')
+      ngx.log(ngx.DEBUG, 'upstream policy uri: ', match_uri, ' regex: ', rule.regex, ' match: false')
     end
   end
 end
