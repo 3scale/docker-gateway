@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 
 - Fixed set of valid values for the exit param of the Echo policy [PR #684](https://github.com/3scale/apicast/pull/684/)
+### Changed
+- Rate Limit policy to take into account changes in the config and improve performance [PR #679](https://github.com/3scale/apicast/pull/679)
 
 ### Changed
 

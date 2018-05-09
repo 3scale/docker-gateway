@@ -10,6 +10,8 @@ local limit_traffic = require "resty.limit.traffic"
 local ts = require ('apicast.threescale_utils')
 local tonumber = tonumber
 local next = next
+local format = string.format
+local insert = table.insert
 local shdict_key = 'limiter'
 
 local new = _M.new
@@ -68,6 +70,9 @@ local function redis_shdict(url)
         return nil
       end
       return val
+    end,
+    del = function(_, key)
+      return redis:del(key)
     end
   }
 end
@@ -95,17 +100,52 @@ local function init_error_settings(config_error_settings)
   return error_settings
 end
 
+local function initialize_redis_records(redis, seed, limiters, service_id)
+  for _, limiter in ipairs(limiters) do
+    local key
+    if limiter.key.scope == "global" then
+      key = format("%s_%s", limiter.name, limiter.key.name)
+    else
+      key = format("%s_%s_%s", service_id, limiter.name, limiter.key.name)
+    end
+
+    local seed_key = format("%s_seed", key)
+    local seed_value = redis:get(seed_key)
+
+    if not seed_value or tonumber(seed_value) ~= seed then
+      redis:set(seed_key, seed)
+
+      if limiter.name == "connections" or limiter.name == "leaky_bucket" then
+        redis:del(key)
+      else
+        local count_key = format("%s_count", key)
+        local count = redis:get(count_key)
+
+        local window_key = format("%s_window", key)
+        local window = redis:get(window_key)
+
+        if not count or not window or tonumber(count) ~= limiter.count or tonumber(window) ~= limiter.window then
+          redis:del(key)
+          redis:set(count_key, limiter.count)
+          redis:set(window_key, limiter.window)
+        end
+      end
+    end
+  end
+end
+
 function _M.new(config)
   local self = new()
   self.config = config or {}
   self.limiters = config.limiters
   self.redis_url = config.redis_url
   self.error_settings = init_error_settings(config.error_settings)
+  self.seed = ngx.time()
 
   return self
 end
 
-function _M:access()
+function _M:access(context)
   local limiters = {}
   local keys = {}
 
@@ -118,6 +158,8 @@ function _M:access()
       error(self.error_settings, "configuration_issue")
       return
     end
+
+    initialize_redis_records(red, self.seed, self.limiters, context.service.id)
   end
 
   for _, limiter in ipairs(self.limiters) do
@@ -130,16 +172,16 @@ function _M:access()
 
     lim.dict = red or lim.dict
 
-    table.insert(limiters, lim)
+    insert(limiters, lim)
 
     local key
-    if limiter.key.scope == "service" then
-      key = limiter.key.service_name.."_"..limiter.name.."_"..limiter.key.name
+    if limiter.key.scope == "global" then
+      key = format("%s_%s", limiter.name, limiter.key.name)
     else
-      key = limiter.name.."_"..limiter.key.name
+      key = format("%s_%s_%s", context.service.id, limiter.name, limiter.key.name)
     end
 
-    table.insert(keys, key)
+    insert(keys, key)
 
   end
 
@@ -161,8 +203,8 @@ function _M:access()
 
   for i, lim in ipairs(limiters) do
     if lim.is_committed and lim:is_committed() then
-      table.insert(connections_committed, lim)
-      table.insert(keys_committed, keys[i])
+      insert(connections_committed, lim)
+      insert(keys_committed, keys[i])
     end
   end
 
