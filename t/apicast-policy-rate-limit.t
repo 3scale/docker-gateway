@@ -28,9 +28,8 @@ Return 200 code.
               {
                 name = "apicast.policy.rate_limit",
                 configuration = {
-                  limiters = {
+                  connection_limiters = {
                     {
-                      name = "connections",
                       key = {name = "test1", scope = "service", service_name = "service_C"},
                       conn = 1,
                       burst = 1,
@@ -43,9 +42,8 @@ Return 200 code.
               {
                 name = "apicast.policy.rate_limit",
                 configuration = {
-                  limiters = {
+                  connection_limiters = {
                     {
-                      name = "connections",
                       key = {name = "test1", scope = "service", service_name = "service_C"},
                       conn = 1,
                       burst = 1,
@@ -106,9 +104,8 @@ Return 500 code.
               {
                 name = "apicast.policy.rate_limit",
                 configuration = {
-                  limiters = {
+                  connection_limiters = {
                     {
-                      name = "connections",
                       key = {name = "test3"},
                       conn = 20,
                       burst = 10,
@@ -151,9 +148,8 @@ Return 200 code.
               {
                 name = "apicast.policy.rate_limit",
                 configuration = {
-                  limiters = {
+                  connection_limiters = {
                     {
-                      name = "connections",
                       key = {name = "test4"},
                       conn = 1,
                       burst = 0,
@@ -161,17 +157,14 @@ Return 200 code.
                     }
                   },
                   redis_url = "redis://$TEST_NGINX_REDIS_HOST:$TEST_NGINX_REDIS_PORT/1",
-                  error_settings = {
-                    {type = "limits_exceeded", error_handling = "log"}
-                  }
+                  limits_exceeded_error  = { error_handling = "log" }
                 }
               },
               {
                 name = "apicast.policy.rate_limit",
                 configuration = {
-                  limiters = {
+                  connection_limiters = {
                     {
-                      name = "connections",
                       key = {name = "test4"},
                       conn = 1,
                       burst = 0,
@@ -179,9 +172,7 @@ Return 200 code.
                     }
                   },
                   redis_url = "redis://$TEST_NGINX_REDIS_HOST:$TEST_NGINX_REDIS_PORT/1",
-                  error_settings = {
-                    {type = "limits_exceeded", error_handling = "log"}
-                  }
+                  limits_exceeded_error  = { error_handling = "log" }
                 }
               }
             }
@@ -231,9 +222,8 @@ Return 200 code.
               {
                 name = "apicast.policy.rate_limit",
                 configuration = {
-                  limiters = {
+                  connection_limiters = {
                     {
-                      name = "connections",
                       key = {name = "test5"},
                       conn = 20,
                       burst = 10,
@@ -277,22 +267,23 @@ Return 200 code.
               {
                 name = "apicast.policy.rate_limit",
                 configuration = {
-                  limiters = {
+                  leaky_bucket_limiters = {
                     {
-                      name = "leaky_bucket",
                       key = {name = "test6_1"},
                       rate = 20,
                       burst = 10
-                    },
+                    }
+                  },
+                  connection_limiters = {
                     {
-                      name = "connections",
                       key = {name = "test6_2"},
                       conn = 20,
                       burst = 10,
                       delay = 0.5
-                    },
+                    }
+                  },
+                  fixed_window_limiters = {
                     {
-                      name = "fixed_window",
                       key = {name = "test6_3"},
                       count = 20,
                       window = 10
@@ -351,9 +342,8 @@ Return 429 code.
               {
                 name = "apicast.policy.rate_limit",
                 configuration = {
-                  limiters = {
+                  connection_limiters = {
                     {
-                      name = "connections",
                       key = {name = "test7"},
                       conn = 1,
                       burst = 0,
@@ -366,9 +356,8 @@ Return 429 code.
               {
                 name = "apicast.policy.rate_limit",
                 configuration = {
-                  limiters = {
+                  connection_limiters = {
                     {
-                      name = "connections",
                       key = {name = "test7"},
                       conn = 1,
                       burst = 0,
@@ -427,18 +416,15 @@ Return 503 code.
               {
                 name = "apicast.policy.rate_limit",
                 configuration = {
-                  limiters = {
+                  leaky_bucket_limiters = {
                     {
-                      name = "leaky_bucket",
                       key = {name = "test8"},
                       rate = 1,
                       burst = 0
                     }
                   },
                   redis_url = "redis://$TEST_NGINX_REDIS_HOST:$TEST_NGINX_REDIS_PORT/1",
-                  error_settings = {
-                    {type = "limits_exceeded", status_code = 503}
-                  }
+                  limits_exceeded_error  = { status_code = 503 }
                 }
               }
             }
@@ -490,18 +476,15 @@ Return 429 code.
               {
                 name = "apicast.policy.rate_limit",
                 configuration = {
-                  limiters = {
+                  fixed_window_limiters = {
                     {
-                      name = "fixed_window",
                       key = {name = "test9", scope = "global"},
                       count = 1,
                       window = 10
                     }
                   },
                   redis_url = "redis://$TEST_NGINX_REDIS_HOST:$TEST_NGINX_REDIS_PORT/1",
-                  error_settings = {
-                    {type = "limits_exceeded", status_code = 429}
-                  }
+                  limits_exceeded_error = { status_code = 429 }
                 }
               }
             }
@@ -553,9 +536,8 @@ Return 200 code.
               {
                 name = "apicast.policy.rate_limit",
                 configuration = {
-                  limiters = {
+                  connection_limiters = {
                     {
-                      name = "connections",
                       key = {name = "test10"},
                       conn = 1,
                       burst = 1,
@@ -568,9 +550,8 @@ Return 200 code.
               {
                 name = "apicast.policy.rate_limit",
                 configuration = {
-                  limiters = {
+                  connection_limiters = {
                     {
-                      name = "connections",
                       key = {name = "test10"},
                       conn = 1,
                       burst = 1,
@@ -631,9 +612,8 @@ Return 200 code.
               {
                 name = "apicast.policy.rate_limit",
                 configuration = {
-                  limiters = {
+                  leaky_bucket_limiters = {
                     {
-                      name = "leaky_bucket",
                       key = {name = "test11"},
                       rate = 1,
                       burst = 1
@@ -693,9 +673,8 @@ Return 429 code.
               {
                 name = "apicast.policy.rate_limit",
                 configuration = {
-                  limiters = {
+                  connection_limiters = {
                     {
-                      name = "connections",
                       key = {name = "test12"},
                       conn = 1,
                       burst = 0,
@@ -707,9 +686,8 @@ Return 429 code.
               {
                 name = "apicast.policy.rate_limit",
                 configuration = {
-                  limiters = {
+                  connection_limiters = {
                     {
-                      name = "connections",
                       key = {name = "test12"},
                       conn = 1,
                       burst = 0,
@@ -753,17 +731,14 @@ Return 429 code.
               {
                 name = "apicast.policy.rate_limit",
                 configuration = {
-                  limiters = {
+                  leaky_bucket_limiters = {
                     {
-                      name = "leaky_bucket",
                       key = {name = "test13"},
                       rate = 1,
                       burst = 0
                     }
                   },
-                  error_settings = {
-                    {type = "limits_exceeded", error_handling = "exit"}
-                  }
+                  limits_exceeded_error = { error_handling = "exit" }
                 }
               }
             }
@@ -800,9 +775,8 @@ Return 429 code.
               {
                 name = "apicast.policy.rate_limit",
                 configuration = {
-                  limiters = {
+                  fixed_window_limiters = {
                     {
-                      name = "fixed_window",
                       key = {name = "test14"},
                       count = 1,
                       window = 10
@@ -844,9 +818,8 @@ Return 200 code.
               {
                 name = "apicast.policy.rate_limit",
                 configuration = {
-                  limiters = {
+                  connection_limiters = {
                     {
-                      name = "connections",
                       key = {name = "test15"},
                       conn = 1,
                       burst = 1,
@@ -858,9 +831,8 @@ Return 200 code.
               {
                 name = "apicast.policy.rate_limit",
                 configuration = {
-                  limiters = {
+                  connection_limiters = {
                     {
-                      name = "connections",
                       key = {name = "test15"},
                       conn = 1,
                       burst = 1,
@@ -908,9 +880,8 @@ Return 200 code.
               {
                 name = "apicast.policy.rate_limit",
                 configuration = {
-                  limiters = {
+                  leaky_bucket_limiters = {
                     {
-                      name = "leaky_bucket",
                       key = {name = "test16"},
                       rate = 1,
                       burst = 1
