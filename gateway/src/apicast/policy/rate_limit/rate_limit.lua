@@ -12,6 +12,10 @@ local tonumber = tonumber
 local next = next
 local shdict_key = 'limiter'
 
+local insert = table.insert
+local ipairs = ipairs
+local unpack = table.unpack
+
 local new = _M.new
 
 local traffic_limiters = {
@@ -78,37 +82,75 @@ local function error(error_settings, type)
   end
 end
 
-local function init_error_settings(config_error_settings)
+local function init_error_settings(limits_exceeded_error, configuration_error)
   local error_settings = default_error_settings
-  if config_error_settings then
-    for _, error_setting in pairs(config_error_settings) do
-      if error_setting.type then
-        if error_setting.status_code then
-          error_settings[error_setting.type]["status_code"] = error_setting.status_code
-        end
-        if error_setting.error_handling then
-          error_settings[error_setting.type]["error_handling"] = error_setting.error_handling
-        end
-      end
+
+  if limits_exceeded_error then
+    if limits_exceeded_error.status_code then
+      error_settings.limits_exceeded.status_code = limits_exceeded_error.status_code
+    end
+
+    if limits_exceeded_error.error_handling then
+      error_settings.limits_exceeded.error_handling = limits_exceeded_error.error_handling
     end
   end
+
+  if configuration_error then
+    if configuration_error.status_code then
+      error_settings.configuration_issue.status_code = configuration_error.status_code
+    end
+
+    if configuration_error.error_handling then
+      error_settings.configuration_issue.error_handling = configuration_error.error_handling
+    end
+  end
+
   return error_settings
+end
+
+local function build_limiters_and_keys(type, limiters, redis, error_settings)
+  local res_limiters = {}
+  local res_keys = {}
+
+  for _, limiter in ipairs(limiters) do
+    local lim, initerr = traffic_limiters[type](limiter)
+    if not lim then
+      ngx.log(ngx.ERR, "unknown limiter: ", type, ", err: ", initerr)
+      error(error_settings, "configuration_issue")
+      return
+    end
+
+    lim.dict = redis or lim.dict
+
+    insert(res_limiters, lim)
+
+    local key
+    if limiter.key.scope == "service" then
+      key = limiter.key.service_name.."_"..type.."_"..limiter.key.name
+    else
+      key = type.."_"..limiter.key.name
+    end
+
+    insert(res_keys, key)
+  end
+
+  return res_limiters, res_keys
 end
 
 function _M.new(config)
   local self = new()
   self.config = config or {}
-  self.limiters = config.limiters
+  self.connection_limiters = config.connection_limiters or {}
+  self.leaky_bucket_limiters = config.leaky_bucket_limiters or {}
+  self.fixed_window_limiters = config.fixed_window_limiters or {}
   self.redis_url = config.redis_url
-  self.error_settings = init_error_settings(config.error_settings)
+  self.error_settings = init_error_settings(
+    config.limits_exceeded_error, config.configuration_error)
 
   return self
 end
 
 function _M:access()
-  local limiters = {}
-  local keys = {}
-
   local red
   if self.redis_url then
     local rederr
@@ -120,28 +162,24 @@ function _M:access()
     end
   end
 
-  for _, limiter in ipairs(self.limiters) do
-    local lim, initerr = traffic_limiters[limiter.name](limiter)
-    if not lim then
-      ngx.log(ngx.ERR, "unknown limiter: ", limiter.name, ", err: ", initerr)
-      error(self.error_settings, "configuration_issue")
-      return
-    end
+  local conn_limiters, conn_keys = build_limiters_and_keys(
+    'connections', self.connection_limiters, red, self.error_settings)
 
-    lim.dict = red or lim.dict
+  local leaky_bucket_limiters, leaky_bucket_keys = build_limiters_and_keys(
+    'leaky_bucket', self.leaky_bucket_limiters, red, self.error_settings)
 
-    table.insert(limiters, lim)
+  local fixed_window_limiters, fixed_window_keys = build_limiters_and_keys(
+    'fixed_window', self.fixed_window_limiters, red, self.error_settings)
 
-    local key
-    if limiter.key.scope == "service" then
-      key = limiter.key.service_name.."_"..limiter.name.."_"..limiter.key.name
-    else
-      key = limiter.name.."_"..limiter.key.name
-    end
+  local limiters = {}
+  insert(limiters, unpack(conn_limiters) or nil)
+  insert(limiters, unpack(leaky_bucket_limiters) or nil)
+  insert(limiters, unpack(fixed_window_limiters) or nil)
 
-    table.insert(keys, key)
-
-  end
+  local keys = {}
+  insert(keys, unpack(conn_keys) or nil)
+  insert(keys, unpack(leaky_bucket_keys) or nil)
+  insert(keys, unpack(fixed_window_keys) or nil)
 
   local states = {}
   local connections_committed = {}
