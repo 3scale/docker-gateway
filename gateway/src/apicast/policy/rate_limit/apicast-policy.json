@@ -182,20 +182,13 @@
             "type": "string",
             "description": "How to handle an error",
             "default": "exit",
-            "oneOf": [
-              {
-                "enum": [
-                  "exit"
-                ],
-                "description": "Respond with an error"
-              },
-              {
-                "enum": [
-                  "log"
-                ],
-                "description": "Let the request go through and only output logs"
-              }
-            ]
+            "oneOf": [{
+              "enum": ["exit"],
+              "description": "Respond with an error"
+            }, {
+              "enum": ["log"],
+              "description": "Let the request go through and only output logs"
+            }]
           }
         }
       }
