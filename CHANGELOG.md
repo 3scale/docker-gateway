@@ -9,9 +9,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 - OpenTracing support [PR #669](https://github.com/3scale/apicast/pull/669)
-- Default value for the `caching_type` attribute of the caching policy config schema [#691](https://github.com/3scale/apicast/pull/691), [THREESCALE-845](https://issues.jboss.org/browse/THREESCALE-845)
 - Generate new policy scaffold from the CLI [PR #682](https://github.com/3scale/apicast/pull/682)
 - 3scale batcher policy [PR #685](https://github.com/3scale/apicast/pull/685)
+
+## [3.2.0-rc2] - 2018-05-11
+
+### Added
+
+- Default value for the `caching_type` attribute of the caching policy config schema [#691](https://github.com/3scale/apicast/pull/691), [THREESCALE-845](https://issues.jboss.org/browse/THREESCALE-845)
 
 ### Fixed
 
@@ -19,8 +24,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Changed
 
-- The upstream policy now performs the rule matching in the rewrite phase. This allows combining it with the URL rewriting policy – upstream policy regex will be matched against the original path if upstream policy is placed before URL rewriting in the policy chain, and against the rewritten path otherwise [PR #690](https://github.com/3scale/apicast/pull/690), [THREESCALE-852](https://issues.jboss.org/browse/THREESCALE-852)
 - The schema of the rate-limit policy has been adapted so it can be rendered by `react-jsonschema-form`, a library used in the 3scale UI. This is a breaking change. [PR #696](https://github.com/3scale/apicast/pull/696), [THREESCALE-888](https://issues.jboss.org/browse/THREESCALE-888)
+- The upstream policy now performs the rule matching in the rewrite phase. This allows combining it with the URL rewriting policy – upstream policy regex will be matched against the original path if upstream policy is placed before URL rewriting in the policy chain, and against the rewritten path otherwise [PR #690](https://github.com/3scale/apicast/pull/690), [THREESCALE-852](https://issues.jboss.org/browse/THREESCALE-852)
 
 ## [3.2.0-rc1] - 2018-04-24
 
@@ -399,7 +404,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 - Major rewrite using JSON configuration instead of code generation.
 
-[Unreleased]: https://github.com/3scale/apicast/compare/v3.2.0-rc1...HEAD
+[Unreleased]: https://github.com/3scale/apicast/compare/v3.2.0-rc2...HEAD
 [2.0.0]: https://github.com/3scale/apicast/compare/v0.2...v2.0.0
 [3.0.0-alpha1]: https://github.com/3scale/apicast/compare/v2.0.0...v3.0.0-alpha1
 [3.0.0-alpha2]: https://github.com/3scale/apicast/compare/v3.0.0-alpha1...v3.0.0-alpha2
@@ -419,3 +424,4 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 [3.2.0-beta2]: https://github.com/3scale/apicast/compare/v3.2.0-beta1...v3.2.0-beta2
 [3.2.0-beta3]: https://github.com/3scale/apicast/compare/v3.2.0-beta2...v3.2.0-beta3
 [3.2.0-rc1]: https://github.com/3scale/apicast/compare/v3.2.0-beta3...v3.2.0-rc1
+[3.2.0-rc2]: https://github.com/3scale/apicast/compare/v3.2.0-rc1...v3.2.0-rc2
