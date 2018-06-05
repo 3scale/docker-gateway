@@ -1,0 +1,53 @@
+{
+  "services": [
+    {
+      "id": 123,
+      "backend_version": "oauth",
+      "backend_authentication_type": "service_token",
+      "backend_authentication_value": "456",
+      "proxy": {
+        "api_backend": "http://echo-api.3scale.net",
+        "hosts": [
+          "localhost",
+          "127.0.0.1"
+        ],
+        "backend": {
+          "endpoint": "https://su1.3scale.net"
+        },
+        "oidc_issuer_endpoint": "https://sso.app.openshift.test/auth/realms/3scale",
+        "authentication_method": "oidc",
+        "proxy_rules": [
+          {
+            "http_method": "GET",
+            "pattern": "/",
+            "metric_system_name": "hits",
+            "delta": 1
+          },
+          {
+            "http_method": "POST",
+            "pattern": "/",
+            "metric_system_name": "hits",
+            "delta": 1
+          },
+          {
+            "http_method": "PUT",
+            "pattern": "/",
+            "metric_system_name": "hits",
+            "delta": 1
+          }
+        ]
+      }
+    }
+  ],
+  "oidc": [
+    {
+      "issuer": "https://sso.app.openshift.test/auth/realms/3scale",
+      "config": {
+        "public_key": "YOUR-REALM-PUBLIC-KEY",
+        "openid": {
+          "id_token_signing_alg_values_supported": [ "RS256" ]
+        }
+      }
+    }
+  ]
+}
