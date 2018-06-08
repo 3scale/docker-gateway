@@ -5,10 +5,11 @@ services:
     user: root
     depends_on:
       - redis
-    entrypoint: "bash"
+    command: "bash"
     volumes:
       - .:/home/centos/
     environment:
+      LOCAL_USER_ID: ${LOCAL_USER_ID}
       TEST_NGINX_REDIS_HOST: redis
       TEST_NGINX_BINARY: openresty
       PROJECT_PATH: /home/centos

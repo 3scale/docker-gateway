@@ -1,37 +1,37 @@
 ARG BUILDER_IMAGE
 FROM ${BUILDER_IMAGE}
 LABEL maintainer="dortiz@redhat.com"
+ENV GOSU_VERSION 1.10
 
 USER root
-
-# 'default' user is defined in the base image
-ARG USER_NAME=default
-ARG USER_HOME=/home/centos
 
 RUN yum -y install sudo \
  && yum -y autoremove \
  && yum -y clean all
 
-RUN mkdir -p ${USER_HOME}/gateway \
- && chown -R ${USER_NAME}: ${USER_HOME} \
- && echo "${USER_NAME} ALL=(ALL:ALL) NOPASSWD: ALL" > /etc/sudoers.d/${USER_NAME} \
- && chmod 0440 /etc/sudoers.d/${USER_NAME}
+# Install gosu
+RUN set -ex; \
+  \
+  yum -y install epel-release; \
+  yum -y install wget dpkg; \
+  \
+  dpkgArch="$(dpkg --print-architecture | awk -F- '{ print $NF }')"; \
+  wget -O /usr/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch"; \
+  wget -O /tmp/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VERSION/gosu-$dpkgArch.asc"; \
+  \
+# verify the signature
+  export GNUPGHOME="$(mktemp -d)"; \
+  gpg --keyserver ha.pool.sks-keyservers.net --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4; \
+  gpg --batch --verify /tmp/gosu.asc /usr/bin/gosu; \
+  rm -r "$GNUPGHOME" /tmp/gosu.asc; \
+  \
+  chmod +x /usr/bin/gosu; \
+# verify that the binary works
+  gosu nobody true; \
+  \
+  yum -y remove wget dpkg; \
+  yum clean all
 
-COPY gateway/cpanfile ${USER_HOME}/gateway
-RUN cpanm --installdeps ${USER_HOME}/gateway
+COPY entrypoint-development.sh /usr/local/bin/entrypoint.sh
 
-COPY gateway/Roverfile ${USER_HOME}/gateway
-COPY gateway/Roverfile.lock ${USER_HOME}/gateway
-
-WORKDIR ${USER_HOME}
-
-RUN rover install --roverfile=gateway/Roverfile
-
-COPY Makefile ${USER_HOME}
-
-RUN make dependencies
-
-COPY . ${USER_HOME}
-
-RUN chown -R ${USER_NAME}: ${USER_HOME}
-USER ${USER_NAME}
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

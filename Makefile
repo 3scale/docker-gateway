@@ -1,5 +1,7 @@
 .DEFAULT_GOAL := help
 
+MKFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
+PROJECT_PATH := $(patsubst %/,%,$(dir $(MKFILE_PATH)))
 DOCKER_COMPOSE = docker-compose
 S2I = script/s2i
 REGISTRY ?= quay.io/3scale
@@ -177,7 +179,9 @@ test-runtime-image: clean-containers ## Smoke test the runtime image. Pass any d
 build-development:
 	docker build -f $(DEVEL_DOCKERFILE) -t $(DEVEL_IMAGE) --build-arg BUILDER_IMAGE=$(BUILDER_IMAGE) .
 
+development: export LOCAL_USER_ID = $(shell id -u $(USER))
 development: build-development ## Run bash inside the development image
+	docker run -v $(PROJECT_PATH):/home/centos --rm -it -e LOCAL_USER_ID=$(LOCAL_USER_ID) $(DEVEL_IMAGE) make dependencies
 	$(DOCKER_COMPOSE) -f $(DEVEL_DOCKER_COMPOSE_FILE) run --rm development
 
 rover: $(ROVER)
@@ -186,7 +190,7 @@ rover: $(ROVER)
 $(S2I_CONTEXT)/Roverfile.lock : $(S2I_CONTEXT)/Roverfile
 	$(ROVER) lock --roverfile=$(S2I_CONTEXT)/Roverfile
 
-dependencies: $(ROVER) $(S2I_CONTEXT)/Roverfile.lock
+dependencies: $(ROVER) $(S2I_CONTEXT)/Roverfile.lock cpan carton
 	$(ROVER) install --roverfile=$(S2I_CONTEXT)/Roverfile
 
 lua_modules/bin/rover:
