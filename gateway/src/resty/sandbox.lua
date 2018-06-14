@@ -87,7 +87,7 @@ local function gen_require(package)
     -- to determine whether modname is already loaded.
     -- NOTE: this is different from the spec: use the top level package.loaded,
     --       otherwise it would try to sandbox load already loaded shared code
-    local mod = root_loaded[modname]
+    local mod = root_loaded[modname] or package.loaded[modname]
 
     --  If it is, then require returns the value stored at package.loaded[modname].
     if mod then return mod end
@@ -211,10 +211,10 @@ local mt = {
 
 local empty_t = {}
 
-function _M.new(load_paths)
+function _M.new(load_paths, cache)
   -- need to create global variable package that mimics the native one
   local package = {
-    loaded = {},
+    loaded = cache or {},
     preload = preload,
     searchers = {}, -- http://www.lua.org/manual/5.2/manual.html#pdf-package.searchers
     searchpath = searchpath,
