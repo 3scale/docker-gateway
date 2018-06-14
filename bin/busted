@@ -25,6 +25,5 @@ exec '/usr/bin/env', 'resty',
     '--http-include', "$apicast/spec/fixtures/echo.conf",
     "$apicast/bin/busted.lua",
     '--config-file', "$apicast/.busted",
-    '--no-auto-insulate', # does not work with apicast.loader
     '--directory', "$cwd",
     @ARGV;

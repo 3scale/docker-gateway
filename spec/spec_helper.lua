@@ -7,7 +7,7 @@ require 'ngx_helper'
 require 'luassert_helper'
 require 'jwt_helper'
 
-require('apicast.loader')
+require('resty.limit.req') -- because it uses ffi.cdef and can't be reloaded
 
 local busted = require('busted')
 local env = require('resty.env')
@@ -46,3 +46,11 @@ end
 
 busted.before_each(reset)
 busted.after_each(reset)
+
+busted.subscribe({ 'file', 'start' }, function (attr)
+  require('apicast.loader')
+end)
+
+busted.subscribe({ 'file', 'end' }, function (attr)
+  collectgarbage()
+end)
