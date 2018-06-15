@@ -10,12 +10,16 @@ local PolicyChain = require('apicast.policy_chain')
 local policy = require('apicast.policy')
 local linked_list = require('apicast.linked_list')
 local prometheus = require('apicast.prometheus')
+local policy_loader = require('apicast.policy_loader')
 
 local setmetatable = setmetatable
+local ipairs = ipairs
 
 local _M = { }
 
 local mt = { __index = _M }
+
+local policy_modules = policy_loader:get_all()
 
 -- forward all policy methods to the policy chain
 for _,phase in policy.phases() do
@@ -57,6 +61,28 @@ function _M:context(phase)
     end
 
     return shared_build_context(self)
+end
+
+local init = _M.init
+function _M:init()
+    init(self)
+
+    for _, policy_mod in ipairs(policy_modules) do
+       if policy_mod.init then
+           policy_mod.init()
+       end
+    end
+end
+
+local init_worker = _M.init_worker
+function _M:init_worker()
+    init_worker(self)
+
+    for _, policy_mod in ipairs(policy_modules) do
+        if policy_mod.init_worker then
+            policy_mod.init_worker()
+        end
+    end
 end
 
 local metrics = _M.metrics

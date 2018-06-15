@@ -9,12 +9,15 @@
 
 local loadfile = loadfile
 local sub = string.sub
+local package = package
 
 local policy_loader = require 'apicast.policy_loader'
 
 local map = {
   ['apicast'] = 'apicast.policy.apicast'
 }
+
+local _M = { }
 
 local function loader(name, path)
   local file, err = package.searchpath(name, path)
@@ -77,5 +80,48 @@ local function apicast_namespace(name)
   end
 end
 
-table.insert(package.searchers, policy_searcher)
-table.insert(package.searchers, apicast_namespace)
+_M.searchers = { policy_searcher, apicast_namespace }
+
+local function unload(searchers)
+  local n = 0
+
+  -- cleanup existing apicast searchers (in case this file is reloaded)
+  for _, searcher in ipairs(searchers) do
+
+    for i,existing_searcher in ipairs(package.searchers) do
+      if searcher == existing_searcher then
+        table.remove(package.searchers, i)
+        n = n + 1
+      end
+    end
+  end
+
+  return n
+end
+
+local function __gc()
+  if package.searchers.apicast == _M.searchers then
+    unload(_M.searchers)
+    package.searchers.apicast = nil
+  end
+end
+
+do
+  unload(package.searchers.apicast or {})
+
+  -- insert apicast searchers
+  for _, searcher in ipairs(_M.searchers) do
+    table.insert(package.searchers, searcher)
+  end
+
+  package.searchers.apicast = _M.searchers
+end
+
+do
+  local ffi = require('ffi')
+  local p = ffi.new('void *')
+
+  ffi.gc(p, function() __gc(_M) end)
+
+  return setmetatable(_M, { __call = function () if not ffi then return p end end, __gc = __gc })
+end

@@ -38,7 +38,7 @@ describe('APIcast Policy Loader', function()
       assert.are_not.same(test, test2)
 
       assert.are.same(test.dependency, test2.dependency)
-      assert.are_not.equal(test.dependency, test2.dependency)
+      assert.are.equal(test.dependency, test2.dependency)
     end)
 
     it('loads two versions of the same policy', function()

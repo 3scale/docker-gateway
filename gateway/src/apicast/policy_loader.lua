@@ -10,7 +10,9 @@ local cjson = require('cjson')
 
 local format = string.format
 local ipairs = ipairs
+local pairs = pairs
 local insert = table.insert
+local concat = table.concat
 local setmetatable = setmetatable
 local pcall = pcall
 
@@ -131,11 +133,19 @@ function _M:load_path(name, version, paths)
   return nil, nil, failures
 end
 
+local package_cache = setmetatable({}, {
+  __index = function(t, k) local n = { }; t[k] = n; return n end
+})
+
 function _M:call(name, version, dir)
   local v = version or 'builtin'
   local load_path, policy_config_schema, invalid_paths = self:load_path(name, v, dir)
 
-  local loader = sandbox.new(load_path and { load_path } or invalid_paths)
+  local cache_key = concat({name, v, dir and concat(dir, ',') or '' }, '-')
+
+  local cache = package_cache[cache_key]
+  local loader = sandbox.new(load_path and { load_path } or invalid_paths,
+          cache)
 
   ngx.log(ngx.DEBUG, 'loading policy: ', name, ' version: ', v)
 
@@ -159,5 +169,23 @@ function _M:pcall(name, version, dir)
     return nil, ret
   end
 end
+
+-- Returns all the policy modules
+function _M:get_all()
+  local policy_modules = {}
+
+  local policy_manifests_loader = require('apicast.policy_manifests_loader')
+  local manifests = policy_manifests_loader.get_all()
+
+  for policy, policy_manifests in pairs(manifests) do
+    for _, manifest in ipairs(policy_manifests) do
+      local policy = self(policy, manifest.version)
+      insert(policy_modules, policy)
+    end
+  end
+
+  return policy_modules
+end
+
 
 return setmetatable(_M, { __call = _M.call })
