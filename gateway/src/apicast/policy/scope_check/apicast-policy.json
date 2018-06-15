@@ -1,0 +1,50 @@
+{
+  "$schema": "http://apicast.io/policy-v1/schema#manifest#",
+  "name": "Scope Check",
+  "summary": "Adds scope check.",
+  "description": [
+    "This policy adds scope check.\n",
+    "This policy exposes realm roles and client roles in the access token."
+  ],
+  "version": "builtin",
+  "configuration": {
+    "type": "object",
+    "properties": {
+      "scopes": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "roles": {
+              "type": "array",
+              "description": "Roles necessary to access the resource",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "role": {
+                    "type": "string",
+                    "description": "Name of the role"
+                  },
+                  "client": {
+                    "type": "string",
+                    "description": "If it is a client role, specify the client."
+                  }
+                }
+              }
+            },
+            "resource": {
+              "type": "string",
+              "description": "Resource controlled by scope. Specify the path(like '/aaa') of the resource. Wildcard('/*') can be used."
+            }
+          }
+        }
+      },
+      "type": {
+        "type": "string",
+        "description": "Type of the scope check",
+        "enum": ["whitelist", "blacklist"],
+        "default": "whitelist"
+      }
+    }
+  }
+}
