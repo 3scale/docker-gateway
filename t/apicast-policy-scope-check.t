@@ -46,7 +46,7 @@ The client which has the appropriate scope accesses the resource.
             "configuration": {
               "scopes": [
                 {
-                  "roles": [ { "role": "director" } ],
+                  "realm_roles": [ { "name": "director" } ],
                   "resource": "/confidential"
                 }
               ]
@@ -124,7 +124,7 @@ The client which doesn't have the inappropriate scope accesses the resource.
             "configuration": {
               "scopes": [
                 {
-                  "roles": [ { "role": "employee", "client": "bank_A" } ],
+                  "client_roles": [ { "name": "employee", "client": "bank_A" } ],
                   "resource": "/confidential"
                 }
               ],
@@ -207,7 +207,7 @@ The client which doesn't have the appropriate scope accesses the resource.
             "configuration": {
               "scopes": [
                 {
-                  "roles": [ { "role": "director" } ],
+                  "realm_roles": [ { "name": "director" } ],
                   "resource": "/confidential"
                 }
               ]
@@ -285,7 +285,7 @@ The client which doesn't have the inappropriate scope accesses the resource.
             "configuration": {
               "scopes": [
                 {
-                  "roles": [ { "role": "employee", "client": "bank_A" } ],
+                  "client_roles": [ { "name": "employee", "client": "bank_A" } ],
                   "resource": "/confidential"
                 }
               ],

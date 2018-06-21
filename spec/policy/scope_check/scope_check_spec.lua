@@ -16,7 +16,7 @@ describe('Scope check policy', function()
           local scope_check_policy = ScopeCheckPolicy.new({
             scopes = {
               {
-                roles = { { role = "aaa" } },
+                realm_roles = { { name = "aaa" } },
                 resource = "/bbb"
               }
             }
@@ -41,7 +41,7 @@ describe('Scope check policy', function()
           local scope_check_policy = ScopeCheckPolicy.new({
             scopes = {
               {
-                roles = { { role = "aaa", client = "ccc" } },
+                client_roles = { { name = "aaa", client = "ccc" } },
                 resource = "/bbb"
               }
             }
@@ -68,7 +68,8 @@ describe('Scope check policy', function()
           local scope_check_policy = ScopeCheckPolicy.new({
             scopes = {
               {
-                roles = { { role = "aaa", client = "ccc" }, { role = "ddd" } },
+                realm_roles = { { name = "ddd" } },
+                client_roles = { { name = "aaa", client = "ccc" } },
                 resource = "/bbb"
               }
             }
@@ -98,8 +99,8 @@ describe('Scope check policy', function()
           local scope_check_policy = ScopeCheckPolicy.new({
             scopes = {
               {
-                roles = { { role = "aaa", client = "ccc" } },
-                resource = "/bbb/*"
+                client_roles = { { name = "aaa", client = "ccc" } },
+                resource = "/bbb/{wildcard}"
               }
             }
           })
@@ -125,24 +126,25 @@ describe('Scope check policy', function()
           local scope_check_policy = ScopeCheckPolicy.new({
             scopes = {
               {
-                roles = { { role = "aaa", client = "ccc" } },
-                resource = "/bbb/*"
+                client_roles = { { name = "aaa", client = "ccc" } },
+                resource = "/bbb/{wildcard}"
               },
               {
-                roles = { { role = "fff", client = "hhh" }, { role = "rrr" } },
-                resource = "/eee*"
+                realm_roles = { { name = "rrr" } },
+                client_roles = { { name = "fff", client = "hhh" } },
+                resource = "/eee{wildcard}"
               },
               {
-                roles = { { role = "ddd" } },
-                resource = "/eeeyyy*"
+                realm_roles = { { name = "ddd" } },
+                resource = "/eeeyyy{wildcard}"
               },
               {
-                roles = { { role = "rrr" } },
-                resource = "/*ggg"
+                realm_roles = { { name = "rrr" } },
+                resource = "/{wildcard}ggg"
               },
               {
-                roles = { { role = "fff", client = "hhh" } },
-                resource = "/z*ggg"
+                client_roles = { { name = "fff", client = "hhh" } },
+                resource = "/z{wildcard}ggg"
               }
             }
           })
@@ -165,7 +167,7 @@ describe('Scope check policy', function()
           }
 
           ngx.var = {
-            uri = '/eeeyyy'
+            uri = '/eeeyyyy'
           }
 
           assert(scope_check_policy:access(context))
@@ -186,16 +188,16 @@ describe('Scope check policy', function()
           scope_check_policy = ScopeCheckPolicy.new({
             scopes = {
               {
-                roles = { { role = "aaa", client = "ccc" } },
-                resource = "/bbb/*"
+                client_roles = { { name = "aaa", client = "ccc" } },
+                resource = "/bbb/{wildcard}"
               },
               {
-                roles = { { role = "ddd" }, { role = "uuu" } },
-                resource = "/eee*"
+                realm_roles = { { name = "ddd" }, { name = "uuu" } },
+                resource = "/eee{wildcard}"
               },
               {
-                roles = { { role = "fff", client = "hhh" } },
-                resource = "/*ggg"
+                client_roles = { { name = "fff", client = "hhh" } },
+                resource = "/{wildcard}ggg"
               },
             }
           })
@@ -259,7 +261,7 @@ describe('Scope check policy', function()
           local scope_check_policy = ScopeCheckPolicy.new({
             scopes = {
               {
-                roles = { { role = "aaa" } },
+                realm_roles = { { name = "aaa" } },
                 resource = "/bbb"
               }
             },
@@ -292,7 +294,7 @@ describe('Scope check policy', function()
           local scope_check_policy = ScopeCheckPolicy.new({
             scopes = {
               {
-                roles = { { role = "aaa", client = "ccc" } },
+                client_roles = { { name = "aaa", client = "ccc" } },
                 resource = "/bbb"
               }
             },
@@ -327,7 +329,8 @@ describe('Scope check policy', function()
           local scope_check_policy = ScopeCheckPolicy.new({
             scopes = {
               {
-                roles = { { role = "aaa", client = "ccc" }, { role = "ddd" } },
+                realm_roles = { { name = "ddd" } },
+                client_roles = { { name = "aaa", client = "ccc" } },
                 resource = "/bbb"
               }
             },
@@ -365,8 +368,8 @@ describe('Scope check policy', function()
           local scope_check_policy = ScopeCheckPolicy.new({
             scopes = {
               {
-                roles = { { role = "aaa", client = "ccc" } },
-                resource = "/bbb/*"
+                client_roles = { { name = "aaa", client = "ccc" } },
+                resource = "/bbb/{wildcard}"
               }
             },
             type = "blacklist"
@@ -400,24 +403,25 @@ describe('Scope check policy', function()
           local scope_check_policy = ScopeCheckPolicy.new({
             scopes = {
               {
-                roles = { { role = "aaa", client = "ccc" } },
-                resource = "/bbb/*"
+                client_roles = { { name = "aaa", client = "ccc" } },
+                resource = "/bbb/{wildcard}"
               },
               {
-                roles = { { role = "fff", client = "hhh" }, { role = "rrr" } },
-                resource = "/eee*"
+                realm_roles = { { name = "rrr" } },
+                client_roles = { { name = "fff", client = "hhh" } },
+                resource = "/eee{wildcard}"
               },
               {
-                roles = { { role = "ddd" } },
-                resource = "/eeeyyy*"
+                realm_roles = { { name = "ddd" } },
+                resource = "/eeeyyy{wildcard}"
               },
               {
-                roles = { { role = "rrr" } },
-                resource = "/*ggg"
+                realm_roles = { { name = "rrr" } },
+                resource = "/{wildcard}ggg"
               },
               {
-                roles = { { role = "fff", client = "hhh" } },
-                resource = "/z*ggg"
+                client_roles = { { name = "fff", client = "hhh" } },
+                resource = "/z{wildcard}ggg"
               }
             },
             type = "blacklist"
@@ -441,7 +445,7 @@ describe('Scope check policy', function()
           }
 
           ngx.var = {
-            uri = '/eeeyyy'
+            uri = '/eeeyyyy'
           }
 
           scope_check_policy:access(context)
@@ -468,16 +472,16 @@ describe('Scope check policy', function()
           scope_check_policy = ScopeCheckPolicy.new({
             scopes = {
               {
-                roles = { { role = "aaa", client = "ccc" } },
-                resource = "/bbb/*"
+                client_roles = { { name = "aaa", client = "ccc" } },
+                resource = "/bbb/{wildcard}"
               },
               {
-                roles = { { role = "ddd" }, { role = "uuu" } },
-                resource = "/eee*"
+                realm_roles = { { name = "ddd" }, { name = "uuu" } },
+                resource = "/eee{wildcard}"
               },
               {
-                roles = { { role = "fff", client = "hhh" } },
-                resource = "/*ggg"
+                client_roles = { { name = "fff", client = "hhh" } },
+                resource = "/{wildcard}ggg"
               },
             },
             type = "blacklist"

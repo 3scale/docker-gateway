@@ -63,7 +63,8 @@ for name, func in pairs(liquid_filters) do
   liquid_filter_set:add_filter(name, func)
 end
 
-local liquid_resource_limit
+-- Set resource limits to avoid loops
+local liquid_resource_limit = LiquidResourceLimit:new(nil, nil, 0)
 
 function LiquidTemplateString.new(string)
   return setmetatable({ template = LiquidTemplate:parse(string) },
@@ -102,9 +103,8 @@ local _M = {}
 -- @tparam string type Render the template as this type.
 --   Can be 'liquid' or 'plain'
 -- @treturn a template string and nil, err when an invalid type is given
-function _M.new(value, type, loopcount)
+function _M.new(value, type)
   local template_mod = template[type]
-  liquid_resource_limit = LiquidResourceLimit:new(nil, nil, loopcount or 0)
 
   if template_mod then
     return template_mod.new(value)

@@ -15,26 +15,39 @@
         "items": {
           "type": "object",
           "properties": {
-            "roles": {
+            "realm_roles": {
               "type": "array",
-              "description": "Roles necessary to access the resource",
+              "description": "Realm roles",
               "items": {
                 "type": "object",
                 "properties": {
-                  "role": {
+                  "name": {
+                    "type": "string",
+                    "description": "Name of the role"
+                  }
+                }
+              }
+            },
+            "client_roles": {
+              "type": "array",
+              "description": "Client roles",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
                     "type": "string",
                     "description": "Name of the role"
                   },
                   "client": {
                     "type": "string",
-                    "description": "If it is a client role, specify the client."
+                    "description": "Client of the role"
                   }
                 }
               }
             },
             "resource": {
               "type": "string",
-              "description": "Resource controlled by scope. Specify the path(like '/aaa') of the resource. Wildcard('/*') can be used."
+              "description": "Resource controlled by scope. Specify the path(like '/aaa') of the resource. Wildcard({wildcard}) can be used."
             }
           }
         }
