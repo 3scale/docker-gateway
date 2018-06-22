@@ -4,7 +4,7 @@
   "summary": "Adds scope check with Keycloak.",
   "description": [
     "This policy adds scope check with Keycloak.\n",
-    "This policy exposes realm roles and client roles in the access token."
+    "This policy verifies realm roles and client roles in the access token."
   ],
   "version": "builtin",
   "configuration": {
@@ -47,7 +47,7 @@
             },
             "resource": {
               "type": "string",
-              "description": "Resource controlled by scope. Specify the path(like '/aaa') of the resource. Wildcard({wildcard}) can be used."
+              "description": "Resource controlled by scope. This is the same format as Mapping Rules. This matches from the beginning of the string and to make an exact match you need to use '$' at the end."
             }
           }
         }

@@ -1,8 +1,8 @@
 --- Keycloak Scope Check Policy
--- This policy exposes the realm roles and the client roles in the JWT.
+-- This policy verifies the realm roles and the client roles in the JWT.
 --
 --- The realm roles are specified when you want to add scope check to the every client's resources or 3scale itself.
--- https://www.keycloak.org/docs/latest/server_admin/index.html#realm-roles
+-- https://www.keycloak.org/docs/4.0/server_admin/index.html#realm-roles
 --
 -- When you specify the realm roles in Keycloak, the JWT includes them as follows:
 --
@@ -21,7 +21,7 @@
 -- ]
 --
 --- The client roles are specified when you want to add scope check to the particular client's resources.
--- https://www.keycloak.org/docs/latest/server_admin/index.html#client-roles
+-- https://www.keycloak.org/docs/4.0/server_admin/index.html#client-roles
 --
 -- When you specify the client roles in Keycloak, the JWT includes them as follows:
 --
@@ -107,11 +107,17 @@ local function match_client_roles(scope, jwt)
   if not scope.client_roles then return true end
 
   for _, role in ipairs(scope.client_roles) do
-    if not jwt.resource_access or not jwt.resource_access[role.client] then
+    if not jwt.resource_access then
       return false
     end
 
-    if not check_roles_in_token(role.name, jwt.resource_access[role.client].roles) then
+    local client = jwt.resource_access[role.client]
+
+    if not client then
+      return false
+    end
+
+    if not check_roles_in_token(role.name, client.roles) then
       return false
     end
   end
