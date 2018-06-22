@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Policies can define `__gc` metamethod that gets called when they are garbage collected to do cleanup [PR #688](https://github.com/3scale/apicast/pull/688)
 - `TimerTask` module to execute recurrent tasks that can be cancelled [PR #782](https://github.com/3scale/apicast/pull/782), [#784](https://github.com/3scale/apicast/pull/784)
 - Scope Check policy [PR #773](https://github.com/3scale/apicast/pull/773)
+- Keycloak Scope Check policy [PR #773](https://github.com/3scale/apicast/pull/773)
 
 ### Changed
 

@@ -1,9 +1,9 @@
 {
   "$schema": "http://apicast.io/policy-v1/schema#manifest#",
-  "name": "Scope Check",
-  "summary": "Adds scope check.",
+  "name": "Keycloak Scope Check",
+  "summary": "Adds scope check with Keycloak.",
   "description": [
-    "This policy adds scope check.\n",
+    "This policy adds scope check with Keycloak.\n",
     "This policy exposes realm roles and client roles in the access token."
   ],
   "version": "builtin",

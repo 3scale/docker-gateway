@@ -42,7 +42,7 @@ The client which has the appropriate scope accesses the resource.
         ],
         "policy_chain": [
           {
-            "name": "apicast.policy.scope_check",
+            "name": "apicast.policy.keycloak_scope_check",
             "configuration": {
               "scopes": [
                 {
@@ -120,7 +120,7 @@ The client which doesn't have the inappropriate scope accesses the resource.
         ],
         "policy_chain": [
           {
-            "name": "apicast.policy.scope_check",
+            "name": "apicast.policy.keycloak_scope_check",
             "configuration": {
               "scopes": [
                 {
@@ -203,7 +203,7 @@ The client which doesn't have the appropriate scope accesses the resource.
         ],
         "policy_chain": [
           {
-            "name": "apicast.policy.scope_check",
+            "name": "apicast.policy.keycloak_scope_check",
             "configuration": {
               "scopes": [
                 {
@@ -281,7 +281,7 @@ The client which doesn't have the inappropriate scope accesses the resource.
         ],
         "policy_chain": [
           {
-            "name": "apicast.policy.scope_check",
+            "name": "apicast.policy.keycloak_scope_check",
             "configuration": {
               "scopes": [
                 {
