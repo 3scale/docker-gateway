@@ -1,19 +1,16 @@
-local KeycloakScopeCheckPolicy = require('apicast.policy.keycloak_scope_check')
+local KeycloakRoleCheckPolicy = require('apicast.policy.keycloak_role_check')
 
-describe('Keycloak Scope check policy', function()
-  local ngx_exit_spy
-  local ngx_say_spy
+describe('Keycloak Role check policy', function()
 
   before_each(function()
-    ngx_exit_spy = spy.on(ngx, 'exit')
-    ngx_say_spy = spy.on(ngx, 'say')
+    ngx.header = {}
   end)
 
   describe('.access', function()
     describe('whitelist', function()
       describe('check succeeds', function()
         it('realm role', function()
-          local scope_check_policy = KeycloakScopeCheckPolicy.new({
+          local role_check_policy = KeycloakRoleCheckPolicy.new({
             scopes = {
               {
                 realm_roles = { { name = "aaa" } },
@@ -34,12 +31,12 @@ describe('Keycloak Scope check policy', function()
             }
           }
 
-          scope_check_policy:access(context)
-          assert.spy(ngx_say_spy).was_not_called()
+          role_check_policy:access(context)
+          assert.not_same(ngx.status, 403)
         end)
 
         it('client role', function()
-          local scope_check_policy = KeycloakScopeCheckPolicy.new({
+          local role_check_policy = KeycloakRoleCheckPolicy.new({
             scopes = {
               {
                 client_roles = { { name = "aaa", client = "ccc" } },
@@ -62,12 +59,46 @@ describe('Keycloak Scope check policy', function()
             }
           }
 
-          scope_check_policy:access(context)
-          assert.spy(ngx_say_spy).was_not_called()
+          role_check_policy:access(context)
+          assert.not_same(ngx.status, 403)
+        end)
+
+        it('liquid', function()
+          local role_check_policy = KeycloakRoleCheckPolicy.new({
+            scopes = {
+              {
+                client_roles = {
+                  {
+                    name = "{{ jwt.aud }}", name_type = "liquid",
+                    client = "{{ jwt.aud }}", client_type = "liquid",
+                  }
+                },
+                resource = "/{{ jwt.aud }}", resource_type = "liquid"
+              }
+            }
+          })
+
+          ngx.var = {
+            uri = '/ccc'
+          }
+
+          local context = {
+            jwt = {
+              aud = "ccc",
+              resource_access = {
+                ccc = {
+                  roles = { "ccc" }
+                }
+              }
+            }
+          }
+
+          role_check_policy:access(context)
+          assert.not_same(ngx.status, 403)
         end)
 
         it('multi roles in policy', function()
-          local scope_check_policy = KeycloakScopeCheckPolicy.new({
+          local role_check_policy = KeycloakRoleCheckPolicy.new({
             scopes = {
               {
                 realm_roles = { { name = "ddd" } },
@@ -94,12 +125,12 @@ describe('Keycloak Scope check policy', function()
             }
           }
 
-          scope_check_policy:access(context)
-          assert.spy(ngx_say_spy).was_not_called()
+          role_check_policy:access(context)
+          assert.not_same(ngx.status, 403)
         end)
 
         it('wildcard', function()
-          local scope_check_policy = KeycloakScopeCheckPolicy.new({
+          local role_check_policy = KeycloakRoleCheckPolicy.new({
             scopes = {
               {
                 client_roles = { { name = "aaa", client = "client" } },
@@ -122,12 +153,12 @@ describe('Keycloak Scope check policy', function()
             }
           }
 
-          scope_check_policy:access(context)
-          assert.spy(ngx_say_spy).was_not_called()
+          role_check_policy:access(context)
+          assert.not_same(ngx.status, 403)
         end)
 
-        it('multi scopes', function()
-          local scope_check_policy = KeycloakScopeCheckPolicy.new({
+        it('multi roles', function()
+          local role_check_policy = KeycloakRoleCheckPolicy.new({
             scopes = {
               {
                 client_roles = { { name = "role_of_known_client", client = "known_client" } },
@@ -174,24 +205,24 @@ describe('Keycloak Scope check policy', function()
             uri = '/account-a'
           }
 
-          scope_check_policy:access(context)
-          assert.spy(ngx_say_spy).was_not_called()
+          role_check_policy:access(context)
+          assert.not_same(ngx.status, 403)
 
           ngx.var = {
             uri = '/group-a/account-b'
           }
 
-          scope_check_policy:access(context)
-          assert.spy(ngx_say_spy).was_not_called()
+          role_check_policy:access(context)
+          assert.not_same(ngx.status, 403)
         end)
       end)
 
       describe('check fails', function()
-        local scope_check_policy
+        local role_check_policy
         local context
 
         before_each(function()
-          scope_check_policy = KeycloakScopeCheckPolicy.new({
+          role_check_policy = KeycloakRoleCheckPolicy.new({
             scopes = {
               {
                 client_roles = { { name = "role_of_known_client", client = "known_client" } },
@@ -231,10 +262,8 @@ describe('Keycloak Scope check policy', function()
             uri = '/not-match'
           }
 
-          scope_check_policy:access(context)
+          role_check_policy:access(context)
           assert.same(ngx.status, 403)
-          assert.spy(ngx_exit_spy).was_called_with(403)
-          assert.spy(ngx_say_spy).was_called_with("auth failed")
         end)
 
         it('no role', function()
@@ -242,10 +271,8 @@ describe('Keycloak Scope check policy', function()
             uri = '/no-role-resource'
           }
 
-          scope_check_policy:access(context)
+          role_check_policy:access(context)
           assert.same(ngx.status, 403)
-          assert.spy(ngx_exit_spy).was_called_with(403)
-          assert.spy(ngx_say_spy).was_called_with("auth failed")
         end)
 
         it('not enough roles', function()
@@ -253,10 +280,24 @@ describe('Keycloak Scope check policy', function()
             uri = '/not-enough-roles-resource'
           }
 
-          scope_check_policy:access(context)
+          role_check_policy:access(context)
           assert.same(ngx.status, 403)
-          assert.spy(ngx_exit_spy).was_called_with(403)
-          assert.spy(ngx_say_spy).was_called_with("auth failed")
+        end)
+
+        it('no jwt', function()
+          ngx.var = {
+            uri = '/match'
+          }
+
+          context = {
+            service = {
+              auth_failed_status = 403,
+              error_auth_failed = "auth failed"
+            }
+          }
+
+          role_check_policy:access(context)
+          assert.same(ngx.status, 403)
         end)
       end)
     end)
@@ -264,7 +305,7 @@ describe('Keycloak Scope check policy', function()
     describe('blacklist', function()
       describe('check fails', function()
         it('realm role', function()
-          local scope_check_policy = KeycloakScopeCheckPolicy.new({
+          local role_check_policy = KeycloakRoleCheckPolicy.new({
             scopes = {
               {
                 realm_roles = { { name = "aaa" } },
@@ -290,14 +331,12 @@ describe('Keycloak Scope check policy', function()
             }
           }
 
-          scope_check_policy:access(context)
+          role_check_policy:access(context)
           assert.same(ngx.status, 403)
-          assert.spy(ngx_exit_spy).was_called_with(403)
-          assert.spy(ngx_say_spy).was_called_with("auth failed")
         end)
 
         it('client role', function()
-          local scope_check_policy = KeycloakScopeCheckPolicy.new({
+          local role_check_policy = KeycloakRoleCheckPolicy.new({
             scopes = {
               {
                 client_roles = { { name = "aaa", client = "ccc" } },
@@ -325,14 +364,12 @@ describe('Keycloak Scope check policy', function()
             }
           }
 
-          scope_check_policy:access(context)
+          role_check_policy:access(context)
           assert.same(ngx.status, 403)
-          assert.spy(ngx_exit_spy).was_called_with(403)
-          assert.spy(ngx_say_spy).was_called_with("auth failed")
         end)
 
         it('multi roles in policy', function()
-          local scope_check_policy = KeycloakScopeCheckPolicy.new({
+          local role_check_policy = KeycloakRoleCheckPolicy.new({
             scopes = {
               {
                 realm_roles = { { name = "ddd" } },
@@ -364,14 +401,12 @@ describe('Keycloak Scope check policy', function()
             }
           }
 
-          scope_check_policy:access(context)
+          role_check_policy:access(context)
           assert.same(ngx.status, 403)
-          assert.spy(ngx_exit_spy).was_called_with(403)
-          assert.spy(ngx_say_spy).was_called_with("auth failed")
         end)
 
         it('wildcard', function()
-          local scope_check_policy = KeycloakScopeCheckPolicy.new({
+          local role_check_policy = KeycloakRoleCheckPolicy.new({
             scopes = {
               {
                 client_roles = { { name = "aaa", client = "client" } },
@@ -399,14 +434,12 @@ describe('Keycloak Scope check policy', function()
             }
           }
 
-          scope_check_policy:access(context)
+          role_check_policy:access(context)
           assert.same(ngx.status, 403)
-          assert.spy(ngx_exit_spy).was_called_with(403)
-          assert.spy(ngx_say_spy).was_called_with("auth failed")
         end)
 
-        it('multi scopes', function()
-          local scope_check_policy = KeycloakScopeCheckPolicy.new({
+        it('multi roles', function()
+          local role_check_policy = KeycloakRoleCheckPolicy.new({
             scopes = {
               {
                 client_roles = { { name = "role_of_known_client", client = "known_client" } },
@@ -454,28 +487,24 @@ describe('Keycloak Scope check policy', function()
             uri = '/account-a'
           }
 
-          scope_check_policy:access(context)
+          role_check_policy:access(context)
           assert.same(ngx.status, 403)
-          assert.spy(ngx_exit_spy).was_called_with(403)
-          assert.spy(ngx_say_spy).was_called_with("auth failed")
 
           ngx.var = {
             uri = '/group-a/account-b'
           }
 
-          scope_check_policy:access(context)
+          role_check_policy:access(context)
           assert.same(ngx.status, 403)
-          assert.spy(ngx_exit_spy).was_called_with(403)
-          assert.spy(ngx_say_spy).was_called_with("auth failed")
         end)
       end)
 
       describe('check succeeds', function()
-        local scope_check_policy
+        local role_check_policy
         local context
 
         before_each(function()
-          scope_check_policy = KeycloakScopeCheckPolicy.new({
+          role_check_policy = KeycloakRoleCheckPolicy.new({
             scopes = {
               {
                 client_roles = { { name = "role_of_known_client", client = "known_client" } },
@@ -516,8 +545,8 @@ describe('Keycloak Scope check policy', function()
             uri = '/not-match'
           }
 
-          scope_check_policy:access(context)
-          assert.spy(ngx_say_spy).was_not_called()
+          role_check_policy:access(context)
+          assert.not_same(ngx.status, 403)
         end)
 
         it('no role', function()
@@ -525,8 +554,8 @@ describe('Keycloak Scope check policy', function()
             uri = '/no-role-resource'
           }
 
-          scope_check_policy:access(context)
-          assert.spy(ngx_say_spy).was_not_called()
+          role_check_policy:access(context)
+          assert.not_same(ngx.status, 403)
         end)
 
         it('not enough roles', function()
@@ -534,8 +563,8 @@ describe('Keycloak Scope check policy', function()
             uri = '/not-enough-roles-resource'
           }
 
-          scope_check_policy:access(context)
-          assert.spy(ngx_say_spy).was_not_called()
+          role_check_policy:access(context)
+          assert.not_same(ngx.status, 403)
         end)
       end)
     end)

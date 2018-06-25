@@ -1,0 +1,92 @@
+{
+  "$schema": "http://apicast.io/policy-v1/schema#manifest#",
+  "name": "Keycloak Role Check",
+  "summary": "Adds role check with Keycloak.",
+  "description": [
+    "This policy adds role check with Keycloak.\n",
+    "This policy verifies realm roles and client roles in the access token."
+  ],
+  "version": "builtin",
+  "configuration": {
+    "type": "object",
+    "definitions": {
+      "value_type": {
+        "$id": "#/definitions/value_type",
+        "type": "string",
+        "oneOf": [{
+          "enum": ["plain"],
+          "title": "Evaluate 'value' as plain text."
+        }, {
+          "enum": ["liquid"],
+          "title": "Evaluate 'value' as liquid."
+        }]
+      }
+    },
+    "properties": {
+      "scopes": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "realm_roles": {
+              "type": "array",
+              "description": "Realm roles",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Name of the role"
+                  },
+                  "name_type": {
+                    "description": "How to evaluate 'name'",
+                    "$ref": "#/definitions/value_type"
+                  }
+                }
+              }
+            },
+            "client_roles": {
+              "type": "array",
+              "description": "Client roles",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "Name of the role"
+                  },
+                  "name_type": {
+                    "description": "How to evaluate 'name'",
+                    "$ref": "#/definitions/value_type"
+                  },
+                  "client": {
+                    "type": "string",
+                    "description": "Client of the role. When this is not defined, this policy uses the 'aud' claim as the client."
+                  },
+                  "client_type": {
+                    "description": "How to evaluate 'client'",
+                    "$ref": "#/definitions/value_type"
+                  }
+                }
+              }
+            },
+            "resource": {
+              "type": "string",
+              "description": "Resource controlled by role. This is the same format as Mapping Rules. This matches from the beginning of the string and to make an exact match you need to use '$' at the end."
+            },
+            "resource_type": {
+              "description": "How to evaluate 'resource'",
+              "$ref": "#/definitions/value_type"
+            }
+          }
+        }
+      },
+      "type": {
+        "type": "string",
+        "description": "Type of the role check",
+        "enum": ["whitelist", "blacklist"],
+        "default": "whitelist"
+      }
+    }
+  }
+}
