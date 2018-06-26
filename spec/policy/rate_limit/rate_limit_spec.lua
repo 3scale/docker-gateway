@@ -37,6 +37,7 @@ describe('Rate limit policy', function()
     ngx_sleep = stub(ngx, 'sleep')
 
     stub(ngx, 'time', function() return 11111 end)
+    stub(ngx.req, 'get_method', function() return 'GET' end)
   end)
 
   before_each(function()
@@ -217,6 +218,28 @@ describe('Rate limit policy', function()
           assert.returns_error('limits exceeded', rate_limit_policy:access(context))
 
           assert.equal('2', redis:get('11110_fixed_window_test3'))
+          assert.spy(ngx_exit).was_called_with(429)
+        end)
+
+        it('rejected (count), with conditions', function()
+          local rate_limit_policy = RateLimitPolicy.new({
+            fixed_window_limiters = {
+              {
+                key = { name = '{{ host }}',
+                name_type = 'liquid',
+                scope = 'global',
+                conditions = {
+                  { operator = 'equals', value = '{{ host }}', value_type = 'liquid' }
+                }
+              }, count = 1, window = 10 }
+            },
+            redis_url = redis_url
+          })
+
+          assert(rate_limit_policy:access(context))
+          assert.returns_error('limits exceeded', rate_limit_policy:access(context))
+
+          assert.equal('2', redis:get('11110_fixed_window_test3_equals_test3'))
           assert.spy(ngx_exit).was_called_with(429)
         end)
       end)

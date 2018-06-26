@@ -9,6 +9,7 @@ local ngx_semaphore = require "ngx.semaphore"
 local limit_traffic = require "resty.limit.traffic"
 local ngx_variable = require ('apicast.policy.ngx_variable')
 local redis_shdict = require('redis_shdict')
+local rate_limit_condition = require('rate_limit_condition')
 
 local tonumber = tonumber
 local next = next
@@ -95,22 +96,53 @@ local function build_limiters_and_keys(type, limiters, redis, error_settings, co
 
     lim.dict = redis or lim.dict
 
-    insert(res_limiters, lim)
-
     local key = limiter.template_string:render(
       ngx_variable.available_context(context))
-    if limiter.key.scope == "global" then
-      key = format("%s_%s", type, key)
-    else
-      key = format("%s_%s_%s", context.service.id, type, key)
-    end
-    if type == "fixed_window" then
-      local time = ngx.time()
-      local window = limiter.window
-      key = format("%d_%s", time - (time % window), key)
+
+    local condition_result = false
+    if limiter.key.conditions then
+      for _, condition in ipairs(limiter.key.conditions) do
+        condition.value = condition.template_string:render(
+          ngx_variable.available_context(context))
+      end
+
+      local condition_err
+      condition_result, condition_err =
+        rate_limit_condition.evaluate(key, { conditions = limiter.key.conditions,
+          conditions_combination = limiter.key.conditions_combination } )
+
+      if condition_err then
+        ngx.log(ngx.ERR, "Configuration error [key.conditions]: ", condition_err)
+        error(error_settings, "configuration_issue")
+        return
+      end
     end
 
-    insert(res_keys, key)
+    if not limiter.key.conditions or condition_result then
+      if limiter.key.scope == "global" then
+        key = format("%s_%s", type, key)
+      else
+        key = format("%s_%s_%s", context.service.id, type, key)
+      end
+      if type == "fixed_window" then
+        local time = ngx.time()
+        local window = limiter.window
+        key = format("%d_%s", time - (time % window), key)
+      end
+
+      if condition_result then
+        for _, condition in ipairs(limiter.key.conditions) do
+          key = format("%s_%s_%s", key, condition.operator, condition.value)
+        end
+
+        if limiter.key.conditions_combination then
+          key = format("%s_%s", key, limiter.key.conditions_combination)
+        end
+      end
+
+      insert(res_limiters, lim)
+      insert(res_keys, key)
+    end
   end
 
   return res_limiters, res_keys
@@ -120,6 +152,13 @@ local function build_templates(limiters)
   for _, limiter in ipairs(limiters) do
     limiter.template_string = TemplateString.new(
       limiter.key.name, limiter.key.name_type or default_name_type)
+
+    if limiter.key.conditions then
+      for _, condition in ipairs(limiter.key.conditions) do
+        condition.template_string = TemplateString.new(
+          condition.value, condition.value_type or default_name_type)
+      end
+    end
   end
 end
 

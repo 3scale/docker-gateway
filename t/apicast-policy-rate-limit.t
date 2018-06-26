@@ -1169,3 +1169,81 @@ so only the third call returns 429.
 [200, 200, 200, 429]
 --- no_error_log
 [error]
+
+=== TEST 19: Use condition.
+This test uses 'conditions' and
+we can apply different rate limit to POST and GET requests.
+--- http_config
+  include $TEST_NGINX_UPSTREAM_CONFIG;
+  lua_package_path "$TEST_NGINX_LUA_PATH";
+
+  init_by_lua_block {
+    require "resty.core"
+    ngx.shared.limiter:flush_all()
+    require('apicast.configuration_loader').mock({
+      services = {
+        {
+          id = 42,
+          proxy = {
+            policy_chain = {
+              {
+                name = "apicast.policy.rate_limit",
+                configuration = {
+                  fixed_window_limiters = {
+                    {
+                      key = {
+                        name = "{{request_method}}", name_type = "liquid", scope = "global",
+                        conditions = {
+                          { operator = 'equals', value = 'POST' }
+                        }
+                      },
+                      count = 1,
+                      window = 10
+                    },
+                    {
+                      key = {
+                        name = "{{request_method}}", name_type = "liquid", scope = "global",
+                        conditions = {
+                          { operator = 'equals', value = 'GET' }
+                        }
+                      },
+                      count = 2,
+                      window = 10
+                    }
+                  },
+                  redis_url = "redis://$TEST_NGINX_REDIS_HOST:$TEST_NGINX_REDIS_PORT/1",
+                  limits_exceeded_error = { status_code = 429 }
+                }
+              }
+            }
+          }
+        }
+      }
+    })
+  }
+  lua_shared_dict limiter 1m;
+
+--- config
+  include $TEST_NGINX_APICAST_CONFIG;
+  resolver $TEST_NGINX_RESOLVER;
+
+  location /flush_redis {
+    content_by_lua_block {
+      local env = require('resty.env')
+      local redis_host = "$TEST_NGINX_REDIS_HOST" or '127.0.0.1'
+      local redis_port = "$TEST_NGINX_REDIS_PORT" or 6379
+      local redis = require('resty.redis'):new()
+      redis:connect(redis_host, redis_port)
+      redis:select(1)
+      local redis_key1 = redis:keys('*_fixed_window_GET_equals_GET')[1]
+      local redis_key2 = redis:keys('*_fixed_window_POST_equals_POST')[1]
+      redis:del(redis_key1, redis_key2)
+    }
+  }
+
+--- pipelined_requests eval
+["GET /flush_redis","GET /","GET /", "POST /", "PUT /", "GET /", "POST /"]
+--- error_code eval
+[200, 200, 200, 200, 200, 429, 429]
+--- no_error_log
+[error]

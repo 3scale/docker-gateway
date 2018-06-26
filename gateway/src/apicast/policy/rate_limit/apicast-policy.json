@@ -28,6 +28,44 @@
               "title": "Evaluate 'name' as liquid."
             }]
           },
+          "conditions": {
+            "description": "Conditions to apply the rate limit",
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "operator": {
+                  "description": "Operator of evaluate condition",
+                  "type": "string",
+                  "enum": ["equals", "not_equals", "contains", "not_contains",
+                    "greater_than", "greater_than_or_equals", "less_than",
+                    "less_than_or_equals"
+                  ]
+                },
+                "value": {
+                  "description": "Value of evaluate condition",
+                  "type": "string"
+                },
+                "value_type": {
+                  "description": "How to evaluate 'value'",
+                  "type": "string",
+                  "default": "plain",
+                  "oneOf": [{
+                    "enum": ["plain"],
+                    "title": "Evaluate 'value' as plain text."
+                  }, {
+                    "enum": ["liquid"],
+                    "title": "Evaluate 'value' as liquid."
+                  }]
+                }
+              }
+            }
+          },
+          "conditions_combination": {
+            "description": "How to combine conditions, if using multiple conditions",
+            "type": "string",
+            "enum": ["and", "or"]
+          },
           "scope": {
             "type": "string",
             "description": "Scope of the key",

@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - New `ssl_certificate` phase allows policies to provide certificate to terminate HTTPS connection [PR #622](https://github.com/3scale/apicast/pull/622).
 - Configurable `auth_type` for the token introspection policy [PR #755](https://github.com/3scale/apicast/pull/755)
 - `TimerTask` module to execute recurrent tasks that can be cancelled [PR #782](https://github.com/3scale/apicast/pull/782), [#784](https://github.com/3scale/apicast/pull/784)
+- Configurable `conditions` for the rate limit policy [PR #781](https://github.com/3scale/apicast/pull/781)
 
 ### Changed
 
