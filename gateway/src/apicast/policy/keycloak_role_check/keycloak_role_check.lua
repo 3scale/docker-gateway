@@ -60,28 +60,32 @@ local default_type = 'plain'
 
 local new = _M.new
 
+local function create_template(value, value_type)
+  return TemplateString.new(value, value_type or default_type)
+end
+
 local function build_templates(scopes)
   for _, scope in ipairs(scopes) do
 
     if scope.realm_roles then
       for _, realm_role in ipairs(scope.realm_roles) do
-        realm_role.template_string = TemplateString.new(
-          realm_role.name, realm_role.name_type or default_type)
+        realm_role.template_string = create_template(
+          realm_role.name, realm_role.name_type)
       end
     end
 
     if scope.client_roles then
       for _, client_role in ipairs(scope.client_roles) do
-        client_role.name_template_string = TemplateString.new(
-          client_role.name, client_role.name_type or default_type)
+        client_role.name_template_string = create_template(
+          client_role.name, client_role.name_type)
 
-        client_role.client_template_string = TemplateString.new(
-          client_role.client, client_role.client_type or default_type)
+        client_role.client_template_string = create_template(
+          client_role.client, client_role.client_type)
       end
     end
 
-    scope.resource_template_string = TemplateString.new(
-      scope.resource, scope.resource_type or default_type)
+    scope.resource_template_string = create_template(
+      scope.resource, scope.resource_type)
 
   end
 end

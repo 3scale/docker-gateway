@@ -7,9 +7,9 @@ describe('Keycloak Role check policy', function()
   end)
 
   describe('.access', function()
-    describe('whitelist', function()
+    describe('with whitelist', function()
       describe('check succeeds', function()
-        it('realm role', function()
+        it('when realm role matches the one in jwt', function()
           local role_check_policy = KeycloakRoleCheckPolicy.new({
             scopes = {
               {
@@ -35,7 +35,7 @@ describe('Keycloak Role check policy', function()
           assert.not_same(ngx.status, 403)
         end)
 
-        it('client role', function()
+        it('when client role matches the one in jwt', function()
           local role_check_policy = KeycloakRoleCheckPolicy.new({
             scopes = {
               {
@@ -63,7 +63,7 @@ describe('Keycloak Role check policy', function()
           assert.not_same(ngx.status, 403)
         end)
 
-        it('liquid', function()
+        it('when client role using liquid matches the one in jwt', function()
           local role_check_policy = KeycloakRoleCheckPolicy.new({
             scopes = {
               {
@@ -97,7 +97,7 @@ describe('Keycloak Role check policy', function()
           assert.not_same(ngx.status, 403)
         end)
 
-        it('multi roles in policy', function()
+        it('when multi roles match the ones in jwt', function()
           local role_check_policy = KeycloakRoleCheckPolicy.new({
             scopes = {
               {
@@ -129,7 +129,7 @@ describe('Keycloak Role check policy', function()
           assert.not_same(ngx.status, 403)
         end)
 
-        it('wildcard', function()
+        it('when client role using wildcard matches the one in jwt', function()
           local role_check_policy = KeycloakRoleCheckPolicy.new({
             scopes = {
               {
@@ -157,7 +157,7 @@ describe('Keycloak Role check policy', function()
           assert.not_same(ngx.status, 403)
         end)
 
-        it('multi roles', function()
+        it('when roles of one of multi scopes match the ones in jwt', function()
           local role_check_policy = KeycloakRoleCheckPolicy.new({
             scopes = {
               {
@@ -257,7 +257,7 @@ describe('Keycloak Role check policy', function()
           }
         end)
 
-        it('not match the uri', function()
+        it('when resource does not match the uri', function()
           ngx.var = {
             uri = '/not-match'
           }
@@ -266,7 +266,7 @@ describe('Keycloak Role check policy', function()
           assert.same(ngx.status, 403)
         end)
 
-        it('no role', function()
+        it('when there is not the matched role in jwt', function()
           ngx.var = {
             uri = '/no-role-resource'
           }
@@ -275,7 +275,7 @@ describe('Keycloak Role check policy', function()
           assert.same(ngx.status, 403)
         end)
 
-        it('not enough roles', function()
+        it('when there are not enough roles in jwt', function()
           ngx.var = {
             uri = '/not-enough-roles-resource'
           }
@@ -284,7 +284,7 @@ describe('Keycloak Role check policy', function()
           assert.same(ngx.status, 403)
         end)
 
-        it('no jwt', function()
+        it('when jwt does not exist', function()
           ngx.var = {
             uri = '/match'
           }
@@ -302,9 +302,9 @@ describe('Keycloak Role check policy', function()
       end)
     end)
 
-    describe('blacklist', function()
+    describe('with blacklist', function()
       describe('check fails', function()
-        it('realm role', function()
+        it('when realm role matches the one in jwt', function()
           local role_check_policy = KeycloakRoleCheckPolicy.new({
             scopes = {
               {
@@ -335,7 +335,7 @@ describe('Keycloak Role check policy', function()
           assert.same(ngx.status, 403)
         end)
 
-        it('client role', function()
+        it('when client role matches the one in jwt', function()
           local role_check_policy = KeycloakRoleCheckPolicy.new({
             scopes = {
               {
@@ -368,7 +368,7 @@ describe('Keycloak Role check policy', function()
           assert.same(ngx.status, 403)
         end)
 
-        it('multi roles in policy', function()
+        it('when multi roles match the ones in jwt', function()
           local role_check_policy = KeycloakRoleCheckPolicy.new({
             scopes = {
               {
@@ -405,7 +405,7 @@ describe('Keycloak Role check policy', function()
           assert.same(ngx.status, 403)
         end)
 
-        it('wildcard', function()
+        it('when client role using wildcard matches the one in jwt', function()
           local role_check_policy = KeycloakRoleCheckPolicy.new({
             scopes = {
               {
@@ -438,7 +438,7 @@ describe('Keycloak Role check policy', function()
           assert.same(ngx.status, 403)
         end)
 
-        it('multi roles', function()
+        it('when roles of one of multi scopes match the ones in jwt', function()
           local role_check_policy = KeycloakRoleCheckPolicy.new({
             scopes = {
               {
@@ -540,7 +540,7 @@ describe('Keycloak Role check policy', function()
           }
         end)
 
-        it('not match the uri', function()
+        it('when resource does not match the uri', function()
           ngx.var = {
             uri = '/not-match'
           }
@@ -549,7 +549,7 @@ describe('Keycloak Role check policy', function()
           assert.not_same(ngx.status, 403)
         end)
 
-        it('no role', function()
+        it('when there is not the matched role in jwt', function()
           ngx.var = {
             uri = '/no-role-resource'
           }
@@ -558,7 +558,7 @@ describe('Keycloak Role check policy', function()
           assert.not_same(ngx.status, 403)
         end)
 
-        it('not enough roles', function()
+        it('when there are not enough roles in jwt', function()
           ngx.var = {
             uri = '/not-enough-roles-resource'
           }
