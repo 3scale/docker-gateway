@@ -94,7 +94,7 @@ replaceable with custom ones.
 
 ### Policy structure
 
-Policy is expected to have some structure, so APIcast can find it. Minimal policy structure consists of two files: `init.lua` and `apicast-manifest.json`.
+Policy is expected to have some structure, so APIcast can find it. Minimal policy structure consists of two files: `init.lua` and `apicast-policy.json`.
 
 Custom policies are expected to be on following paths:
 
@@ -111,7 +111,7 @@ APICAST_DIR/policies/my_stuff/1.0/
 APICAST_DIR/policies/my_stuff/1.0/init.lua
 APICAST_DIR/policies/my_stuff/1.0/my_stuff.lua
 APICAST_DIR/policies/my_stuff/1.0/vendor/dependency.lua
-APICAST_DIR/policies/my_stuff/1.0/apicast-manifest.json
+APICAST_DIR/policies/my_stuff/1.0/apicast-policy.json
 ```
 
 First file to be loaded will be `init.lua`. That is the only Lua file APIcast cares about.
