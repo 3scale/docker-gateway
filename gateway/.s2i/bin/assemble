@@ -3,7 +3,7 @@ set -euo pipefail
 
 mkdir -p /tmp/.s2i
 
-if [[ -n "${GIT_BRANCH}" && "${GIT_BRANCH}" != master && -z "${GIT_TAG}" ]]; then
+if [[ -n "${GIT_BRANCH:-}" && "${GIT_BRANCH:-}" != master && -z "${GIT_TAG:-}" ]]; then
   IMAGE_EXPIRES_AFTER="1w"
   echo "This image is going to have just ${IMAGE_EXPIRES_AFTER} expiration."
 fi

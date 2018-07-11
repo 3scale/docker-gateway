@@ -44,6 +44,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Do not crash when initializing unreachable/invalid DNS resolver [PR #730](https://github.com/3scale/apicast/pull/730)
 - Reporting only 50% calls to 3scale backend when using OIDC [PR #774](https://github.com/3scale/apicast/pull/774)
+- Building container image on OpenShift 3.9 [PR #810](https://github.com/3scale/apicast/pull/810), [THREESCALE-1138](https://issues.jboss.org/browse/THREESCALE-1138)
 
 ## [3.2.0-rc2] - 2018-05-11
 
