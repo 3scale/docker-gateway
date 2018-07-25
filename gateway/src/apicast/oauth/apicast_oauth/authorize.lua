@@ -57,8 +57,8 @@ local function redirect_to_auth(params)
 
   if params.error then
     ngx.log(ngx.DEBUG, 'oauth params error: ' .. tostring(params.error))
-  else
-    persist_nonce(service.id, params)
+--  else
+--    persist_nonce(service.id, params)
   end
 
   local args = ts.build_query(params)
@@ -70,12 +70,14 @@ end
 
 -- Authorizes the client for the given scope
 local function authorize(params)
-  local required_params = {'client_id', 'redirect_uri', 'response_type', 'scope'}
+  local required_params = {'client_id', 'redirect_uri', 'response_type'}
 
-  if params["response_type"] ~= 'code' then
-    params.error = "unsupported_response_type"
-  elseif not ts.required_params_present(required_params, params) then
-    params.error = "invalid_request"
+  if params["response_type"] == 'code' or  params["response_type"] == 'token' then
+ --[[   if not ts.required_params_present(required_params, params) then
+        params.error = "invalid_request"
+    end]]
+  else
+      params.error = "unsupported_response_type"
   end
 
   redirect_to_auth(params)

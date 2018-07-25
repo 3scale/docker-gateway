@@ -1,7 +1,8 @@
-local get_token = require 'apicast.oauth.apicast_oauth.get_token'
-local callback = require 'apicast.oauth.apicast_oauth.authorized_callback'
+--local get_token = require 'apicast.oauth.apicast_oauth.get_token'
+--local callback = require 'apicast.oauth.apicast_oauth.authorized_callback'
 local authorize = require 'apicast.oauth.apicast_oauth.authorize'
 local router = require 'router'
+local jwt = require 'resty.jwt'
 
 local setmetatable = setmetatable
 
@@ -17,16 +18,29 @@ local mt = {
 }
 
 function _M.new(service)
-  return setmetatable(
-    {
-      authorize = authorize.call,
-      callback = callback.call,
-      get_token = get_token.call,
-      service = service
-    }, mt)
+  return setmetatable({
+    authorize = authorize.call,
+    --      callback = callback.call,
+    --      get_token = get_token.call,
+    service = service,
+  }, mt)
+end
+
+local function parse_and_verify_token(jwt_token)
+  local jwt_obj = jwt:load_jwt(jwt_token)
+  if not jwt_obj.valid then
+    ngx.log(ngx.NOTICE, jwt_obj.reason)
+    return jwt_obj, 'JWT not valid'
+  end
+  return jwt_obj
 end
 
 function _M.transform_credentials(_, credentials)
+  local jwt_obj, err = parse_and_verify_token(credentials.access_token)
+  ngx.log(ngx.NOTICE, ' err ', err)
+  if (not err and jwt_obj and jwt_obj.payload) then
+    credentials.access_token = jwt_obj.payload.clientToken
+  end
   return credentials
 end
 
@@ -39,10 +53,10 @@ function _M:router(service)
   r:post('/authorize', function() oauth:authorize(service) end)
 
   -- TODO: only applies to apicast oauth...
-  r:post('/callback', function() oauth:callback() end)
-  r:get('/callback', function() oauth:callback() end)
+  --  r:post('/callback', function() oauth:callback() end)
+  --  r:get('/callback', function() oauth:callback() end)
 
-  r:post('/oauth/token', function() oauth:get_token(service) end)
+  --  r:post('/oauth/token', function() oauth:get_token(service) end)
 
   return r
 end
