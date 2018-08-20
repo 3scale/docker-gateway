@@ -96,8 +96,13 @@ local function parse_and_verify_token(self, jwt_token)
   if not self.alg_whitelist[jwt_obj.header.alg] then
     return jwt_obj, '[jwt] invalid alg'
   end
+
   -- TODO: this should be able to use DER format instead of PEM
   local pubkey = format_public_key(self.config.public_key)
+
+  if not pubkey then
+    return jwt_obj, '[jwt] missing public key for signature verification'
+  end
 
   -- This is keycloak-specific. Its tokens have a 'typ' and we need to verify
   -- it's Bearer.

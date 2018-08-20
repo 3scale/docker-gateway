@@ -1,0 +1,28 @@
+{
+  "$schema": "http://apicast.io/policy-v1/schema#manifest#",
+  "name": "OpenID Connect Default Configuration",
+  "summary": "TODO: write policy summary",
+  "description": [
+    "TODO: Write policy description"
+  ],
+  "version": "builtin",
+  "configuration": {
+    "type": "object",
+    "properties": {
+      "overrides": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "key": {
+              "type": "string"
+            },
+            "value": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

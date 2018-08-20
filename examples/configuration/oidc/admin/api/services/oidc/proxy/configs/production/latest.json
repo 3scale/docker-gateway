@@ -1,0 +1,50 @@
+{ "proxy_config": {
+
+"content": {
+      "id": "oidc",
+      "backend_version": "oauth",
+      "proxy": {
+        "authentication_method": "oidc",
+        "oidc_issuer_endpoint": "http://localhost:8000/openam/oauth2/realms/root",
+        "api_backend": "http://127.0.0.1:8081",
+        "hostname_rewrite": "echo",
+        "hosts": [
+          "localhost",
+          "127.0.0.1"
+        ],
+        "backend": {
+          "endpoint": "http://127.0.0.1:8081",
+          "host": "echo"
+        },
+        "policy_chain": [
+          { "name": "apicast.policy.oidc_default_configuiration", "configuration": {
+            "overrides": [
+              {"key": "public_key", "value": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAi7t6m4d/02dZ8dOe+DFcuUYiOWueHlNkFwdUfOs06eUETOV6Y9WCXu3D71dbF0Fhou69ez5c3HAZrSVS2qC1Htw9NkVlLDeED7qwQQMmSr7RFYNQ6BYekAtn/ScFHpq8Tx4BzhcDb6P0+PHCo+bkQedxwhbMD412KSM2UAVQaZ+TW+ngdaaVEs1Cgl4b8xxZ9ZuApXZfpddNdgvjBeeYQbZnaqU3b0P5YE0s0YvIQqYmTjxh4RyLfkt6s/BS1obWUOC+0ChRWlpWE7QTEVEWJP5yt8hgZ5MecTmBi3yZ/0ts3NsL83413NdbWYh+ChtP696mZbJozflF8jR9pewTbQIDAQAB" }
+            ]
+          } },
+          { "name": "apicast.policy.apicast" }
+        ],
+        "proxy_rules": [
+          {
+            "http_method": "GET",
+            "pattern": "/",
+            "metric_system_name": "hits",
+            "delta": 1
+          },
+          {
+            "http_method": "POST",
+            "pattern": "/",
+            "metric_system_name": "hits",
+            "delta": 1
+          },
+          {
+            "http_method": "PUT",
+            "pattern": "/",
+            "metric_system_name": "hits",
+            "delta": 1
+          }
+        ]
+      }
+}
+}
+}
