@@ -11,6 +11,7 @@ env_to_apicast(
     'APICAST_POLICY_LOAD_PATH' => abs_path($ENV{TEST_NGINX_APICAST_POLICY_LOAD_PATH}),
 );
 
+repeat_each(1);
 run_tests();
 
 __DATA__
@@ -24,21 +25,19 @@ configuration and check that Apicast exits.
   "services": [
     {
       "id": 42,
-      "backend_version":  1,
-      "backend_authentication_type": "service_token",
-      "backend_authentication_value": "token-value",
       "proxy": {
         "policy_chain": [
-          { "name": "example_policy", "version": "1.0.0", "configuration": { } }
-        ],
-        "api_backend": "http://test:$TEST_NGINX_SERVER_PORT/",
-        "proxy_rules": [
-          { "pattern": "/", "http_method": "GET", "metric_system_name": "hits", "delta": 2 }
+          { "name": "example_policy", "version": "1.0.0", "configuration": { } },
+          { "name": "apicast.policy.echo" }
         ]
       }
     }
   ]
 }
 --- request
-GET /?user_key=value
---- must_die
+GET /test
+--- response_body
+GET /test HTTP/1.1
+--- error_code: 200
+--- error_log
+Policy example_policy crashed in .new()

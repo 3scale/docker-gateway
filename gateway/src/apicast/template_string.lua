@@ -7,8 +7,11 @@ local ngx = ngx
 local setmetatable = setmetatable
 local pairs = pairs
 local format = string.format
+local pcall = pcall
 
 local ngx_variable = require('apicast.policy.ngx_variable')
+
+local _M = {}
 
 local LiquidTemplateString = {}
 local liquid_template_string_mt = { __index = LiquidTemplateString }
@@ -86,8 +89,16 @@ local function liquid_parser(text)
 end
 
 function LiquidTemplateString.new(string)
-  return setmetatable({ parser = liquid_parser(string) },
-                      liquid_template_string_mt)
+  local ok, res = pcall(liquid_parser, string)
+
+  if ok then
+    return setmetatable({ parser = res },
+                        liquid_template_string_mt)
+  else
+    ngx.log(ngx.ERR, 'Invalid Liquid: ', string,
+            ' It will be evaluated to empty string. Error: ', res)
+    return _M.new('', 'plain')
+  end
 end
 
 function LiquidTemplateString:render(context)
@@ -115,8 +126,6 @@ local template = {
   plain = PlainTemplateString,
   liquid = LiquidTemplateString
 }
-
-local _M = {}
 
 --- Initialize a template
 -- Initialize a liquid or a plain text template according to the given type.

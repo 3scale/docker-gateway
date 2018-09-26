@@ -1,6 +1,14 @@
 use lib 't';
 use Test::APIcast 'no_plan';
 
+BEGIN {
+    $ENV{APICAST_POLICY_LOAD_PATH} = 't/fixtures/policies';
+}
+
+env_to_nginx(
+    'APICAST_POLICY_LOAD_PATH'
+);
+
 run_tests();
 
 __DATA__
@@ -235,3 +243,38 @@ running phase: log
 --- error_code: 200
 --- no_error_log
 [error]
+
+=== TEST 5: policy chain with a policy that crashes on new()
+Policies that crash when initialized should be removed from the chain
+--- http_config
+  include $TEST_NGINX_UPSTREAM_CONFIG;
+  lua_package_path "$TEST_NGINX_LUA_PATH";
+  init_by_lua_block {
+    require('apicast.configuration_loader').mock({
+      services = {
+        {
+          id = 42,
+          proxy = {
+            policy_chain = {
+              { name = 'error_policy', version = '1.0.0' },
+              { name = 'apicast.policy.echo' }
+            }
+          }
+        }
+      }
+    })
+  }
+
+--- config
+  include $TEST_NGINX_APICAST_CONFIG;
+
+  location /transactions/authrep.xml {
+    content_by_lua_block { ngx.exit(200) }
+  }
+--- request
+GET /test
+--- response_body
+GET /test HTTP/1.1
+--- error_code: 200
+--- error_log
+Policy error_policy crashed in .new()

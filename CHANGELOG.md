@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Prometheus metrics for the 3scale batching policy [PR #902](https://github.com/3scale/apicast/pull/902)
 
+## [3.3.0-cr2] - 2018-09-25
+
+### Fixed
+
+- Handles properly policies that raise an error when initialized [PR #911](https://github.com/3scale/apicast/pull/911), [THREESCALE-1332](https://issues.jboss.org/browse/THREESCALE-1332)
+
 ## [3.3.0-cr1] - 2018-09-14
 
 ### Fixed
@@ -498,7 +504,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Changed
 - Major rewrite using JSON configuration instead of code generation.
 
-[Unreleased]: https://github.com/3scale/apicast/compare/v3.3.0-cr1...HEAD
+[Unreleased]: https://github.com/3scale/apicast/compare/v3.3.0-cr2...HEAD
 [2.0.0]: https://github.com/3scale/apicast/compare/v0.2...v2.0.0
 [3.0.0-alpha1]: https://github.com/3scale/apicast/compare/v2.0.0...v3.0.0-alpha1
 [3.0.0-alpha2]: https://github.com/3scale/apicast/compare/v3.0.0-alpha1...v3.0.0-alpha2
@@ -524,3 +530,4 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 [3.3.0-beta1]: https://github.com/3scale/apicast/compare/v3.2.1...v3.3.0-beta1
 [3.3.0-beta2]: https://github.com/3scale/apicast/compare/v3.3.0-beta1...v3.3.0-beta2
 [3.3.0-cr1]: https://github.com/3scale/apicast/compare/v3.3.0-beta2...v3.3.0-cr1
+[3.3.0-cr2]: https://github.com/3scale/apicast/compare/v3.3.0-cr1...v3.3.0-cr2

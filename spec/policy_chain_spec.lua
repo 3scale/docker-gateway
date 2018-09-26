@@ -177,5 +177,40 @@ describe('policy_chain', function()
       assert.match([[no file]], err)
       assert.match([[apicast/policy/unknown]], err)
     end)
+
+    describe('when there is an error instantiating the policy', function()
+      before_each(function()
+        local PolicyLoader = require('apicast.policy_loader')
+
+        -- Make any policy crash when initialized
+        stub(PolicyLoader, 'pcall').returns(
+            { new = function() error('Policy crashed in .new()') end }
+        )
+      end)
+
+      it('returns nil an an error instead of crashing', function()
+        local res, err = _M.load_policy('echo', 'builtin')
+        assert.is_nil(res)
+        assert(err)
+      end)
+    end)
+
+    describe('when the policy returns nil, err in .new()', function()
+      local policy_error = 'Some error'
+
+      before_each(function()
+        local PolicyLoader = require('apicast.policy_loader')
+
+        stub(PolicyLoader, 'pcall').returns(
+            { new = function() return nil, policy_error end }
+        )
+      end)
+
+      it('returns nil an the policy error instead of crashing', function()
+        local res, err = _M.load_policy('echo', 'builtin')
+        assert.is_nil(res)
+        assert.equals(policy_error, err)
+      end)
+    end)
   end)
 end)

@@ -14,6 +14,7 @@ local require = require
 local insert = table.insert
 local sub = string.sub
 local format = string.format
+local pcall = pcall
 local noop = function() end
 
 require('apicast.loader')
@@ -87,7 +88,13 @@ function _M.load_policy(module, version, ...)
         local mod, err = policy_loader:pcall(module, version or 'builtin')
 
         if mod then
-            return mod.new(...)
+            local new_policy_ok, policy, new_err = pcall(mod.new, ...)
+            if new_policy_ok then
+                return policy, new_err
+            else
+                ngx.log(ngx.ERR, 'Policy ', module, ' crashed in .new(). It will be ignored.')
+                return nil, policy
+            end
         else
             return nil, err
         end

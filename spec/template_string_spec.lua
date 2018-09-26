@@ -8,6 +8,17 @@ describe('template string', function()
     stub(ngx_variable, 'available_context', function(context) return context end)
   end)
 
+  it('evaluates to empty string when an invalid liquid is provided', function()
+    local template_ex1 = TemplateString.new('{{ abc ', 'liquid')
+    assert.equals('', template_ex1:render({}))
+
+    local template_ex2 = TemplateString.new('abc }}', 'liquid')
+    assert.equals('', template_ex2:render({}))
+
+    local template_ex3 = TemplateString.new('{{ now() }}', 'liquid')
+    assert.equals('', template_ex3:render({}))
+  end)
+
   it('renders plain text', function()
     local plain_text_template = TemplateString.new('{{ a_key }}', 'plain')
     assert.equals('{{ a_key }}', plain_text_template:render())
