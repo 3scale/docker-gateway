@@ -85,8 +85,8 @@ local function output_debug_headers(service, usage, credentials)
     ngx.header["X-3scale-credentials"]   = credentials
     ngx.header["X-3scale-usage"]         = usage
     ngx.header["X-3scale-hostname"]      = ngx.var.hostname
-    ngx.header["X-3scale-svc-id"]        = service.id
-    ngx.header["X-3scale-svc-name"]      = service.serializable.system_name
+    ngx.header["X-3scale-service-id"]    = service.id
+    ngx.header["X-3scale-service-name"]  = service.serializable.system_name
   end
 end
 
