@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 - Environment files now can use global `context` variable to share data [PR #964](https://github.com/3scale/apicast/pull/964)
+- Adde sevice id and service name headers in debug context [PR #987](https://github.com/3scale/apicast/pull/987)
 
 ### Changed
 
