@@ -61,7 +61,7 @@
                   },
                   "client": {
                     "type": "string",
-                    "description": "Client of the role. When this is not defined, this policy uses the 'aud' claim as the client."
+                    "description": "Client of the role."
                   },
                   "client_type": {
                     "description": "How to evaluate 'client'",
