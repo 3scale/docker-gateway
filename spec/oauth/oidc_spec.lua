@@ -74,7 +74,8 @@ describe('OIDC', function()
         header = { typ = 'JWT', alg = 'RS256', kid = 'somekid' },
         payload = {
           iss = oidc_config.issuer,
-          aud = {'ce3b2e5e','notused'},
+          aud = {'notused'},
+          azp = 'ce3b2e5e',
           sub = 'someone',
           exp = ngx.now() + 10,
         },

@@ -195,14 +195,9 @@ function _M:transform_credentials(credentials, cache_key)
 
   local payload = jwt_obj.payload
 
-  local app_id = payload.azp or payload.aud
+  local app_id = payload.azp
   local ttl = timestamp_to_seconds_from_now(payload.exp)
 
-
-  --- http://openid.net/specs/openid-connect-core-1_0.html#CodeIDToken
-  -- It MAY also contain identifiers for other audiences.
-  -- In the general case, the aud value is an array of case sensitive strings.
-  -- In the common special case when there is one audience, the aud value MAY be a single case sensitive string.
   if type(app_id) == 'table' then
     app_id = app_id[1]
   end
