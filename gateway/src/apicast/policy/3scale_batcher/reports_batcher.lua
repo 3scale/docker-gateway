@@ -88,12 +88,15 @@ function _M:get_all(service_id)
 
   for _, key in ipairs(cached_report_keys) do
     local value = self.storage:get(key)
+    local report, err = keys_helper.report_from_key_batched_report(key, value)
 
-    local report = keys_helper.report_from_key_batched_report(key, value)
-
-    if value and value > 0 and report.service_id == service_id then
-      insert(cached_reports, report)
-      self.storage:delete(key)
+    if not err then
+      if value > 0 and report and report.service_id == service_id then
+        insert(cached_reports, report)
+        self.storage:delete(key)
+      end
+    else
+      ngx.log(ngx.WARN, 'failed to get report for key ', key, ' err: ', err)
     end
   end
 
