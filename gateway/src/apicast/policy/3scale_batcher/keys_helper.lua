@@ -77,6 +77,8 @@ function _M.report_from_key_batched_report(key, value)
       }
     end
   end
+
+  return nil, 'credentials not found'
 end
 
 return _M
