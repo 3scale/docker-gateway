@@ -155,6 +155,14 @@ Path to a file with passphrases for the SSL cert keys specified with
 - `on`: reuses SSL sessions.
 - `off`: does not reuse SSL sessions.
 
+### `APICAST_PROXY_HTTPS_VERIFY_DEPTH`
+
+**Default:** 1
+**Values:** positive integers
+
+Defines the maximum length of the client certificate chain.
+If this parameter has 1 as its value, it implies that this length might include one additional certificate (eg. intermediate CA).
+
 ### `APICAST_REPORTING_THREADS`
 
 **Default**: 0  
