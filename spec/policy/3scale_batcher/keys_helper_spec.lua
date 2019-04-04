@@ -56,5 +56,11 @@ describe('Keys Helper', function()
       local report = keys_helper.report_from_key_batched_report(key)
       assert.same({ service_id = 's1', app_id = 'ai', metric = 'm1'}, report)
     end)
+
+    it('returns an error when key has no credentials', function()
+      local key = 'service_id:s1,app_id:,metric:m1'
+
+      assert.returns_error('credentials not found', keys_helper.report_from_key_batched_report(key))
+    end)
   end)
 end)
