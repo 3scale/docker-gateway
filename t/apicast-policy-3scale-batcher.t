@@ -610,7 +610,8 @@ init_by_lua_block {
 --- more_headers eval
 use Crypt::JWT qw(encode_jwt);
 my $jwt = encode_jwt(payload => {
-  aud => 'appid',
+  aud => 'something',
+  azp => 'appid',
   sub => 'someone',
   iss => 'https://example.com/auth/realms/apicast',
   exp => time + 3600 }, key => \$::rsa, alg => 'RS256', extra_headers => { kid => 'somekid' });
