@@ -162,7 +162,14 @@ function backend_version_credentials.version_oauth(config)
   return setmetatable({ access_token, access_token = access_token }, credentials_oauth_mt)
 end
 
-local function get_auth_params(method)
+-- Returns a table with the args included in the request. If it's a GET, it
+-- returns the args in the URI. Otherwise, it returns the args in the body.
+-- According to the specs, it's possible to define mapping rules like:
+-- POST /some_path?a_param={a_value}
+-- That match a request like POST "http://apicast_host:8080/some_path" with
+-- a form URL-encoded body like: "a_param=abc".
+-- That's the reason why we need to read the body.
+local function get_request_params(method)
   local params = ngx.req.get_uri_args()
 
   if method == "GET" then
@@ -226,7 +233,7 @@ local function extract_usage_v2(config, method, path)
 
   ngx.log(ngx.DEBUG, '[mapping] service ', config.id, ' has ', #rules, ' rules')
 
-  local args = get_auth_params(method)
+  local args = get_request_params(method)
   return mapping_rules_matcher.get_usage_from_matches(method, path, args, rules)
 end
 
