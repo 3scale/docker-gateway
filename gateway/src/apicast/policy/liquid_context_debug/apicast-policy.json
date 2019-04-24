@@ -3,10 +3,10 @@
   "name": "Liquid context debug",
   "summary": "Inspects the available liquid context.",
   "description": [
-    "This is a policy meant only for debugging purposes. This policy ",
+    "This is a policy intended only for debugging purposes. This policy ",
     "returns the context available when evaluating liquid. Any policy can ",
     "modify the context that is shared between policies and that context is ",
-    "available when evaluating liquid. However, documenting what's available ",
+    "available when evaluating liquid. However, documenting what is available ",
     "is not possible because policies can add any arbitrary field. Users who ",
     "want to develop a policy can use this one to know the context available ",
     "in their configuration. ",

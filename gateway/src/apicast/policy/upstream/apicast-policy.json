@@ -13,17 +13,17 @@
     "type": "object",
     "properties": {
       "rules": {
-        "description": "list of rules to be applied",
+        "description": "List of rules to be applied",
         "type": "array",
         "items": {
           "type": "object",
           "properties": {
             "regex": {
-              "description": "regular expression to be matched",
+              "description": "Regular expression to be matched",
               "type": "string"
             },
             "url": {
-              "description": "new URL in case of match",
+              "description": "New URL in case of match",
               "type": "string"
             }
           },

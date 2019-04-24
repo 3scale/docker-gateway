@@ -105,7 +105,7 @@
       "condition": {
         "$id": "#/definitions/condition",
         "type": "object",
-        "description": "condition to be evaluated",
+        "description": "Condition to be evaluated",
         "properties": {
           "operations": {
             "type": "array",

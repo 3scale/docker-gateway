@@ -4,7 +4,7 @@
   "summary": "Executes a policy chain conditionally.",
   "description": [
     "Evaluates a condition, and when it's true, it calls its policy chain. ",
-    "This policy cannot be configured from the 3scale UI."
+    "This policy cannot be configured from the 3scale Admin Portal."
   ],
   "version": "builtin",
   "configuration": {
@@ -60,7 +60,7 @@
       "condition": {
         "$id": "#/definitions/condition",
         "type": "object",
-        "description": "condition to be evaluated",
+        "description": "Condition to be evaluated",
         "properties": {
           "operations": {
             "type": "array",
@@ -82,7 +82,7 @@
         "$ref": "#/definitions/condition"
       },
       "policy_chain": {
-        "description": "the policy chain to execute when the condition is true",
+        "description": "The policy chain to execute when the condition is true",
         "type": "array",
         "items": {
           "type": "object"
