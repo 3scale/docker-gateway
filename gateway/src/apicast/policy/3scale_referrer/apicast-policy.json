@@ -2,7 +2,7 @@
   "$schema": "http://apicast.io/policy-v1/schema#manifest#",
   "name": "3scale Referrer",
   "summary": "Sends the 'Referer' to 3scale backend so it can be validated.",
-  "description": "Sends the 'Referer' to 3scale backend so it can be validated",
+  "description": "Sends the 'Referer' to 3scale backend for validation.",
   "version": "builtin",
   "configuration": {
     "type": "object",

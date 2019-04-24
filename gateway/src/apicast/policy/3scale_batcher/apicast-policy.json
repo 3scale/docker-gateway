@@ -4,9 +4,9 @@
   "summary": "Caches auths from 3scale backend and batches reports.",
   "description":
     ["This policy caches authorizations from the 3scale backend ",
-     "and also reports in batches. Doing this is more efficient than ",
-     "authorizing and reporting on each request at the expense of losing ",
-     "accuracy in the rate limits."],
+     "and reports them in batches. This is more efficient than authorizing ",
+     "and reporting on each request at the expense of losing accuracy in the ",
+     "rate limits."],
   "version": "builtin",
   "configuration": {
     "type": "object",
