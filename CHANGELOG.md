@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Fixed incorrect description of the `client` attribute in the Keycloak role check policy [PR #1005](https://github.com/3scale/APIcast/pull/1005), [THREESCALE_1867](https://issues.jboss.org/browse/THREESCALE-1867)
 - Segfault when normalizing some client certificates [PR #1006](https://github.com/3scale/APIcast/pull/1006)
+- Fixed incorrect connection reuse for requests on different domains [PR #1021](https://github.com/3scale/APIcast/pull/1021), [THREESCALE-2205](https://issues.jboss.org/browse/THREESCALE-2205)
 
 ### Removed
 
