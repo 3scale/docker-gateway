@@ -17,7 +17,9 @@ local function connect_direct(httpc, request)
     local uri = request.uri
     local host = uri.host
     local ip, port = httpc:resolve(host, nil, uri)
-    local ok, err = httpc:connect(ip, port or default_port(uri))
+
+    local options = { pool = format('%s:%s', host, port) }
+    local ok, err = httpc:connect(ip, port or default_port(uri), options)
 
     if not ok then return nil, err end
 
