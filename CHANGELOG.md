@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 - Ability to configure client certificate chain depth [PR #1006](https://github.com/3scale/APIcast/pull/1006)
+- You can filter services by endpoint name using Regexp [PR #1022](https://github.com/3scale/APIcast/pull/1022) [THREESCALE-1524](https://issues.jboss.org/browse/THREESCALE-1524)
 
 ### Fixed
 

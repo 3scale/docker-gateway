@@ -25,7 +25,6 @@ describe('Configuration object', function()
       assert.same('example.com', config.hostname_rewrite)
     end)
 
-
     it('has a default message, content-type, and status for the auth failed error', function()
       local config = configuration.parse_service({})
 
@@ -112,19 +111,72 @@ describe('Configuration object', function()
   end)
 
   describe('.filter_services', function()
+    local Service = require 'apicast.configuration.service'
     local filter_services = configuration.filter_services
 
     it('works with nil', function()
-      local services = { { id = '42' } }
+      local services = { Service.new({id="42"})}
       assert.equal(services, filter_services(services))
     end)
 
     it('works with table with ids', function()
-      local services = { { id = '42' } }
-
+      local services = { Service.new({id="42"})}
       assert.same(services, filter_services(services, { '42' }))
       assert.same({}, filter_services(services, { '21' }))
     end)
+
+    describe("with service filter", function()
+
+      local mockservices = {
+        Service.new({id="42", hosts={"test.foo.com", "test.bar.com"}}),
+        Service.new({id="12", hosts={"staging.foo.com"}}),
+        Service.new({id="21", hosts={"prod.foo.com"}}),
+      }
+
+      it("with empty env variable", function()
+        env.set('APICAST_SERVICES_FILTER_BY_URL', '')
+        assert.same(filter_services(mockservices, nil), mockservices)
+      end)
+
+      it("it does not discard any service when there is not regex", function()
+        assert.same(filter_services(mockservices, nil), mockservices)
+      end)
+
+      it("reads from environment variable", function()
+        env.set('APICAST_SERVICES_FILTER_BY_URL', '.*.foo.com')
+        assert.same(filter_services(mockservices, nil), mockservices)
+
+        env.set('APICAST_SERVICES_FILTER_BY_URL', '^test.*')
+        assert.same(filter_services(mockservices, nil), {mockservices[1]})
+
+        env.set('APICAST_SERVICES_FILTER_BY_URL', '^(test|prod).*')
+        assert.same(filter_services(mockservices, nil), {mockservices[1], mockservices[3]})
+      end)
+
+      it("matches the second host", function()
+        env.set('APICAST_SERVICES_FILTER_BY_URL', '^test.bar.com')
+        assert.same(filter_services(mockservices, nil), {mockservices[1]})
+      end)
+
+      it("validates invalid regexp", function()
+        env.set('APICAST_SERVICES_FILTER_BY_URL', '^]')
+        assert.same(filter_services(mockservices, nil), {})
+      end)
+
+      it("combination with service list", function()
+        env.set('APICAST_SERVICES_FILTER_BY_URL', '^test.*')
+        env.set('APICAST_SERVICES_LIST', '42,21')
+
+        assert.same(filter_services(mockservices, {"21"}), {
+          mockservices[1],
+          mockservices[3]})
+
+        assert.same(filter_services(mockservices, nil), {
+          mockservices[1],
+          mockservices[3]})
+      end)
+    end)
+
   end)
 
   insulate('.services_limit', function()
