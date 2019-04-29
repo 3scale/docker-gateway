@@ -404,10 +404,9 @@ GET /test?user_key=uk
 The purpose of this test is to test that the 3scale batcher policy works
 correctly when combined with the caching one.
 In this case, the caching policy is configured as "resilient". We define a
-backend that returns "limits exceeded" on the first request, and an error in
-all the rest. The caching policy will cache the first result and return it
-while backend is down. Notice that the caching policy does not store the
-rejection reason, it just returns a generic error (403/Authentication failed).
+backend that returns 200, and an error in all the rest.
+The caching policy will cache the first result and return it while backend is
+down.
 To make sure that nothing is cached in the 3scale batcher policy, we flush its
 auth cache on every request (see rewrite_by_lua_block).
 --- http_config
@@ -462,8 +461,7 @@ rewrite_by_lua_block {
       local test_counter = ngx.shared.test_counter or 0
       if test_counter == 0 then
         ngx.shared.test_counter = test_counter + 1
-        ngx.header['3scale-rejection-reason'] = 'limits_exceeded'
-        ngx.status = 409
+        ngx.status = 200
         ngx.exit(ngx.HTTP_OK)
       else
         ngx.shared.test_counter = test_counter + 1
@@ -478,9 +476,9 @@ rewrite_by_lua_block {
 --- request eval
 ["GET /test?user_key=foo", "GET /foo?user_key=foo", "GET /?user_key=foo"]
 --- response_body eval
-["Limits exceeded", "Authentication failed", "Authentication failed"]
+["yay, api backend\x{0a}", "yay, api backend\x{0a}", "yay, api backend\x{0a}"]
 --- error_code eval
-[ 429, 403, 403 ]
+[ 200, 200, 200 ]
 --- no_error_log
 [error]
 
