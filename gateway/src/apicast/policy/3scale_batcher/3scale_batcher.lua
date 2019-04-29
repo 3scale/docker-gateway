@@ -140,7 +140,7 @@ end
 
 local function update_downtime_cache(cache, transaction, backend_status, cache_handler)
   local key = keys_helper.key_for_cached_auth(transaction)
-  cache_handler(cache, key, backend_status)
+  cache_handler(cache, key, { status = backend_status })
 end
 
 local function handle_backend_ok(self, transaction, cache_handler)
@@ -163,7 +163,8 @@ local function handle_backend_denied(self, service, transaction, status, headers
 end
 
 local function handle_backend_error(self, service, transaction, cache_handler)
-  local cached = cache_handler and self.backend_downtime_cache:get(transaction)
+  local key = keys_helper.key_for_cached_auth(transaction)
+  local cached = cache_handler and self.backend_downtime_cache:get(key)
 
   if cached == 200 then
     self.reports_batcher:add(transaction)
