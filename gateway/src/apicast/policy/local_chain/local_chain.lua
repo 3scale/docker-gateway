@@ -41,19 +41,22 @@ for _, phase in policy.phases() do
     local policy_chain = find_policy_chain(context)
 
     if policy_chain then
-      return policy_chain[phase](policy_chain, context, ...)
+      local merged_context = LinkedList.readwrite(context, policy_chain:export())
+      return policy_chain[phase](policy_chain, merged_context, ...)
     end
   end
 end
 
 local rewrite = _M.rewrite
 
+-- Similar to the methods defined just above. The only difference is that this
+-- one builds the policy chain.
 function _M:rewrite(context, ...)
   local policy_chain = build_chain(context)
 
-  context = LinkedList.readwrite(context, policy_chain:export())
+  local merged_context = LinkedList.readwrite(context, policy_chain:export())
 
-  rewrite(self, context, ...)
+  rewrite(self, merged_context, ...)
 end
 
 return _M
