@@ -1,6 +1,7 @@
 local assert = assert
 local round_robin = require 'resty.balancer.round_robin'
 local resty_url = require 'resty.url'
+local inspect = require 'inspect'
 
 local _M = { default_balancer = round_robin.new() }
 
@@ -52,6 +53,23 @@ local function get_peer(balancer, upstream)
   return peer
 end
 
+local function set_timeouts(balancer, timeouts)
+  if not timeouts then return end
+
+  local _, err = balancer:set_timeouts(
+      timeouts.connect_timeout,
+      timeouts.send_timeout,
+      timeouts.read_timeout
+  )
+
+  if err then
+    ngx.log(ngx.WARN,
+            'Error while setting balancer timeouts: ',
+            inspect(timeouts),
+            ' err: ', err)
+  end
+end
+
 function _M.call(_, context, bal)
   local balancer = assert(bal or _M.default_balancer, 'missing balancer')
   local upstream, peer, err, ok
@@ -71,6 +89,9 @@ function _M.call(_, context, bal)
   ok, err = balancer:set_current_peer(peer[1], peer[2] or upstream.uri.port or resty_url.default_port(upstream.uri.scheme))
 
   if ok then
+    -- context.upstream_connection_opts is set by the "upstream_connection" policy.
+    set_timeouts(balancer, context.upstream_connection_opts)
+
     -- I wish there would be a nicer way, but unfortunately ngx.exit(ngx.OK) does not
     -- terminate the current phase handler and will evaluate all remaining balancer phases.
     context[upstream] = peer
