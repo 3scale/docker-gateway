@@ -9,6 +9,14 @@ local select = select
 local find = string.find
 local pairs = pairs
 
+-- extended_metrics is a variable used to report multiple labels in some
+-- metrics. This can be useful in small environements, but can be problematic
+-- for large users due this can create a large matrix of metrics.
+-- More info about this can be found in Prometheus doc:
+-- https://prometheus.io/docs/practices/naming/#labels
+
+local extended_metrics = resty_env.enabled('APICAST_EXTENDED_METRICS')
+
 local upstream_metrics = require('apicast.metrics.upstream')
 
 local new = _M.new
@@ -76,7 +84,8 @@ local shdict_free_space_metric = prometheus('gauge', 'openresty_shdict_free_spac
 local response_times = prometheus(
   'histogram',
   'total_response_time_seconds',
-  'Time needed to sent a response to the client (in seconds).'
+  'Time needed to sent a response to the client (in seconds).',
+  { 'service' }
 )
 
 function _M.init()
@@ -118,19 +127,22 @@ function _M:metrics()
   end
 end
 
-local function report_req_response_time()
+local function report_req_response_time(service)
   -- Use ngx.var.original_request_time instead of ngx.var.request_time so
   -- the time spent in the post_action phase is not taken into account.
   local resp_time = tonumber(ngx.var.original_request_time)
-
   if resp_time and response_times then
-    response_times:observe(resp_time)
+    response_times:observe(resp_time, { service })
   end
 end
 
-function _M.log()
-  upstream_metrics.report(ngx.var.upstream_status, ngx.var.upstream_response_time)
-  report_req_response_time()
+function _M.log(_, context)
+  local service = ""
+  if context.service and context.service.id and extended_metrics then
+    service = context.service.id
+  end
+  upstream_metrics.report(ngx.var.upstream_status, ngx.var.upstream_response_time, service)
+  report_req_response_time(service)
 end
 
 return _M

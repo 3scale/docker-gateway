@@ -37,7 +37,7 @@ describe('upstream metrics', function()
 
     it('adds the latency to the histogram', function()
       upstream_metrics.report(200, 0.1)
-      assert.stub(test_histogram.observe).was_called_with(test_histogram, 0.1)
+      assert.stub(test_histogram.observe).was_called_with(test_histogram, 0.1, {})
     end)
 
     describe('when the status is nil or empty', function()
@@ -53,6 +53,22 @@ describe('upstream metrics', function()
         upstream_metrics.report(200, nil)
         upstream_metrics.report(200, '')
         assert.stub(test_histogram.observe).was_not_called()
+      end)
+    end)
+
+
+    describe('With service id', function()
+      local service_metric_id = "42"
+      it("increases empty service on nil", function()
+        upstream_metrics.report(200, 0.1, nil)
+        assert.stub(test_histogram.observe).was_called_with(test_histogram, 0.1, {})
+        assert.stub(test_counter.inc).was_called_with(test_counter, 1, { 200 })
+      end)
+
+      it("increase a valid service", function()
+        upstream_metrics.report(200, 0.1, service_metric_id)
+        assert.stub(test_histogram.observe).was_called_with(test_histogram, 0.1, { service_metric_id })
+        assert.stub(test_counter.inc).was_called_with(test_counter, 1, { 200, service_metric_id })
       end)
     end)
   end)

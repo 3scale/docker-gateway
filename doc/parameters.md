@@ -374,3 +374,18 @@ Defines a HTTP proxy to be used for connecting to HTTPS services. Authentication
 **Example:** `foo,bar.com,.extra.dot.com`
 
 Defines a comma-separated list of hostnames and domain names for which the requests should not be proxied. Setting to a single `*` character, which matches all hosts, effectively disables the proxy.
+
+### `APICAST_EXTENDED_METRICS`
+
+**Default:** false
+**Value:** boolean
+**Example:** "true"
+
+Enables additional information on Prometheus metrics; some labels will be used
+with specific information that will provide more in-depth details about APIcast.
+
+The metrics that will have extended information are:
+
+- total_response_time_seconds: label service
+- upstream_response_time_seconds: label service
+- upstream_status: label service
