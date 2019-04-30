@@ -186,6 +186,29 @@ before the client is throttled by adding latency.
 When set to _true_, APIcast will log the response code of the response returned by the API backend in 3scale. In some plans this information can later be consulted from the 3scale admin portal.
 Find more information about the Response Codes feature on the [3scale support site](https://access.redhat.com/documentation/en-us/red_hat_3scale/2.saas/html/analytics/response-codes-tracking).
 
+### `APICAST_SERVICES_FILTER_BY_URL`
+**Value:** a PCRE (Perl Compatible Regular Expression)
+**Example:** .*.example.com
+
+Used to filter the service configured in the 3scale API Manager, the filter
+matches with the public base URL. Services that do not match the filter will be
+discarded. If the regular expression cannot be compiled no services will be
+loaded. 
+
+Note: If a service does not match, but is included in the
+`APICAST_SERVICES_LIST`, service will not be discarded
+
+Example:
+
+Regexp Filter: http:\/\/.*.google.com
+Service 1: backend endpoint http://www.google.com
+Service 2: backend endpoint http://www.yahoo.com
+Service 3: backend endpoint http://mail.google.com
+Service 4: backend endpoint http://mail.yahoo.com
+
+The services that will be configured in Apicast will be 1 and 3. Services 2 and
+4 will be discarded.
+
 ### `APICAST_SERVICES_LIST`
 **Value:** a comma-separated list of service IDs
 

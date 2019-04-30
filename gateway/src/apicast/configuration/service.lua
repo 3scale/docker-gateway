@@ -8,7 +8,9 @@ local rawget = rawget
 local lower = string.lower
 local gsub = string.gsub
 local select = select
+
 local re = require 'ngx.re'
+local match = ngx.re.match
 
 local http_authorization = require 'resty.http_authorization'
 
@@ -262,6 +264,24 @@ function _M:get_usage(method, path)
   else
     return extract_usage_v2(self, method, path)
   end
+end
+
+--- Validate that the given regexp match with one of the service hosts.
+--- This function needs a valid regexp, if not will return false
+-- @tparam string regexp Regular expresion to match with the host
+-- @return bool true if match
+function _M:match_host(regexp)
+  if not regexp or not self.hosts then
+      return false
+  end
+
+  for j = 1, #self.hosts do
+    local val, _ = match(self.hosts[j], regexp, 'oj')
+    if val then
+      return true
+    end
+  end
+  return false
 end
 
 return _M
