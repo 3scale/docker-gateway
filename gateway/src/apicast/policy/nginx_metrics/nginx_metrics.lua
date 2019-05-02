@@ -84,7 +84,7 @@ local shdict_free_space_metric = prometheus('gauge', 'openresty_shdict_free_spac
 local response_times = prometheus(
   'histogram',
   'total_response_time_seconds',
-  'Time needed to sent a response to the client (in seconds).',
+  'Time needed to send a response to the client (in seconds).',
   { 'service' }
 )
 

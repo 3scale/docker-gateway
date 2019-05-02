@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - You can filter services by endpoint name using Regexp [PR #1022](https://github.com/3scale/APIcast/pull/1022) [THREESCALE-1524](https://issues.jboss.org/browse/THREESCALE-1524)
 - "Upstream Connection" policy. It allows to configure several options for the connections to the upstream [PR #1025](https://github.com/3scale/APIcast/pull/1025), [THREESCALE-2166](https://issues.jboss.org/browse/THREESCALE-2166)
 - Enable APICAST_EXTENDED_METRICS env variable to provide more in-depth details [PR #1024](https://github.com/3scale/APIcast/pull/1024) [THREESCALE-2150](https://issues.jboss.org/browse/THREESCALE-2150)
+- Enable APICAST_EXTENDED_METRICS environment variable to provide additional details [PR #1024](https://github.com/3scale/APIcast/pull/1024) [THREESCALE-2150](https://issues.jboss.org/browse/THREESCALE-2150)
 
 ### Fixed
 
