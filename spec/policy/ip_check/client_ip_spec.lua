@@ -109,5 +109,22 @@ describe('ClientIP', function()
         assert.equals('1.2.3.4', ip)
       end)
     end)
+
+    -- Because of a limitation in how the schema needs to be written to be
+    -- rendered correctly, there might be duplicated sources.
+    describe('when there are duplicated sources', function()
+      it('returns the value of the first one set', function()
+        stub(ngx.req, 'get_headers', function()
+          return { ["X-Forwarded-For"] = '1.2.3.4' }
+        end)
+
+        -- Notice that "X-Forwarded-For" is duplicated
+        local ip = client_ip.get_from(
+          { 'X-Real-IP', 'X-Forwarded-For', 'X-Forwarded-For' }
+        )
+
+        assert.equals('1.2.3.4', ip)
+      end)
+    end)
   end)
 end)
