@@ -17,7 +17,7 @@ local ipairs = ipairs
 local default_auths_ttl = 10
 local default_batch_reports_seconds = 10
 
-local _M, mt = policy.new('Caching policy')
+local _M, mt = policy.new('3scale Batcher policy')
 
 local new = _M.new
 
