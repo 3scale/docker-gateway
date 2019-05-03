@@ -27,6 +27,7 @@ server {
     server_name {{ server_name }};
 
     set $ctx_ref -1;
+    set $proxy_pass '';
 
     location / {
         rewrite_by_lua_block {
@@ -50,7 +51,27 @@ server {
       content_by_lua_block { require('apicast.executor'):post_action() }
       log_by_lua_block { require('apicast.executor'):log() }
     }
+
+    location @upstream {
+      internal;
+
+      rewrite_by_lua_block {
+        require('resty.ctx').apply()
+      }
+
+      proxy_pass $proxy_pass;
+
+      proxy_http_version 1.1;
+      proxy_set_header Host $http_host;
+      proxy_set_header Connection "";
+
+      # these are duplicated so when request is redirected here those phases are executed
+      post_action @post_action;
+      body_filter_by_lua_block { require('apicast.executor'):body_filter() }
+      header_filter_by_lua_block { require('apicast.executor'):header_filter() }
+    }
 }
+
 {% endfor %}
 
 {% for upstream in standalone.external %}

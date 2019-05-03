@@ -3,6 +3,7 @@
 local Policy = require('apicast.policy')
 local PolicyChain = require('apicast.policy_chain')
 local Upstream = require('apicast.upstream')
+local balancer = require('apicast.balancer')
 local Configuration = require('apicast.policy.standalone.configuration')
 local resty_env = require('resty.env')
 local _M = Policy.new('standalone')
@@ -49,7 +50,7 @@ for _,phase in Policy.request_phases() do
 end
 
 local function build_objects(constructor, list)
-  if not list then return nil end
+  if not list then return {} end
 
   local objects = tab_new(#list, 0)
 
@@ -81,6 +82,7 @@ do
 
     return setmetatable({
       service = config.service,
+      upstream = config.upstream,
       http_response = config.http_response,
     }, Destination_mt)
   end
@@ -217,11 +219,32 @@ end
 do
   local External_mt = { __index = External }
 
+  local UpstreamPolicy = Policy.new('Standalone Upstream Policy')
+  local UpstreamPolicy_new = UpstreamPolicy.new
+
+  function UpstreamPolicy.new(config)
+    local self = UpstreamPolicy_new(config)
+    self.upstream = Upstream.new(config.server)
+    return self
+  end
+
+  function UpstreamPolicy:content(context)
+    context[self] = self.upstream
+    self.upstream:call(context)
+  end
+
+  UpstreamPolicy.balancer = balancer.call
+
   function External.new(config)
+    local upstream_policy = UpstreamPolicy.new(config)
+    local upstream = upstream_policy.upstream
+    local policy_chain = PolicyChain.new({ upstream_policy }):freeze()
+
     return setmetatable({
       name = config.name,
-      server = Upstream.new(config.server),
+      server = upstream,
       load_balancer = config.load_balancer,
+      policy_chain = policy_chain,
       retries = config.retries,
     }, External_mt)
   end
@@ -319,9 +342,23 @@ end
 local function find_service(self, route)
   local destination = route and route.destination
 
-  if self.services and destination then
+  if not destination then return nil, 'no destination' end
+
+  if destination.service then
     return self.services[destination.service]
   end
+
+  if destination.upstream then
+    local upstream = self.upstreams[destination.upstream]
+
+    if upstream then
+      return upstream
+    else
+      return nil, 'upstream not found'
+    end
+  end
+
+  return nil, 'destination not found'
 end
 
 local function not_found(self)
@@ -334,12 +371,12 @@ function _M:dispatch(route)
     return not_found(self)
   end
 
-  local service = find_service(self, route)
+  local service, err = find_service(self, route)
 
   if service then
     return service.policy_chain or empty_chain
   else
-    ngx.log(ngx.ERR, 'could not find the route destination')
+    ngx.log(ngx.ERR, 'could not find the route destination: ', err)
     return not_found(self)
   end
 end
