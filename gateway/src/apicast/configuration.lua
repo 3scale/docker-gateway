@@ -87,6 +87,7 @@ function _M.parse_service(service)
 
   return Service.new({
       id = tostring(service.id or 'default'),
+      system_name = tostring(service.system_name or ''),
       backend_version = backend_version,
       authentication_method = proxy.authentication_method or backend_version,
       hosts = proxy.hosts or { 'localhost' }, -- TODO: verify localhost is good default

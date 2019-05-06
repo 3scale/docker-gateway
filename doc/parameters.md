@@ -386,6 +386,6 @@ with specific information that will provide more in-depth details about APIcast.
 
 The metrics that will have extended information are:
 
-- total_response_time_seconds: label service
-- upstream_response_time_seconds: label service
-- upstream_status: label service
+- total_response_time_seconds: labels service_id and service_system_name
+- upstream_response_time_seconds: labels service_id and service_system_name
+- upstream_status: labels service_id and service_system_name

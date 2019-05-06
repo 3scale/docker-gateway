@@ -273,8 +273,8 @@ In particular, it shows the status codes and the response times
 "",
 [
     qr/upstream_response_time_seconds(.|\n)/,
-    qr/upstream_response_time_seconds_bucket\{service="",le=".*"\} 1/,
-    qr/upstream_status\{status="200",service=""\} 1/
+    qr/upstream_response_time_seconds_bucket\{service_id="",service_system_name="",le=".*"\} 1/,
+    qr/upstream_status\{status="200",service_id="",service_system_name=""\} 1/
 ]]
 --- no_error_log
 [error]
@@ -318,7 +318,7 @@ In particular, it shows the status codes and the response times
 --- response_body_like eval
 [
 "",
-qr/total_response_time_seconds(.|\n)*total_response_time_seconds_bucket\{service="",le=".*"\} 1/
+qr/total_response_time_seconds(.|\n)*total_response_time_seconds_bucket\{service_id="",service_system_name="",le=".*"\} 1/
 ]
 --- no_error_log
 [error]
@@ -333,6 +333,7 @@ qr/total_response_time_seconds(.|\n)*total_response_time_seconds_bucket\{service
   "services": [
     {
       "id": 42,
+      "system_name": "foo",
       "proxy": {
         "policy_chain": [
           {
@@ -369,10 +370,10 @@ qr/total_response_time_seconds(.|\n)*total_response_time_seconds_bucket\{service
 "",
 [
     qr/total_response_time_seconds(.|\n)*/,
-    qr/total_response_time_seconds_bucket\{service="42",le=".*"\} 1/,
+    qr/total_response_time_seconds_bucket\{service_id="42",service_system_name="foo",le=".*"\} 1/,
     qr/upstream_response_time_seconds(.|\n)*/,
-    qr/upstream_response_time_seconds_bucket\{service="42",le=".*"\} 1/,
-    qr/upstream_status\{status="200",service="42"\} 1/
+    qr/upstream_response_time_seconds_bucket\{service_id="42",service_system_name="foo",le=".*"\} 1/,
+    qr/upstream_status\{status="200",service_id="42",service_system_name="foo"\} 1/
 ]
 ]
 --- no_error_log
@@ -386,6 +387,7 @@ qr/total_response_time_seconds(.|\n)*total_response_time_seconds_bucket\{service
   "services": [
     {
       "id": 42,
+      "system_name": "foo",
       "proxy": {
         "hosts": [
           "one"
@@ -407,6 +409,7 @@ qr/total_response_time_seconds(.|\n)*total_response_time_seconds_bucket\{service
     },
     {
       "id": 21,
+      "system_name": "bar",
       "proxy": {
         "hosts": [
           "two"
@@ -451,13 +454,12 @@ qr/total_response_time_seconds(.|\n)*total_response_time_seconds_bucket\{service
 "",
 "",
 [
-qr/total_response_time_seconds_bucket\{service="42",le=".*"\} 1/,
-qr/upstream_response_time_seconds_bucket\{service="42",le=".*"\} 1/,
-qr/upstream_status\{status="200",service="42"\} 1/,
-qr/total_response_time_seconds_bucket\{service="21",le=".*"\} 1/,
-qr/upstream_response_time_seconds_bucket\{service="21",le=".*"\} 1/,
-qr/upstream_status\{status="200",service="21"\} 1/
+qr/total_response_time_seconds_bucket\{service_id="42",service_system_name="foo",le=".*"\} 1/,
+qr/upstream_response_time_seconds_bucket\{service_id="42",service_system_name="foo",le=".*"\} 1/,
+qr/upstream_status\{status="200",service_id="42",service_system_name="foo"\} 1/,
+qr/total_response_time_seconds_bucket\{service_id="21",service_system_name="bar",le=".*"\} 1/,
+qr/upstream_response_time_seconds_bucket\{service_id="21",service_system_name="bar",le=".*"\} 1/,
+qr/upstream_status\{status="200",service_id="21",service_system_name="bar"\} 1/
 ]]
 --- no_error_log
 [error]
-

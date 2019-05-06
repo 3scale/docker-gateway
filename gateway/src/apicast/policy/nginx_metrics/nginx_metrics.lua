@@ -85,7 +85,7 @@ local response_times = prometheus(
   'histogram',
   'total_response_time_seconds',
   'Time needed to send a response to the client (in seconds).',
-  { 'service' }
+  { 'service_id', 'service_system_name' }
 )
 
 function _M.init()
@@ -132,14 +132,17 @@ local function report_req_response_time(service)
   -- the time spent in the post_action phase is not taken into account.
   local resp_time = tonumber(ngx.var.original_request_time)
   if resp_time and response_times then
-    response_times:observe(resp_time, { service })
+    response_times:observe(resp_time, {
+      service.id or "",
+      service.system_name or ""
+    })
   end
 end
 
 function _M.log(_, context)
-  local service = ""
-  if context.service and context.service.id and extended_metrics then
-    service = context.service.id
+  local service = { id = "", system_name = "" }
+  if context.service and extended_metrics then
+    service = context.service
   end
   upstream_metrics.report(ngx.var.upstream_status, ngx.var.upstream_response_time, service)
   report_req_response_time(service)
