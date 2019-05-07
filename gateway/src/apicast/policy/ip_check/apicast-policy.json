@@ -43,7 +43,7 @@
         "type": "array",
         "default": ["last_caller"],
         "minItems": 1,
-        "uniqueItems": true,
+        "maxItems": 3,
         "items": {
           "type": "string",
           "anyOf": [
