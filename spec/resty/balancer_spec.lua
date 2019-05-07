@@ -127,4 +127,26 @@ describe('resty.balancer', function()
     end)
 
   end)
+
+  describe('set_timeouts', function()
+    it('forwards the call to the internal balancer', function()
+      local b = resty_balancer.new(function() end)
+      b.balancer = { } -- Internal balancer
+      stub.new(b.balancer, 'set_timeouts', function() end)
+
+      b:set_timeouts(1, 2, 3)
+
+      assert.stub(b.balancer.set_timeouts).was_called_with(1, 2, 3)
+    end)
+
+    it('returns an error when the internal balancer has not been set', function()
+      local b = resty_balancer.new(function() end)
+      b.balancer = nil -- Internal balancer
+
+      local res, err = b:set_timeouts(1, 2, 3)
+
+      assert.is_nil(res)
+      assert.equals('balancer not available', err)
+    end)
+  end)
 end)
