@@ -8,15 +8,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
-- Ability to configure client certificate chain depth [PR #1006](https://github.com/3scale/APIcast/pull/1006)
 - You can filter services by endpoint name using Regexp [PR #1022](https://github.com/3scale/APIcast/pull/1022) [THREESCALE-1524](https://issues.jboss.org/browse/THREESCALE-1524)
 - "Upstream Connection" policy. It allows to configure several options for the connections to the upstream [PR #1025](https://github.com/3scale/APIcast/pull/1025), [THREESCALE-2166](https://issues.jboss.org/browse/THREESCALE-2166)
 
 ### Fixed
 
 - Fixed incorrect description of the `client` attribute in the Keycloak role check policy [PR #1005](https://github.com/3scale/APIcast/pull/1005), [THREESCALE_1867](https://issues.jboss.org/browse/THREESCALE-1867)
-- Segfault when normalizing some client certificates [PR #1006](https://github.com/3scale/APIcast/pull/1006)
-- Fixed incorrect connection reuse for requests on different domains [PR #1021](https://github.com/3scale/APIcast/pull/1021), [THREESCALE-2205](https://issues.jboss.org/browse/THREESCALE-2205)
 - `export()` now works correctly in policies of the local chain. It was only working in the `rewrite` phase [PR #1023](https://github.com/3scale/APIcast/pull/1023)
 - The caching policy now works correctly when combined with the 3scale batcher one [PR #1023](https://github.com/3scale/APIcast/pull/1023)
 - Fixed the name of the 3scale batching policy in the logs. Some logs showed "Caching policy" where it should have said "3scale Batcher" [PR #1029](https://github.com/3scale/APIcast/pull/1029)
@@ -26,11 +23,28 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Checking `aud` JWT claim for app_id when using OIDC integration [PR #1007](https://github.com/3scale/APIcast/pull/1007)
 
+## [3.5.1] - 2019-05-07
+
+Apart from the changes mentioned in this section, this version also includes the changes introduced in `3.5.0-rc1` that were not included in `3.5.0`.
+
+### Added
+
+- Ability to configure client certificate chain depth [PR #1006](https://github.com/3scale/APIcast/pull/1006), [THREESCALE-2383](https://issues.jboss.org/browse/THREESCALE-2383)
+
+### Fixed
+
+- Segfault when normalizing some client certificates [PR #1006](https://github.com/3scale/APIcast/pull/1006)
+- Fixed incorrect connection reuse for requests on different domains [PR #1021](https://github.com/3scale/APIcast/pull/1021), [THREESCALE-2205](https://issues.jboss.org/browse/THREESCALE-2205)
+
+## [3.5.0] - 2019-05-07
+
+`3.5.0-beta1` was considered final and became `3.5.0`. Notice that this version does not include the changes introduced in `3.5.0-rc1`.
+
 ## [3.5.0-rc1] - 2019-03-29
 
 ### Changed
 
-- Do not send OpenResty version in the `Server` response header [PR #997](https://github.com/3scale/APIcast/pull/997)
+- Do not send OpenResty version in the `Server` response header [PR #997](https://github.com/3scale/APIcast/pull/997), [THREESCALE-1989](https://issues.jboss.org/browse/THREESCALE-1989)
 - When using OIDC, the "no-body" option is now set when contacting the 3scale backend. This option helps reducing the workload in the 3scale backend and the network traffic [#998](https://github.com/3scale/APIcast/pull/998), [THREESCALE-2006](https://issues.jboss.org/browse/THREESCALE-2006)
 
 ## [3.5.0-beta1] - 2019-03-12
@@ -612,7 +626,7 @@ expressed might change in future releases.
 ### Changed
 - Major rewrite using JSON configuration instead of code generation.
 
-[Unreleased]: https://github.com/3scale/apicast/compare/v3.5.0-rc1...HEAD
+[Unreleased]: https://github.com/3scale/apicast/compare/v3.5.1...HEAD
 [2.0.0]: https://github.com/3scale/apicast/compare/v0.2...v2.0.0
 [3.0.0-alpha1]: https://github.com/3scale/apicast/compare/v2.0.0...v3.0.0-alpha1
 [3.0.0-alpha2]: https://github.com/3scale/apicast/compare/v3.0.0-alpha1...v3.0.0-alpha2
@@ -646,3 +660,5 @@ expressed might change in future releases.
 [3.4.0]: https://github.com/3scale/apicast/compare/v3.4.0-rc2...v3.4.0
 [3.5.0-beta1]: https://github.com/3scale/apicast/compare/v3.4.0...v3.5.0-beta1
 [3.5.0-rc1]: https://github.com/3scale/apicast/compare/v3.5.0-beta1...v3.5.0-rc1
+[3.5.0]: https://github.com/3scale/apicast/compare/v3.5.0-beta1...v3.5.0
+[3.5.1]: https://github.com/3scale/apicast/compare/v3.5.0...v3.5.1
