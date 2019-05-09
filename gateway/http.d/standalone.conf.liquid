@@ -1,5 +1,7 @@
 {% for server in standalone.server.listen %}
 server {
+    access_log {{ server.access_log | default: access_log | default: 'stdout' }};
+
     listen {{ server.port }} default_server
     {%- if server.tls %} ssl {% endif -%}
     {%- case server.protocol -%}
