@@ -9,7 +9,7 @@ local mt = { __index = _M }
 
 local allowed_schemes = {
     file = true,
-    -- TODO: support Data URI
+    data = true,
 }
 
 
@@ -28,11 +28,13 @@ end
 do
     local loaders = { }
     local pcall = pcall
+    local tostring = tostring
     local path = require('pl.path')
     local file = require('pl.file')
 
     local YAML = require('resty.yaml')
     local cjson = require('cjson')
+    local data_url = require('apicast.configuration_loader.data_url')
 
     local decoders = {
         ['.yml'] = YAML.load,
@@ -66,6 +68,10 @@ do
         else
             return nil, 'no such file'
         end
+    end
+
+    function loaders.data(uri)
+        return data_url.parse(tostring(uri))
     end
 
     function _M:load()
