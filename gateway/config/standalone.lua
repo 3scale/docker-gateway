@@ -1,5 +1,6 @@
 local PolicyChain = require('apicast.policy_chain')
 local resty_url = require('resty.url')
+local linked_list = require('apicast.linked_list')
 local format = string.format
 
 local function to_url(uri)
@@ -18,11 +19,13 @@ local standalone = assert(PolicyChain.load_policy(
         { url = to_url(context.configuration) }))
 
 if arg then -- running CLI to generate nginx config
-    return {
+    local config = standalone:load_configuration() or {}
+
+    return linked_list.readonly({
         template = 'http.d/standalone.conf.liquid',
-        standalone = standalone:load_configuration(),
+        standalone = config,
         configuration = standalone.url,
-    }
+    }, config.global)
 
 else -- booting APIcast
     return {
