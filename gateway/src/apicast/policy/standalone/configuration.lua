@@ -31,6 +31,17 @@ do
     local tostring = tostring
     local path = require('pl.path')
     local file = require('pl.file')
+    local inspect = require('inspect')
+    local tab_clone = require "table.clone"
+    local __tostring = function(self)
+        -- We need to remove metatable of the inspected table, otherwise it points to itself
+        -- and leads to infinite recursion. Cloning the table has the same effect without mutation.
+        -- As this is evaluated only when nginx was compiled with debug flag,
+        -- it means it happens only in development.
+        return inspect(tab_clone(self))
+    end
+
+    local config_mt = { __tostring = __tostring }
 
     local YAML = require('resty.yaml')
     local cjson = require('cjson')
@@ -81,8 +92,7 @@ do
         local load = loaders[url.scheme]
         if not load then return nil, 'cannot load scheme' end
 
-
-        return load(url)
+        return setmetatable(load(url), config_mt)
     end
 end
 

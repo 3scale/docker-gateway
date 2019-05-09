@@ -274,7 +274,7 @@ function _M:load_configuration()
     self.services = setmetatable(build_services(configuration), { __index = default.services })
     self.upstreams = build_upstreams(configuration)
 
-    ngx.log(ngx.NOTICE, 'loaded standalone configuration from: ', url)
+    ngx.log(ngx.DEBUG, 'loaded standalone configuration from: ', url, ' ', configuration)
     return configuration
   else
     ngx.log(ngx.WARN, 'failed to load ', url, ' err: ', err)
