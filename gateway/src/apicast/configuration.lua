@@ -115,6 +115,7 @@ function _M.parse_service(service)
       backend = backend,
       oidc = {
         issuer_endpoint = value(proxy.oidc_issuer_endpoint),
+        client_id = value(proxy.oidc_client_id),
       },
       credentials = {
         location = proxy.credentials_location or 'query',

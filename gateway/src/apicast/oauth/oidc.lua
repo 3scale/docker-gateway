@@ -3,6 +3,7 @@ local jwt_validators = require 'resty.jwt-validators'
 
 local lrucache = require 'resty.lrucache'
 local util = require 'apicast.util'
+local TemplateString = require 'apicast.template_string'
 
 local setmetatable = setmetatable
 local ngx_now = ngx.now
@@ -30,13 +31,21 @@ local mt = {
 
 local empty = {}
 
-function _M.new(oidc_config)
+function _M.new(oidc_config, service)
   local oidc = oidc_config or empty
   local issuer = oidc.issuer
   local config = oidc.config or empty
   local alg_values = config.id_token_signing_alg_values_supported or empty
-
+  local tmpl, tmpl_err
   local err
+
+  if  oidc_config and oidc_config.client_id then
+     tmpl, tmpl_err = TemplateString.new(oidc_config.client_id, "liquid")
+    if tmpl_err then
+      err = 'Invalid client_id template string'
+    end
+  end
+
   if not issuer or #alg_values == 0 then
     err = 'missing OIDC configuration'
   end
@@ -44,6 +53,8 @@ function _M.new(oidc_config)
   return setmetatable({
     config = config,
     issuer = issuer,
+    service = service,
+    tmpl = tmpl,
     keys = oidc.keys or empty,
     clock = ngx_now,
     alg_whitelist = util.to_hash(alg_values),
@@ -194,8 +205,12 @@ function _M:transform_credentials(credentials, cache_key)
   end
 
   local payload = jwt_obj.payload
-
   local app_id = payload.azp
+
+  if self.tmpl then
+      app_id = self.tmpl:render(payload)
+  end
+
   local ttl = timestamp_to_seconds_from_now(payload.exp)
 
   if type(app_id) == 'table' then
