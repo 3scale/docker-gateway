@@ -235,25 +235,35 @@ describe('OIDC', function()
         stub(ngx_variable, 'available_context', function(context) return context end)
       end)
 
-      it('use liquid template to modify app_id', function()
+      local access_token = jwt:sign(rsa.private, {
+        header = { typ = 'JWT', alg = 'RS256', kid = 'somekid' },
+        payload = {
+          iss = oidc_config.issuer,
+          aud = 'foo',
+          azp = 'ce3b2e5e',
+          sub = 'someone',
+          custom = {"foo", "bar"},
+          exp = ngx.now() + 10,
+        },
+      })
 
-        local oidc_config = {
+      local get_oidc = function(params)
+        local config = {
           issuer = 'https://example.com/auth/realms/apicast',
           config = { id_token_signing_alg_values_supported = { 'RS256' } },
-          keys = { somekid = { pem = rsa.pub } },
-          client_id = "{{aud}}"}
-        local oidc = _M.new(oidc_config)
+          keys = { somekid = { pem = rsa.pub } }}
 
-        local access_token = jwt:sign(rsa.private, {
-          header = { typ = 'JWT', alg = 'RS256', kid = 'somekid' },
-          payload = {
-            iss = oidc_config.issuer,
-            aud = 'foo',
-            azp = 'ce3b2e5e',
-            sub = 'someone',
-            exp = ngx.now() + 10,
-          },
-        })
+        for key,value in pairs(params) do
+          config[key] = value
+        end
+
+        return _M.new(config)
+      end
+
+      it('use liquid template to modify app_id', function()
+        local oidc = get_oidc({
+          claim_with_client_id = "{{aud}}",
+          claim_with_client_id_type = "liquid"})
 
         local credentials, ttl, _, err = oidc:transform_credentials({ access_token = access_token })
 
@@ -264,24 +274,24 @@ describe('OIDC', function()
       end)
 
       it('use liquid template functions to modify app_id', function()
+        local oidc = get_oidc({
+          claim_with_client_id = "{{ custom | first}}",
+          claim_with_client_id_type = "liquid"})
 
-        local oidc_config = {
-          issuer = 'https://example.com/auth/realms/apicast',
-          config = { id_token_signing_alg_values_supported = { 'RS256' } },
-          keys = { somekid = { pem = rsa.pub } },
-          client_id = "{{ custom | first}}"}
-        local oidc = _M.new(oidc_config)
-        local access_token = jwt:sign(rsa.private, {
-          header = { typ = 'JWT', alg = 'RS256', kid = 'somekid' },
-          payload = {
-            iss = oidc_config.issuer,
-            aud = 'notused',
-            azp = 'ce3b2e5e',
-            sub = 'someone',
-            custom = {"foo", "bar"},
-            exp = ngx.now() + 10,
-          },
-        })
+        local credentials, ttl, _, err = oidc:transform_credentials({ access_token = access_token })
+
+        assert(credentials, err)
+
+        assert.same({ app_id  = "foo" }, credentials)
+        assert.equal(10, ttl)
+      end)
+
+
+      it('use plaintext format to modify app_id', function()
+
+        local oidc = get_oidc({
+          claim_with_client_id = "aud",
+          claim_with_client_id_type = "plain"})
 
         local credentials, ttl, _, err = oidc:transform_credentials({ access_token = access_token })
 

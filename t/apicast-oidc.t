@@ -224,7 +224,8 @@ to_json({
     proxy => {
         authentication_method => 'oidc',
         oidc_issuer_endpoint => 'https://example.com/auth/realms/apicast',
-        oidc_client_id => '{{ foo }}',
+        jwt_claim_with_client_id => '{{ foo }}',
+        jwt_claim_with_client_id_type=> 'liquid',
         api_backend => "http://test:$TEST_NGINX_SERVER_PORT/",
         proxy_rules => [
           { pattern => '/', http_method => 'GET', metric_system_name => 'hits', delta => 1  }

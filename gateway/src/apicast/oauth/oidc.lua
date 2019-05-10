@@ -16,6 +16,8 @@ local _M = {
   cache_size = 10000,
 }
 
+local default_claim_with_app_id =  "azp"
+
 function _M.reset()
   _M.cache = lrucache.new(_M.cache_size)
 end
@@ -31,19 +33,22 @@ local mt = {
 
 local empty = {}
 
-function _M.new(oidc_config, service)
+function _M.new(oidc_config)
   local oidc = oidc_config or empty
   local issuer = oidc.issuer
   local config = oidc.config or empty
   local alg_values = config.id_token_signing_alg_values_supported or empty
-  local tmpl, tmpl_err
+
+  local client_id_tmpl, client_id_tmpl_err, client_id_tmpl_type
   local err
 
-  if  oidc_config and oidc_config.client_id then
-     tmpl, tmpl_err = TemplateString.new(oidc_config.client_id, "liquid")
-    if tmpl_err then
+  if oidc.claim_with_client_id then
+    client_id_tmpl_type = oidc.claim_with_client_id_type
+    client_id_tmpl, client_id_tmpl_err = TemplateString.new(oidc.claim_with_client_id, client_id_tmpl_type)
+    if client_id_tmpl_err then
       err = 'Invalid client_id template string'
     end
+
   end
 
   if not issuer or #alg_values == 0 then
@@ -53,8 +58,8 @@ function _M.new(oidc_config, service)
   return setmetatable({
     config = config,
     issuer = issuer,
-    service = service,
-    tmpl = tmpl,
+    client_id_tmpl = client_id_tmpl,
+    client_id_tmpl_type = client_id_tmpl_type,
     keys = oidc.keys or empty,
     clock = ngx_now,
     alg_whitelist = util.to_hash(alg_values),
@@ -205,11 +210,7 @@ function _M:transform_credentials(credentials, cache_key)
   end
 
   local payload = jwt_obj.payload
-  local app_id = payload.azp
-
-  if self.tmpl then
-      app_id = self.tmpl:render(payload)
-  end
+  local app_id = self:get_client_id(payload)
 
   local ttl = timestamp_to_seconds_from_now(payload.exp)
 
@@ -224,6 +225,17 @@ function _M:transform_credentials(credentials, cache_key)
   return { app_id = app_id }, ttl, payload
 end
 
+function _M:get_client_id(jwt_payload)
+  if self.client_id_tmpl and self.client_id_tmpl_type == "liquid" then
+      return self.client_id_tmpl:render(jwt_payload)
+  end
+
+  if self.client_id_tmpl and self.client_id_tmpl_type == "plain" then
+    return jwt_payload[self.client_id_tmpl:render()]
+  end
+
+  return jwt_payload[default_claim_with_app_id]
+end
 
 
 return _M
