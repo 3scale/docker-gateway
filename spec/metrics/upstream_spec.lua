@@ -32,12 +32,12 @@ describe('upstream metrics', function()
 
     it('increases the counter of status codes', function()
       upstream_metrics.report(200, 0.1)
-      assert.stub(test_counter.inc).was_called_with(test_counter, 1, { 200 })
+      assert.stub(test_counter.inc).was_called_with(test_counter, 1, { 200, "", "" })
     end)
 
     it('adds the latency to the histogram', function()
       upstream_metrics.report(200, 0.1)
-      assert.stub(test_histogram.observe).was_called_with(test_histogram, 0.1)
+      assert.stub(test_histogram.observe).was_called_with(test_histogram, 0.1, {"", ""})
     end)
 
     describe('when the status is nil or empty', function()
@@ -53,6 +53,22 @@ describe('upstream metrics', function()
         upstream_metrics.report(200, nil)
         upstream_metrics.report(200, '')
         assert.stub(test_histogram.observe).was_not_called()
+      end)
+    end)
+
+
+    describe('With service id', function()
+      local service = {id = "123", system_name="foo"}
+      it("increases empty service on nil", function()
+        upstream_metrics.report(200, 0.1, nil)
+        assert.stub(test_histogram.observe).was_called_with(test_histogram, 0.1, {"", ""})
+        assert.stub(test_counter.inc).was_called_with(test_counter, 1, { 200, "", "" })
+      end)
+
+      it("increase a valid service", function()
+        upstream_metrics.report(200, 0.1, service)
+        assert.stub(test_histogram.observe).was_called_with(test_histogram, 0.1, { service.id, service.system_name })
+        assert.stub(test_counter.inc).was_called_with(test_counter, 1, { 200, service.id, service.system_name })
       end)
     end)
   end)

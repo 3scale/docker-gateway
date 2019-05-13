@@ -1,6 +1,46 @@
 use lib 't';
 use Test::APIcast::Blackbox 'no_plan';
 
+# This response body helper function check is like a response_body_like but it
+# can be used with multiple values for a single request. 
+
+# The reason to make this helper function is to make sure that multiple regexp
+# can be used with the same body to validate that everything is working as
+# expected.
+#
+# An usage example can be like this:
+# --- expected_response_body_like_multiple eval
+# [
+# qr/.*/,
+# qr/[0-9]*/,
+# [
+#     qr/^a.*/,
+#     qr/Z$/
+# ]]
+#
+# Where the third request will validate that starts with a and finish with Z. 
+add_response_body_check(sub {
+    my ($block, $body, $req_idx, $repeated_req_idx, $dry_run) = @_;
+
+    if (!$block->expected_response_body_like_multiple) {
+        return "";
+    }
+
+    my @asserts = @{$block->{expected_response_body_like_multiple}};
+    my $assertValues = ${asserts}[0][$req_idx];
+    if (ref(${assertValues}) eq 'ARRAY') {
+        foreach my $regexp(@{$assertValues}){
+            if (!($body =~ m/$regexp/)) {
+                fail(sprintf("Regular expression: '%s' does not match with the body: \n %s",$regexp, $body));
+            }
+        }
+    }else{
+        if (!($body =~ m/$assertValues/)) {
+            fail(sprintf("Regular expression: '%s' does not match with the body: \n %s",$assertValues, $body));
+        }
+    }
+});
+
 # The output varies between requests, so run only once
 repeat_each(1);
 
@@ -228,11 +268,14 @@ In particular, it shows the status codes and the response times
 ["", "Host: metrics"]
 --- error_code eval
 [ 200, 200 ]
---- response_body_like eval
+--- expected_response_body_like_multiple eval
 [
 "",
-qr/upstream_response_time_seconds(.|\n)*upstream_response_time_seconds_bucket\{le=".*"\} 1(.|\n)*upstream_status\{status="200"\} 1/
-]
+[
+    qr/upstream_response_time_seconds(.|\n)/,
+    qr/upstream_response_time_seconds_bucket\{service_id="",service_system_name="",le=".*"\} 1/,
+    qr/upstream_status\{status="200",service_id="",service_system_name=""\} 1/
+]]
 --- no_error_log
 [error]
 
@@ -275,7 +318,148 @@ qr/upstream_response_time_seconds(.|\n)*upstream_response_time_seconds_bucket\{l
 --- response_body_like eval
 [
 "",
-qr/total_response_time_seconds(.|\n)*total_response_time_seconds_bucket\{le=".*"\} 1/
+qr/total_response_time_seconds(.|\n)*total_response_time_seconds_bucket\{service_id="",service_system_name="",le=".*"\} 1/
 ]
+--- no_error_log
+[error]
+
+
+
+=== TEST 6: extended metrics show services id
+--- env eval
+("APICAST_EXTENDED_METRICS", "true")
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "system_name": "foo",
+      "proxy": {
+        "policy_chain": [
+          {
+            "name": "apicast.policy.upstream",
+            "configuration": {
+              "rules": [
+                {
+                  "regex": "/",
+                  "url": "http://test:$TEST_NGINX_SERVER_PORT"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+--- upstream
+  location / {
+     content_by_lua_block {
+       ngx.exit(200);
+     }
+  }
+
+--- request eval
+["GET /", "GET /metrics"]
+--- more_headers eval
+["", "Host: metrics"]
+--- error_code eval
+[ 200, 200 ]
+--- expected_response_body_like_multiple eval
+[
+"",
+[
+    qr/total_response_time_seconds(.|\n)*/,
+    qr/total_response_time_seconds_bucket\{service_id="42",service_system_name="foo",le=".*"\} 1/,
+    qr/upstream_response_time_seconds(.|\n)*/,
+    qr/upstream_response_time_seconds_bucket\{service_id="42",service_system_name="foo",le=".*"\} 1/,
+    qr/upstream_status\{status="200",service_id="42",service_system_name="foo"\} 1/
+]
+]
+--- no_error_log
+[error]
+
+=== TEST 7: extended metrics with multiple services
+--- env eval
+("APICAST_EXTENDED_METRICS", "true")
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "system_name": "foo",
+      "proxy": {
+        "hosts": [
+          "one"
+        ],
+        "policy_chain": [
+          {
+            "name": "apicast.policy.upstream",
+            "configuration": {
+              "rules": [
+                {
+                  "regex": "/",
+                  "url": "http://test:$TEST_NGINX_SERVER_PORT"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": 21,
+      "system_name": "bar",
+      "proxy": {
+        "hosts": [
+          "two"
+        ],
+        "policy_chain": [
+          {
+            "name": "apicast.policy.upstream",
+            "configuration": {
+              "rules": [
+                {
+                  "regex": "/",
+                  "url": "http://test:$TEST_NGINX_SERVER_PORT/two"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+--- upstream
+  location / {
+     content_by_lua_block {
+       ngx.exit(200);
+     }
+  }
+
+  location /two {
+     content_by_lua_block {
+       ngx.exit(200);
+     }
+  }
+--- request eval
+["GET /", "GET /two", "GET /metrics"]
+--- more_headers eval
+["Host: one", "Host: two", "Host: metrics"]
+--- error_code eval
+[ 200, 200, 200 ]
+--- expected_response_body_like_multiple eval
+[
+"",
+"",
+[
+qr/total_response_time_seconds_bucket\{service_id="42",service_system_name="foo",le=".*"\} 1/,
+qr/upstream_response_time_seconds_bucket\{service_id="42",service_system_name="foo",le=".*"\} 1/,
+qr/upstream_status\{status="200",service_id="42",service_system_name="foo"\} 1/,
+qr/total_response_time_seconds_bucket\{service_id="21",service_system_name="bar",le=".*"\} 1/,
+qr/upstream_response_time_seconds_bucket\{service_id="21",service_system_name="bar",le=".*"\} 1/,
+qr/upstream_status\{status="200",service_id="21",service_system_name="bar"\} 1/
+]]
 --- no_error_log
 [error]
