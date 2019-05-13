@@ -19,12 +19,7 @@ local standalone = assert(PolicyChain.load_policy(
         { url = to_url(context.configuration) }))
 
 if arg then -- running CLI to generate nginx config
-    local config, err = standalone:load_configuration() or {}
-
-    if err then
-        print(err)
-        os.exit(1)
-    end
+    local config = standalone:load_configuration() or {}
 
     return linked_list.readonly({
         template = 'http.d/standalone.conf.liquid',

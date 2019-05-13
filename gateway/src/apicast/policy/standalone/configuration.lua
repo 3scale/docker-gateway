@@ -92,7 +92,13 @@ do
         local load = loaders[url.scheme]
         if not load then return nil, 'cannot load scheme' end
 
-        return setmetatable(load(url), config_mt)
+        local t, err = load(url)
+
+        if t then
+            return setmetatable(t, config_mt)
+        else
+            return t, err
+        end
     end
 end
 

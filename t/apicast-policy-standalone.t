@@ -199,3 +199,20 @@ GET /t HTTP/1.1
 --- no_error_log
 [error]
 [warn]
+
+
+
+=== TEST 6: invalid configuration
+--- environment_file: standalone
+--- SKIP: works on OpenResty 1.15.x
+--- must_die
+--- configuration_format: yaml
+--- configuration
+server:
+    - wrong
+    invalid: true
+--- request
+GET
+--- error_log
+[error]
+did not find expected '-' indicator
