@@ -125,3 +125,47 @@ GET /t HTTP/1.1
 --- no_error_log
 [error]
 [warn]
+
+
+
+=== TEST 4: service with policy chain and upstream
+--- environment_file: standalone
+--- configuration_format: yaml
+--- configuration
+server:
+  listen:
+  - port: $TEST_NGINX_SERVER_PORT
+    name: test
+routes:
+  - match:
+      uri_path: /t
+      server_port: test
+    destination:
+      service: cors
+internal:
+  - name: cors
+    upstream: http://test_upstream:$TEST_NGINX_SERVER_PORT
+    policy_chain:
+    - policy: apicast.policy.cors
+--- upstream_name: test_upstream
+--- upstream
+location = /t {
+  echo "test";
+}
+--- request
+GET /t
+--- more_headers
+Origin: http://example.com
+Access-Control-Request-Method: GET
+Access-Control-Request-Headers: Content-Type
+--- response_body
+test
+--- response_headers
+Access-Control-Allow-Headers: Content-Type
+Access-Control-Allow-Methods: GET
+Access-Control-Allow-Origin: http://example.com
+Access-Control-Allow-Credentials: true
+--- error_code: 200
+--- no_error_log
+[error]
+[warn]

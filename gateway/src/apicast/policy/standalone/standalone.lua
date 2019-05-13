@@ -3,7 +3,7 @@
 local Policy = require('apicast.policy')
 local PolicyChain = require('apicast.policy_chain')
 local Upstream = require('apicast.upstream')
-local balancer = require('apicast.balancer')
+local load_balancer = require('apicast.balancer')
 local Configuration = require('apicast.policy.standalone.configuration')
 local resty_env = require('resty.env')
 local _M = Policy.new('standalone')
@@ -233,7 +233,7 @@ do
     self.upstream:call(context)
   end
 
-  UpstreamPolicy.balancer = balancer.call
+  UpstreamPolicy.balancer = load_balancer.call
 
   function External.new(config)
     local upstream_policy = UpstreamPolicy.new(config)
@@ -308,6 +308,7 @@ function _M:init(...)
       run_phase('init', self.services, ...)
       return config
     else
+        error(err)
         return nil, err
     end
   end
@@ -362,7 +363,7 @@ local function find_service(self, route)
 end
 
 local function not_found(self)
-  return assert(self.services.not_found, 'missing service: not_found').policy_chain
+  return assert(self.services.not_found, 'missing service: not_found')
 end
 
 function _M:dispatch(route)
@@ -374,7 +375,7 @@ function _M:dispatch(route)
   local service, err = find_service(self, route)
 
   if service then
-    return service.policy_chain or empty_chain
+    return service
   else
     ngx.log(ngx.ERR, 'could not find the route destination: ', err)
     return not_found(self)
@@ -386,9 +387,29 @@ local rewrite = _M.rewrite
 function _M:rewrite(context)
   local route = find_route(self.routes, context)
 
-  context[self] = assert(self:dispatch(route), 'missing policy chain')
+  context.service = self:dispatch(route)
+  context[self] = assert(context.service.policy_chain or empty_chain, 'missing policy chain')
 
   return rewrite(self, context)
+end
+
+local content = _M.content
+
+function _M:content(context)
+  content(self, context)
+
+  local upstream = context.service.upstream
+
+  if upstream then
+    return upstream:call(context)
+  end
+end
+
+local balancer = _M.balancer
+
+function _M:balancer(context)
+  balancer(self, context)
+  load_balancer:call(context)
 end
 
 return _M
