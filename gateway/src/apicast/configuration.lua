@@ -115,6 +115,8 @@ function _M.parse_service(service)
       backend = backend,
       oidc = {
         issuer_endpoint = value(proxy.oidc_issuer_endpoint),
+        claim_with_client_id = value(proxy.jwt_claim_with_client_id),
+        claim_with_client_id_type = proxy.jwt_claim_with_client_id_type or "plain",
       },
       credentials = {
         location = proxy.credentials_location or 'query',

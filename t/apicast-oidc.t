@@ -210,3 +210,56 @@ my $jwt = encode_jwt(payload => {
 "Authorization: Bearer $jwt"
 --- no_error_log
 [error]
+
+=== TEST 5: Use different claim for app_id
+--- configuration env eval
+use JSON qw(to_json);
+
+to_json({
+  services => [{
+    id => 42,
+    backend_version => 'oauth',
+    backend_authentication_type => 'provider_key',
+    backend_authentication_value => 'fookey',
+    proxy => {
+        authentication_method => 'oidc',
+        oidc_issuer_endpoint => 'https://example.com/auth/realms/apicast',
+        jwt_claim_with_client_id => '{{ foo }}',
+        jwt_claim_with_client_id_type=> 'liquid',
+        api_backend => "http://test:$TEST_NGINX_SERVER_PORT/",
+        proxy_rules => [
+          { pattern => '/', http_method => 'GET', metric_system_name => 'hits', delta => 1  }
+        ]
+    }
+  }],
+  oidc => [{
+    issuer => 'https://example.com/auth/realms/apicast',
+    config => { id_token_signing_alg_values_supported => [ 'RS256' ] },
+    keys => { somekid => { pem => $::public_key } },
+  }]
+});
+--- upstream
+  location /test {
+    echo "yes";
+  }
+--- backend
+  location = /transactions/oauth_authrep.xml {
+    content_by_lua_block {
+      local expected = "provider_key=fookey&service_id=42&usage%5Bhits%5D=1&app_id=fooid"
+      require('luassert').same(ngx.decode_args(expected), ngx.req.get_uri_args(0))
+    }
+  }
+--- request: GET /test
+--- error_code: 200
+--- more_headers eval
+use Crypt::JWT qw(encode_jwt);
+my $jwt = encode_jwt(payload => {
+  aud => 'something',
+  azp => 'appid',
+  sub => 'someone',
+  foo => 'fooid',
+  iss => 'https://example.com/auth/realms/apicast',
+  exp => time + 3600 }, key => \$::private_key, alg => 'RS256', extra_headers => { kid => 'somekid' });
+"Authorization: Bearer $jwt"
+--- no_error_log
+[error]
