@@ -451,6 +451,7 @@ init_by_lua_block {
 }
 
 rewrite_by_lua_block {
+  require('resty.ctx').apply()
   ngx.shared.cached_auths:flush_all()
 }
 --- config
