@@ -15,10 +15,20 @@ if [ -n "${JUNIT_OUTPUT_FILE:-}" ]; then
   mkdir -p "$(dirname "$JUNIT_OUTPUT_FILE")"
 fi
 
-if (prove "$@" 2>&1 | awk '/found ONLY/ { print "FAIL: because found ONLY in test"; print; exit 1 }; { print }'); then
+success=0
+PROVE_RESULT=$(prove "$@" 2>&1 | tee /dev/tty) || success=$?
+if [ -n "${CI:-}" ]; then
+    echo "${PROVE_RESULT}" | awk '/found ONLY/ { print "FAIL: because found ONLY in test"; print; exit 1 }; { print }'
+    status="$?"
+    if [ $status -gt 0 ]; then
+      echo "Failure. Exit code: ${status}"
+      exit $status
+    fi
+fi
+
+if [ $success -eq 0 ]; then
   echo "Success"
 else
-  status="$?"
-  echo "Failure. Exit code: ${status}"
-  exit $status
+  echo "Failure. Exit code: ${success}"
+  exit $success
 fi
