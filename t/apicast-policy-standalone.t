@@ -169,3 +169,33 @@ Access-Control-Allow-Credentials: true
 --- no_error_log
 [error]
 [warn]
+
+
+
+=== TEST 5: service with policy chain and null configuration
+--- environment_file: standalone
+--- configuration_format: yaml
+--- configuration
+server:
+  listen:
+  - port: $TEST_NGINX_SERVER_PORT
+    name: test
+routes:
+  - match:
+      uri_path: /t
+      server_port: test
+    destination:
+      service: echo
+internal:
+  - name: echo
+    policy_chain:
+    - policy: apicast.policy.echo
+      configuration:
+--- request
+GET /t
+--- response_body
+GET /t HTTP/1.1
+--- error_code: 200
+--- no_error_log
+[error]
+[warn]

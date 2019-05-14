@@ -190,12 +190,21 @@ end
 
 do
   local Service_mt = { __index = Service }
+  local null = ngx.null
+
+  local function policy_configuration(policy)
+    local config = policy.configuration
+
+    if config and config ~= null then
+      return config
+    end
+  end
 
   local function build_policy_chain(policies)
     local chain = PolicyChain.new()
 
     for i=1, #policies do
-      chain:add_policy(policies[i].policy, policies[i].version, policies[i].configuration)
+      chain:add_policy(policies[i].policy, policies[i].version, policy_configuration(policies[i]))
     end
 
     return chain
