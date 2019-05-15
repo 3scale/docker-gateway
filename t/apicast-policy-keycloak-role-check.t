@@ -393,3 +393,160 @@ yay, api backend
 --- no_error_log
 [error]
 oauth failed with
+
+
+=== TEST6: Role check with allow methods
+The client which has the appropriate role accesses the resource with only one method allowed
+--- backend
+  location /transactions/oauth_authrep.xml {
+    content_by_lua_block {
+      ngx.exit(200)
+    }
+  }
+
+--- configuration
+{
+  "oidc": [
+    {
+      "issuer": "https://example.com/auth/realms/apicast",
+      "config": { "id_token_signing_alg_values_supported": [ "RS256" ] },
+      "keys": { "somekid": { "pem": "-----BEGIN PUBLIC KEY-----\nMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBALClz96cDQ965ENYMfZzG+Acu25lpx2K\nNpAALBQ+catCA59us7+uLY5rjQR6SOgZpCz5PJiKNAdRPDJMXSmXqM0CAwEAAQ==\n-----END PUBLIC KEY-----" } }
+    }
+  ],
+  "services": [
+    {
+      "id": 42,
+      "backend_version": "oauth",
+      "backend_authentication_type": "service_token",
+      "backend_authentication_value": "token-value",
+      "proxy": {
+        "authentication_method": "oidc",
+        "oidc_issuer_endpoint": "https://example.com/auth/realms/apicast",
+        "api_backend": "http://test:$TEST_NGINX_SERVER_PORT/",
+        "proxy_rules": [
+          { "pattern": "/", "http_method": "GET", "metric_system_name": "hits", "delta": 1 }
+        ],
+        "policy_chain": [
+          {
+            "name": "apicast.policy.keycloak_role_check",
+            "configuration": {
+              "scopes": [
+                {
+                  "realm_roles": [ { "name": "director" } ],
+                  "resource": "/confidential",
+                  "methods": ["GET"]
+                }
+              ]
+            }
+          },
+          { "name": "apicast.policy.apicast" }
+        ]
+      }
+    }
+  ]
+}
+--- upstream
+  location /confidential {
+     content_by_lua_block {
+       ngx.say('yay, api backend');
+     }
+  }
+--- pipelined_requests eval
+["GET /confidential", "POST /confidential"]
+--- more_headers eval
+[::authorization_bearer_jwt('audience', {
+  realm_access => {
+    roles => [ 'director' ]
+  }
+}, 'somekid'),
+::authorization_bearer_jwt('audience', {
+  realm_access => {
+    roles => [ 'director' ]
+  }
+}, 'somekid')]
+--- response_body eval
+["yay, api backend\n", "Authentication failed"]
+--- error_code eval
+[200, 403]
+--- no_error_log
+[error]
+oauth failed with
+
+
+=== TEST7: Role check with allow methods and blacklist mode
+Check an allowed role with the blacklisted mode with methods
+--- backend
+  location /transactions/oauth_authrep.xml {
+    content_by_lua_block {
+      ngx.exit(200)
+    }
+  }
+
+--- configuration
+{
+  "oidc": [
+    {
+      "issuer": "https://example.com/auth/realms/apicast",
+      "config": { "id_token_signing_alg_values_supported": [ "RS256" ] },
+      "keys": { "somekid": { "pem": "-----BEGIN PUBLIC KEY-----\nMFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBALClz96cDQ965ENYMfZzG+Acu25lpx2K\nNpAALBQ+catCA59us7+uLY5rjQR6SOgZpCz5PJiKNAdRPDJMXSmXqM0CAwEAAQ==\n-----END PUBLIC KEY-----" } }
+    }
+  ],
+  "services": [
+    {
+      "id": 42,
+      "backend_version": "oauth",
+      "backend_authentication_type": "service_token",
+      "backend_authentication_value": "token-value",
+      "proxy": {
+        "authentication_method": "oidc",
+        "oidc_issuer_endpoint": "https://example.com/auth/realms/apicast",
+        "api_backend": "http://test:$TEST_NGINX_SERVER_PORT/",
+        "proxy_rules": [
+          { "pattern": "/", "http_method": "GET", "metric_system_name": "hits", "delta": 1 }
+        ],
+        "policy_chain": [
+          {
+            "name": "apicast.policy.keycloak_role_check",
+            "configuration": {
+              "scopes": [
+                {
+                  "realm_roles": [ { "name": "director" } ],
+                  "resource": "/confidential",
+                  "methods": ["POST"]
+                }
+              ],
+              "type": "blacklist"
+            }
+          },
+          { "name": "apicast.policy.apicast" }
+        ]
+      }
+    }
+  ]
+}
+--- upstream
+  location /confidential {
+     content_by_lua_block {
+       ngx.say('yay, api backend');
+     }
+  }
+--- pipelined_requests eval
+["GET /confidential", "POST /confidential"]
+--- more_headers eval
+[::authorization_bearer_jwt('audience', {
+  realm_access => {
+    roles => [ 'director' ]
+  }
+}, 'somekid'),
+::authorization_bearer_jwt('audience', {
+  realm_access => {
+    roles => [ 'director' ]
+  }
+}, 'somekid')]
+--- response_body eval
+["yay, api backend\n", "Authentication failed"]
+--- error_code eval
+[200, 403]
+--- no_error_log
+[error]
+oauth failed with

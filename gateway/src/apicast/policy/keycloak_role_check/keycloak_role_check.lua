@@ -60,11 +60,13 @@ local default_type = 'plain'
 
 local new = _M.new
 
+local any_method = 'ANY'
+
 local function create_template(value, value_type)
   return TemplateString.new(value, value_type or default_type)
 end
 
-local function build_templates(scopes)
+local function build_scopes(scopes)
   for _, scope in ipairs(scopes) do
 
     if scope.realm_roles then
@@ -86,8 +88,12 @@ local function build_templates(scopes)
 
     scope.resource_template_string = create_template(
       scope.resource, scope.resource_type)
+    if (not scope.methods) or (scope.methods and #scope.methods == 0 ) then
+      scope.methods = { any_method }
+    end
 
   end
+
 end
 
 function _M.new(config)
@@ -95,7 +101,7 @@ function _M.new(config)
   self.type = config.type or "whitelist"
   self.scopes = config.scopes or {}
 
-  build_templates(self.scopes)
+  build_scopes(self.scopes)
 
   return self
 end
@@ -152,38 +158,54 @@ local function match_client_roles(scope, context)
   return true
 end
 
-local function scope_check(scopes, context)
-  local uri = ngx.var.uri
-
-  if not context.jwt then
-    return false
-  end
-
-  for _, scope in ipairs(scopes) do
+local function validate_scope_access(scope, context, uri, request_method)
+  for _, method  in ipairs(scope.methods) do
+    -- make a matched method just in case that `ANY` method is defined and
+    -- the mapping rules does not match, the matched_method need to be
+    -- cleared in the next interaction to trigger with the correct method.
+    local matched_method = request_method
+    if method == any_method then
+      matched_method = any_method
+    end
 
     local resource = scope.resource_template_string:render(context)
 
     local mapping_rule = MappingRule.from_proxy_rule({
-      http_method = 'ANY',
+      http_method = method,
       pattern = resource,
       querystring_parameters = {},
       -- the name of the metric is irrelevant
       metric_system_name = 'hits'
     })
 
-    if mapping_rule:matches('ANY', uri) then
+    if mapping_rule:matches(matched_method, uri) then
       if match_realm_roles(scope, context) and match_client_roles(scope, context) then
         return true
       end
     end
+  end
+  return false
+end
 
+local function scopes_check(scopes, context)
+  local uri = ngx.var.uri
+  local request_method =  ngx.req.get_method()
+
+  if not context.jwt then
+    return false
+  end
+
+  for _, scope in ipairs(scopes) do
+    if validate_scope_access(scope, context, uri, request_method) then
+      return true
+    end
   end
 
   return false
 end
 
 function _M:access(context)
-  if scope_check(self.scopes, context) then
+  if scopes_check(self.scopes, context) then
     if self.type == "blacklist" then
       return errors.authorization_failed(context.service)
     end

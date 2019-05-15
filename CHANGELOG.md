@@ -12,8 +12,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - "Upstream Connection" policy. It allows to configure several options for the connections to the upstream [PR #1025](https://github.com/3scale/APIcast/pull/1025), [THREESCALE-2166](https://issues.jboss.org/browse/THREESCALE-2166)
 - Enable APICAST_EXTENDED_METRICS environment variable to provide additional details [PR #1024](https://github.com/3scale/APIcast/pull/1024) [THREESCALE-2150](https://issues.jboss.org/browse/THREESCALE-2150)
 - Add the option to obtain client_id from any JWT claim [THREESCALE-2264](https://issues.jboss.org/browse/THREESCALE-2264) [PR #1034](https://github.com/3scale/APIcast/pull/1034)
-
 - Added `APICAST_PATH_ROUTING_ONLY` variable that allows to perform path-based routing without falling back to the default host-based routing [PR #1035](https://github.com/3scale/APIcast/pull/1035), [THREESCALE-1150](https://issues.jboss.org/browse/THREESCALE-1150)
+- Added the option to manage access based on method on Keycloak Policy. [THREESCALE-2236](https://issues.jboss.org/browse/THREESCALE-2236) [PR #1039](https://github.com/3scale/APIcast/pull/1039)
 
 ### Fixed
 
