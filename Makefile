@@ -99,7 +99,7 @@ split-tests = $(shell echo $(1) | xargs -n 1 echo | circleci tests split --split
 BUSTED_PATTERN = "{spec,examples}/**/*_spec.lua"
 BUSTED_FILES ?= $(call circleci, $(BUSTED_PATTERN))
 busted: $(ROVER) lua_modules ## Test Lua.
-	$(ROVER) exec bin/busted $(BUSTED_FILES)
+	$(ROVER) exec bin/busted $(BUSTED_FILES) $(BUSTED_ARGS)
 ifeq ($(CI),true)
 	@- luacov
 endif
