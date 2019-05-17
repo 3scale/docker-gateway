@@ -120,6 +120,26 @@ describe('mapping_rule', function()
       assert.is_true(mapping_rule:matches('GET', '/foo/a:b/bar'))
       assert.is_true(mapping_rule:matches('GET', "/foo/a%b/bar"))
     end)
-
   end)
+
+  describe('.any_method', function()
+
+    it("Allow connections when any method is defined", function()
+
+      local mapping_rule = MappingRule.from_proxy_rule({
+        http_method = MappingRule.any_method,
+        pattern = '/foo/',
+        querystring_parameters = { },
+        metric_system_name = 'hits',
+        delta = 1
+      })
+
+      assert.is_true(mapping_rule:matches('GET', '/foo/'))
+      assert.is_true(mapping_rule:matches('POST', '/foo/'))
+      assert.is_true(mapping_rule:matches('PUT', "/foo/"))
+      assert.is_true(mapping_rule:matches('DELETE', "/foo/"))
+      assert.is_true(mapping_rule:matches('PATCH', "/foo/"))
+    end)
+  end)
+
 end)

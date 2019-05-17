@@ -60,7 +60,7 @@ local default_type = 'plain'
 
 local new = _M.new
 
-local any_method = 'ANY'
+local any_method = MappingRule.any_method
 
 local function create_template(value, value_type)
   return TemplateString.new(value, value_type or default_type)
@@ -160,13 +160,6 @@ end
 
 local function validate_scope_access(scope, context, uri, request_method)
   for _, method  in ipairs(scope.methods) do
-    -- make a matched method just in case that `ANY` method is defined and
-    -- the mapping rules does not match, the matched_method need to be
-    -- cleared in the next interaction to trigger with the correct method.
-    local matched_method = request_method
-    if method == any_method then
-      matched_method = any_method
-    end
 
     local resource = scope.resource_template_string:render(context)
 
@@ -178,7 +171,7 @@ local function validate_scope_access(scope, context, uri, request_method)
       metric_system_name = 'hits'
     })
 
-    if mapping_rule:matches(matched_method, uri) then
+    if mapping_rule:matches(request_method, uri) then
       if match_realm_roles(scope, context) and match_client_roles(scope, context) then
         return true
       end
