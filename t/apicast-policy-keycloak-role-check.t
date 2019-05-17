@@ -22,7 +22,7 @@ run_tests();
 
 __DATA__
 
-=== TEST1: Role check succeeds (whitelist)
+=== TEST 1: Role check succeeds (whitelist)
 The client which has the appropriate role accesses the resource.
 --- backend
   location /transactions/oauth_authrep.xml {
@@ -94,7 +94,7 @@ oauth failed with
 
 
 
-=== TEST2: Role check succeeds (blacklist)
+=== TEST 2: Role check succeeds (blacklist)
 The client which doesn't have the inappropriate role accesses the resource.
 --- backend
   location /transactions/oauth_authrep.xml {
@@ -169,7 +169,7 @@ oauth failed with
 
 
 
-=== TEST3: Role check fails (whitelist)
+=== TEST 3: Role check fails (whitelist)
 The client which doesn't have the appropriate role accesses the resource.
 --- backend
   location /transactions/oauth_authrep.xml {
@@ -240,7 +240,7 @@ auth failed
 
 
 
-=== TEST4: Role check fails (blacklist)
+=== TEST 4: Role check fails (blacklist)
 The client which has the inappropriate role accesses the resource.
 --- backend
   location /transactions/oauth_authrep.xml {
@@ -314,7 +314,7 @@ auth failed
 
 
 
-=== TEST5: Role check succeeds with Liquid template (whitelist)
+=== TEST 5: Role check succeeds with Liquid template (whitelist)
 The client which has the appropriate role accesses the resource.
 --- backend
   location /transactions/oauth_authrep.xml {
@@ -395,7 +395,7 @@ yay, api backend
 oauth failed with
 
 
-=== TEST6: Role check with allow methods
+=== TEST 6: Role check with allow methods
 The client which has the appropriate role accesses the resource with only one method allowed
 --- backend
   location /transactions/oauth_authrep.xml {
@@ -473,7 +473,7 @@ The client which has the appropriate role accesses the resource with only one me
 oauth failed with
 
 
-=== TEST7: Role check with allow methods and blacklist mode
+=== TEST 7: Role check with allow methods and blacklist mode
 Check an allowed role with the blacklisted mode with methods
 --- backend
   location /transactions/oauth_authrep.xml {
