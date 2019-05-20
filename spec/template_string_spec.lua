@@ -30,6 +30,7 @@ describe('template string', function()
   end)
 
   it('when rendering liquid, it can use the vars exposed in ngx_variable', function()
+    ngx_variable.available_context:revert()
     stub(ngx_variable, 'available_context', function(policies_context)
       local exposed = { a_key_exposed_in_ngx_var = 'a_value' }
       return LinkedList.readonly(exposed, policies_context)
