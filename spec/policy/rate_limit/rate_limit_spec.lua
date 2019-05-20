@@ -217,7 +217,7 @@ describe('Rate limit policy', function()
 
         it('rejected (count), name_type is liquid and refers to var in the context', function()
           local test_host = 'some_host'
-
+          ngx_variable.available_context:revert()
           stub(ngx_variable, 'available_context', function()
             return { host = test_host }
           end)
