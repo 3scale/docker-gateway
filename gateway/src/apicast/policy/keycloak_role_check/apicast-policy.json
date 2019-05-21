@@ -77,6 +77,26 @@
             "resource_type": {
               "description": "How to evaluate 'resource'",
               "$ref": "#/definitions/value_type"
+            },
+            "methods": {
+                "description": "Allowed methods",
+                "type": "array",
+                "default": ["ANY"],
+                "items": {
+                    "type": "string",
+                    "enum": [
+                        "ANY",
+                        "GET",
+                        "HEAD",
+                        "POST",
+                        "PUT",
+                        "DELETE",
+                        "PATCH",
+                        "OPTIONS",
+                        "TRACE",
+                        "CONNECT"
+                    ]
+                }
             }
           }
         }

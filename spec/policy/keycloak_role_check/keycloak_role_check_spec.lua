@@ -7,6 +7,7 @@ describe('Keycloak Role check policy', function()
     ngx.header = {}
     stub(ngx, 'print')
 
+    stub(ngx.req, 'get_method', function() return 'GET' end)
     -- avoid stubbing all the ngx.var.* and ngx.req.* in the available context
     stub(ngx_variable, 'available_context', function(context) return context end)
   end)
@@ -572,6 +573,95 @@ describe('Keycloak Role check policy', function()
           assert.not_same(ngx.status, 403)
         end)
       end)
+
+      describe("validate method roles", function()
+
+        before_each(function()
+          ngx.var = {
+            uri = '/foo'
+          }
+        end)
+
+        local context = {
+          jwt = {
+            realm_access = {
+              roles = { "known_role" }
+            },
+            resource_access = {
+              known_client = {
+                roles = { "role_of_known_client" }
+              }
+            }
+          },
+          service = {
+            auth_failed_status = 403,
+            error_auth_failed = "auth failed"
+          }
+        }
+
+        it("Validates that an empty array still make a default any method", function()
+          local role_check_policy = KeycloakRoleCheckPolicy.new({
+            scopes = {{
+                client_roles = { { name = "role_of_known_client", client = "known_client" } },
+                resource = "/foo",
+                methods = {}
+              }}})
+          role_check_policy:access(context)
+          assert.same(ngx.status, nil)
+        end)
+
+        it("when jwt role matches and one method also match", function()
+          local role_check_policy = KeycloakRoleCheckPolicy.new({
+            scopes = {{
+                client_roles = { { name = "role_of_known_client", client = "known_client" } },
+                resource = "/foo",
+                methods = {"GET", "POST", "PUT"}
+              }},
+            type = "whitelist"})
+
+          role_check_policy:access(context)
+          assert.same(ngx.status, nil)
+        end)
+
+        it("when jwt role matches and one method also match with blacklist mode", function()
+          local role_check_policy = KeycloakRoleCheckPolicy.new({
+            scopes = {{
+                client_roles = { { name = "role_of_known_client", client = "known_client" } },
+                resource = "/foo",
+                methods = {"GET", "POST", "PUT"}
+              }},
+            type = "blacklist"})
+
+          role_check_policy:access(context)
+          assert.same(ngx.status, 403)
+        end)
+
+        it("when jwt role matches and no methods matches", function()
+          local role_check_policy = KeycloakRoleCheckPolicy.new({
+            scopes = {{
+                client_roles = { { name = "role_of_known_client", client = "known_client" } },
+                resource = "/foo",
+                methods = {"POST", "PUT"}
+              }},
+            type = "whitelist"})
+            role_check_policy:access(context)
+          assert.same(ngx.status, 403)
+        end)
+
+        it("when jwt role matches and no methods matches with blacklist mode", function()
+          local role_check_policy = KeycloakRoleCheckPolicy.new({
+            scopes = {{
+                client_roles = { { name = "role_of_known_client", client = "known_client" } },
+                resource = "/foo",
+                methods = {"POST", "PUT"}
+              }},
+            type = "blacklist"})
+          role_check_policy:access(context)
+          assert.same(ngx.status, nil)
+        end)
+
+      end)
+
     end)
   end)
 end)
