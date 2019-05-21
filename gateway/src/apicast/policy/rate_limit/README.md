@@ -141,7 +141,7 @@ To use Redis, we just need to provide the `redis_url` attribute in the config
 of the policy: `"redis_url": "redis://a_host:6379"`
 
 
-## Complete config example
+## Complete config examples
 
 ```json
 {
@@ -177,6 +177,78 @@ of the policy: `"redis_url": "redis://a_host:6379"`
       }
     ],
     "redis_url": "redis://localhost:6379"
+  }
+}
+```
+
+Another example with different applications, paths, and limits:
+- 2 app IDs: `app_id_1`, `app_id_2`. Assuming they come in the `app-id` header.
+- 2 different endpoints: `/path1`, `/path2`.
+- Rate_limits:
+    - `app_id_1`. 10 rps on `/path1`.
+    - `app_id_2`. 20 rps on `/path2`.
+
+```json
+{
+  "name": "rate_limit",
+  "version": "builtin",
+  "configuration": {
+    "fixed_window_limiters": [
+      {
+        "key": {
+          "name": "app_id_1_path_1"
+        },
+        "scope": "service",
+        "condition": {
+          "operations": [
+            {
+              "left": "{{ uri }}",
+              "left_type": "liquid",
+              "op": "==",
+              "right": "/path1",
+              "right_type": "plain"
+            },
+            {
+              "left": "{{ headers['app-id'] }}",
+              "left_type": "liquid",
+              "op": "==",
+              "right": "app_id_1",
+              "right_type": "plain"
+            }
+          ],
+          "combine_op": "and"
+        },
+        "count": 10,
+        "window": 1
+      },
+      {
+        "key": {
+          "name": "app_id_2_path_2"
+        },
+        "scope": "service",
+        "condition": {
+          "operations": [
+            {
+              "left": "{{ uri }}",
+              "left_type": "liquid",
+              "op": "==",
+              "right": "/path2",
+              "right_type": "plain"
+            },
+            {
+              "left": "{{ headers['app-id'] }}",
+              "left_type": "liquid",
+              "op": "==",
+              "right": "app_id_2",
+              "right_type": "plain"
+            }
+          ],
+          "combine_op": "and"
+        },
+        "count": 20,
+        "window": 1
+      }
+    ]
   }
 }
 ```
