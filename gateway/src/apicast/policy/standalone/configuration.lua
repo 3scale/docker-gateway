@@ -31,7 +31,7 @@ do
     local path = require('pl.path')
     local file = require('pl.file')
 
-    local YAML = require('lyaml')
+    local YAML = require('resty.yaml')
     local cjson = require('cjson')
 
     local decoders = {

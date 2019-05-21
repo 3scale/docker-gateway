@@ -25,7 +25,7 @@ describe('Standalone Configuration', function()
         end
 
         it('loads valid .yml file', function()
-            assert.same({ global = {} }, load('valid.yml'))
+            assert.same({ global = ngx.null }, load('valid.yml'))
         end)
 
         it('loads valid .json file', function()
