@@ -12,7 +12,7 @@ lua-resty-iputils 0.3.0-1||production
 lua-resty-jit-uuid 0.0.7-1||production
 lua-resty-jwt 0.2.0-0||production
 lua-resty-repl 0.0.6-0||development
-lua-resty-url 0.3.4-1||production
+lua-resty-url 0.3.5-1||production
 lua-term 0.7-1||testing
 lua_cliargs 3.0-1||testing
 luacov 0.13.0-1||testing
