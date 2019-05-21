@@ -301,30 +301,28 @@ init_by_lua_block {
 my $res = [];
 
 for(my $i = 0; $i < 20; $i = $i + 1 ) {
-  push $res, "GET /test?user_key=1";
-  push $res, "GET /test?user_key=2";
-  push $res, "GET /test?user_key=3";
-  push $res, "GET /test?user_key=4";
-  push $res, "GET /test?user_key=5";
+  for(my $n = 1; $n <= 5; $n = $n + 1 ) {
+    push @$res, "GET /test?user_key=$n";
+  }
 }
 
-push $res, "GET /force_report_to_backend";
-push $res, "GET /check_reports";
+push @$res, "GET /force_report_to_backend";
+push @$res, "GET /check_reports";
 
 $res
 --- more_headers eval
 my $res = [];
 
 for(my $i = 0; $i < 50; $i = $i + 1 ) {
-  push $res, "Host: one";
+  push @$res, "Host: one";
 }
 
 for(my $i = 0; $i < 50; $i = $i + 1 ) {
-  push $res, "Host:two";
+  push @$res, "Host: two";
 }
 
-push $res, "Host: one";
-push $res, "Host: one";
+push @$res, "Host: one";
+push @$res, "Host: one";
 
 $res
 --- no_error_log
