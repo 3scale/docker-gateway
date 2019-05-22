@@ -131,6 +131,7 @@ describe('3scale batcher policy', function()
       describe('and backend is available', function()
         before_each(function()
           local backend_client = require('apicast.backend_client')
+          backend_client.authorize:revert()
           stub(backend_client, 'authorize').returns({ status = 200 })
         end)
 
@@ -144,12 +145,14 @@ describe('3scale batcher policy', function()
       describe('and backend is not available', function()
         before_each(function()
           local backend_client = require('apicast.backend_client')
+          backend_client.authorize:revert()
           stub(backend_client, 'authorize').returns({ status = 500 })
         end)
 
         describe('and the authorization is in the downtime cache', function()
           describe('and it is OK', function()
             before_each(function()
+              batcher_policy.backend_downtime_cache.get:revert()
               stub(batcher_policy.backend_downtime_cache, 'get').returns(200)
             end)
 
@@ -163,6 +166,7 @@ describe('3scale batcher policy', function()
 
           describe('and it is denied', function()
             before_each(function()
+              batcher_policy.backend_downtime_cache.get:revert()
               stub(batcher_policy.backend_downtime_cache, 'get').returns(409)
             end)
 
@@ -182,6 +186,7 @@ describe('3scale batcher policy', function()
 
         describe('and the authorization is not in the downtime cache', function()
           before_each(function()
+            batcher_policy.backend_downtime_cache.get:revert()
             stub(batcher_policy.backend_downtime_cache, 'get').returns(nil)
           end)
 
