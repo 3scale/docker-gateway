@@ -9,7 +9,7 @@ local mt = { __index = _M }
 
 local allowed_schemes = {
     file = true,
-    -- TODO: support Data URI
+    data = true,
 }
 
 
@@ -28,11 +28,24 @@ end
 do
     local loaders = { }
     local pcall = pcall
+    local tostring = tostring
     local path = require('pl.path')
     local file = require('pl.file')
+    local inspect = require('inspect')
+    local tab_clone = require "table.clone"
+    local __tostring = function(self)
+        -- We need to remove metatable of the inspected table, otherwise it points to itself
+        -- and leads to infinite recursion. Cloning the table has the same effect without mutation.
+        -- As this is evaluated only when nginx was compiled with debug flag,
+        -- it means it happens only in development.
+        return inspect(tab_clone(self))
+    end
 
-    local YAML = require('lyaml')
+    local config_mt = { __tostring = __tostring }
+
+    local YAML = require('resty.yaml')
     local cjson = require('cjson')
+    local data_url = require('apicast.configuration_loader.data_url')
 
     local decoders = {
         ['.yml'] = YAML.load,
@@ -68,6 +81,10 @@ do
         end
     end
 
+    function loaders.data(uri)
+        return data_url.parse(tostring(uri))
+    end
+
     function _M:load()
         local url = self and self.url
         if not url then return nil, 'not initialized' end
@@ -75,8 +92,13 @@ do
         local load = loaders[url.scheme]
         if not load then return nil, 'cannot load scheme' end
 
+        local t, err = load(url)
 
-        return load(url)
+        if t then
+            return setmetatable(t, config_mt)
+        else
+            return t, err
+        end
     end
 end
 

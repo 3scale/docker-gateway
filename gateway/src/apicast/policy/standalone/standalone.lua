@@ -3,6 +3,7 @@
 local Policy = require('apicast.policy')
 local PolicyChain = require('apicast.policy_chain')
 local Upstream = require('apicast.upstream')
+local load_balancer = require('apicast.balancer')
 local Configuration = require('apicast.policy.standalone.configuration')
 local resty_env = require('resty.env')
 local _M = Policy.new('standalone')
@@ -49,7 +50,7 @@ for _,phase in Policy.request_phases() do
 end
 
 local function build_objects(constructor, list)
-  if not list then return nil end
+  if not list then return {} end
 
   local objects = tab_new(#list, 0)
 
@@ -81,6 +82,7 @@ do
 
     return setmetatable({
       service = config.service,
+      upstream = config.upstream,
       http_response = config.http_response,
     }, Destination_mt)
   end
@@ -188,12 +190,21 @@ end
 
 do
   local Service_mt = { __index = Service }
+  local null = ngx.null
+
+  local function policy_configuration(policy)
+    local config = policy.configuration
+
+    if config and config ~= null then
+      return config
+    end
+  end
 
   local function build_policy_chain(policies)
     local chain = PolicyChain.new()
 
     for i=1, #policies do
-      chain:add_policy(policies[i].policy, policies[i].version, policies[i].configuration)
+      chain:add_policy(policies[i].policy, policies[i].version, policy_configuration(policies[i]))
     end
 
     return chain
@@ -217,11 +228,32 @@ end
 do
   local External_mt = { __index = External }
 
+  local UpstreamPolicy = Policy.new('Standalone Upstream Policy')
+  local UpstreamPolicy_new = UpstreamPolicy.new
+
+  function UpstreamPolicy.new(config)
+    local self = UpstreamPolicy_new(config)
+    self.upstream = Upstream.new(config.server)
+    return self
+  end
+
+  function UpstreamPolicy:content(context)
+    context[self] = self.upstream
+    self.upstream:call(context)
+  end
+
+  UpstreamPolicy.balancer = load_balancer.call
+
   function External.new(config)
+    local upstream_policy = UpstreamPolicy.new(config)
+    local upstream = upstream_policy.upstream
+    local policy_chain = PolicyChain.new({ upstream_policy }):freeze()
+
     return setmetatable({
       name = config.name,
-      server = Upstream.new(config.server),
+      server = upstream,
       load_balancer = config.load_balancer,
+      policy_chain = policy_chain,
       retries = config.retries,
     }, External_mt)
   end
@@ -251,7 +283,7 @@ function _M:load_configuration()
     self.services = setmetatable(build_services(configuration), { __index = default.services })
     self.upstreams = build_upstreams(configuration)
 
-    ngx.log(ngx.NOTICE, 'loaded standalone configuration from: ', url)
+    ngx.log(ngx.DEBUG, 'loaded standalone configuration from: ', url, ' ', configuration)
     return configuration
   else
     ngx.log(ngx.WARN, 'failed to load ', url, ' err: ', err)
@@ -285,6 +317,7 @@ function _M:init(...)
       run_phase('init', self.services, ...)
       return config
     else
+        error(err)
         return nil, err
     end
   end
@@ -319,13 +352,27 @@ end
 local function find_service(self, route)
   local destination = route and route.destination
 
-  if self.services and destination then
+  if not destination then return nil, 'no destination' end
+
+  if destination.service then
     return self.services[destination.service]
   end
+
+  if destination.upstream then
+    local upstream = self.upstreams[destination.upstream]
+
+    if upstream then
+      return upstream
+    else
+      return nil, 'upstream not found'
+    end
+  end
+
+  return nil, 'destination not found'
 end
 
 local function not_found(self)
-  return assert(self.services.not_found, 'missing service: not_found').policy_chain
+  return assert(self.services.not_found, 'missing service: not_found')
 end
 
 function _M:dispatch(route)
@@ -334,12 +381,12 @@ function _M:dispatch(route)
     return not_found(self)
   end
 
-  local service = find_service(self, route)
+  local service, err = find_service(self, route)
 
   if service then
-    return service.policy_chain or empty_chain
+    return service
   else
-    ngx.log(ngx.ERR, 'could not find the route destination')
+    ngx.log(ngx.ERR, 'could not find the route destination: ', err)
     return not_found(self)
   end
 end
@@ -349,9 +396,29 @@ local rewrite = _M.rewrite
 function _M:rewrite(context)
   local route = find_route(self.routes, context)
 
-  context[self] = assert(self:dispatch(route), 'missing policy chain')
+  context.service = self:dispatch(route)
+  context[self] = assert(context.service.policy_chain or empty_chain, 'missing policy chain')
 
   return rewrite(self, context)
+end
+
+local content = _M.content
+
+function _M:content(context)
+  content(self, context)
+
+  local upstream = context.service.upstream
+
+  if upstream then
+    return upstream:call(context)
+  end
+end
+
+local balancer = _M.balancer
+
+function _M:balancer(context)
+  balancer(self, context)
+  load_balancer:call(context)
 end
 
 return _M
