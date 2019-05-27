@@ -534,3 +534,56 @@ yay, api backend
 --- error_code: 200
 --- no_error_log
 [error]
+
+
+=== TEST 11: Test upstream api with uppercase letters.
+--- backend
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+      local expected = "service_token=token-value&service_id=42&usage%5Bhits%5D=2&user_key=uk"
+      require('luassert').same(ngx.decode_args(expected), ngx.req.get_uri_args(0))
+    }
+  }
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "backend_version":  1,
+      "backend_authentication_type": "service_token",
+      "backend_authentication_value": "token-value",
+      "proxy": {
+        "api_backend": "http://example.com",
+        "proxy_rules": [
+          { "pattern": "/", "http_method": "GET", "metric_system_name": "hits", "delta": 2 }
+        ],
+        "policy_chain": [
+          {
+            "name": "apicast.policy.upstream",
+            "configuration":
+              {
+                "rules": [
+                  {
+                    "regex": "/",
+                    "url": "http://test:$TEST_NGINX_SERVER_PORT/PATH_IN_THE_RULE"
+                  }
+                ]
+              }
+          },
+          { "name": "apicast.policy.apicast" }
+        ]
+      }
+    }
+  ]
+}
+--- upstream
+  location /PATH_IN_THE_RULE {
+     echo $request;
+  }
+--- request
+GET /some_path?user_key=uk&a_param=a_value
+--- response_body
+GET /PATH_IN_THE_RULE/some_path?user_key=uk&a_param=a_value HTTP/1.1
+--- error_code: 200
+--- no_error_log
+[error]
