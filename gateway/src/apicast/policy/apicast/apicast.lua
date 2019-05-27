@@ -57,8 +57,12 @@ function _M:rewrite(context)
     p:rewrite(service, context)
   end
 
+  local err
   context[self] = context[self] or {}
-  context[self].upstream = p.get_upstream(service)
+  context[self].upstream, err = p.get_upstream(service)
+  if err then
+    ngx.log(ngx.WARN, "upstream api for the service:", service.id, " is invalid, error:", err)
+  end
 
   ngx.ctx.proxy = p
 end
@@ -98,6 +102,11 @@ function _M:access(context)
 end
 
 function _M:content(context)
+  if not context[self].upstream then
+    ngx.log(ngx.WARN, "Upstream server not found for this request")
+    return
+  end
+
   local upstream = assert(context[self].upstream, 'missing upstream')
 
   if upstream then
