@@ -55,7 +55,8 @@ GET /t
 === TEST 3: load valid configuration
 should correctly route the request
 --- main_config
-env THREESCALE_PORTAL_ENDPOINT=http://127.0.0.1:$TEST_NGINX_SERVER_PORT;
+env THREESCALE_PORTAL_ENDPOINT=http://127.0.0.1:$TEST_NGINX_SERVER_PORT/;
+env APICAST_CONFIGURATION_LOADER=lazy;
 --- http_config
   include $TEST_NGINX_HTTP_CONFIG;
   include $TEST_NGINX_UPSTREAM_CONFIG;
@@ -75,7 +76,7 @@ env THREESCALE_PORTAL_ENDPOINT=http://127.0.0.1:$TEST_NGINX_SERVER_PORT;
 GET /t?user_key=fake
 --- error_code: 200
 --- user_files eval
-[
+[ 
   [ 'config.json', qq|
   {
     "services": [{
@@ -95,3 +96,30 @@ GET /t?user_key=fake
   | ]
 ]
 
+=== TEST 4: load invalid json
+To validate that process does not died with invalid config
+--- main_config
+env THREESCALE_PORTAL_ENDPOINT=http://127.0.0.1:$TEST_NGINX_SERVER_PORT/;
+env APICAST_CONFIGURATION_LOADER=lazy;
+--- http_config
+  include $TEST_NGINX_UPSTREAM_CONFIG;
+  lua_package_path "$TEST_NGINX_LUA_PATH";
+--- config
+  include $TEST_NGINX_APICAST_CONFIG;
+  include $TEST_NGINX_BACKEND_CONFIG;
+
+  location = /admin/api/nginx/spec.json {
+    try_files /config.json =404;
+  }
+
+  location /api/ {
+    echo "all ok";
+  }
+--- request
+GET /t?user_key=fake
+--- error_code: 404
+--- user_files
+>>> config.json
+{Hello, world}
+--- no_error_log
+[error]
