@@ -18,6 +18,8 @@ local assert = assert
 local pcall = pcall
 local tonumber = tonumber
 
+local lazy_load_timeout = 15
+
 local noop = function(...) return ... end
 
 local _M = {
@@ -196,33 +198,30 @@ function lazy.init(configuration)
   configuration.configured = true
 end
 
-function lazy.rewrite(configuration, host)
-  if not host then
-    return nil, 'missing host'
-  end
-
-  local sema = synchronization:acquire(host)
-
-  if ttl() == 0 then
-    configuration = configuration_store.new(configuration.cache_size)
-  end
-
-  local ok, err = sema:wait(15)
-
-  if ok and not _M.configured(configuration, host) then
-    ngx.log(ngx.INFO, 'lazy loading configuration for: ', host)
+local function lazy_load_config(configuration, host)
     local config = _M.load(host)
     if not config then
       ngx.log(ngx.WARN, 'failed to get config for host: ', host)
     end
     _M.configure(configuration, config)
+end
+
+function lazy.rewrite(configuration, host)
+  if not host then
+    return nil, 'missing host'
   end
 
-  if ok then
-    synchronization:release(host)
-    sema:post()
-  else
-    ngx.log(ngx.WARN, 'failed to acquire lock to lazy load: ', host, ' error: ', err)
+  if ttl() == 0 then
+    configuration = configuration_store.new(configuration.cache_size)
+  end
+
+  if _M.configured(configuration, host) then
+    return configuration
+  end
+
+  local ret, result = synchronization:run(host, lazy_load_timeout, lazy_load_config, configuration, host)
+  if not ret then
+    ngx.log(ngx.WARN, 'failed to load config for host: ', host, ' error: ', result)
   end
 
   return configuration
