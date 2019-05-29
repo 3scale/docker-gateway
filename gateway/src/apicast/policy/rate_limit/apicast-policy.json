@@ -63,8 +63,9 @@
             "type": "string"
           },
           "op": {
+            "description": "Operation to apply. The matches op supports PCRE (Perl compatible regular expressions)",
             "type": "string",
-            "enum": ["==", "!="]
+            "enum": ["==", "!=", "matches"]
           },
           "right": {
             "type": "string"

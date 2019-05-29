@@ -6,7 +6,8 @@
 - [**Liquid templating**](#liquid-templating)
 - [**Requests over limits**](#requests-over-limits)
 - [**Per-gateway vs shared**](#per-gateway-vs-shared)
-- [**Complete config example**](#complete-config-example)
+- [**Limits with conditions**](#limits-with-conditions)
+- [**Complete config example**](#complete-config-examples)
 
 
 ## Description
@@ -139,6 +140,37 @@ of using a shared storage. For now, it only supports Redis.
 
 To use Redis, we just need to provide the `redis_url` attribute in the config
 of the policy: `"redis_url": "redis://a_host:6379"`
+
+
+## Limits with conditions
+
+The policy allows to define limits with conditions. The limit will be applied
+only when the condition is true. The following example shows how to define a
+limit that applies only when the path of the request matches
+`/v1/.*/something/.*`.
+
+```json
+{
+  "key": {
+    "name": "limit_path"
+  },
+  "count": 10,
+  "window": 60,
+  "condition": {
+    "operations": [
+      {
+        "left": "{{ uri }}",
+        "left_type": "liquid",
+        "op": "matches",
+        "right": "/v1/.*/something/.*",
+        "right_type": "plain"
+      }
+    ]
+  }
+}
+```
+
+Apart from "matches", the policy also supports operations with "==" and "!=".
 
 
 ## Complete config examples

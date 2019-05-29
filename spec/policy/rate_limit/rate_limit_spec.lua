@@ -324,192 +324,239 @@ describe('Rate limit policy', function()
           assert.spy(ngx.sleep).was_called_with(match.is_gt(0.001))
         end)
       end)
+    end)
 
-      describe('when conditions are defined', function()
-        local true_condition = {
-          operations = {
-            { left = '1', op = '==', right = '1' }
-          }
+    describe('when conditions are defined', function()
+      local true_condition = {
+        operations = {
+          { left = '1', op = '==', right = '1' }
         }
+      }
 
-        local false_condition = {
-          operations = {
-            { left = '1', op = '==', right = '2' }
-          }
+      local false_condition = {
+        operations = {
+          { left = '1', op = '==', right = '2' }
         }
+      }
 
-        describe('and the type of the limit is "connection"', function()
-          it('applies the limit when the condition is true', function()
-            local rate_limit_policy = RateLimitPolicy.new({
-              connection_limiters = {
-                {
-                  key = { name = 'limit_key', name_type = 'plain', scope = 'global' },
-                  conn = 1, burst = 0, delay = 0.5,
-                  condition = true_condition
-                }
+      describe('and the type of the limit is "connection"', function()
+        it('applies the limit when the condition is true', function()
+          local rate_limit_policy = RateLimitPolicy.new({
+            connection_limiters = {
+              {
+                key = { name = 'limit_key', name_type = 'plain', scope = 'global' },
+                conn = 1, burst = 0, delay = 0.5,
+                condition = true_condition
               }
-            })
+            }
+          })
 
-            assert(rate_limit_policy:access(context))
+          assert(rate_limit_policy:access(context))
 
-            assert.returns_error('limits exceeded', rate_limit_policy:access(context))
-            assert.spy(ngx.exit).was_called_with(429)
-          end)
-
-          it('does not apply the limit when the condition is false', function()
-            local rate_limit_policy = RateLimitPolicy.new({
-              connection_limiters = {
-                {
-                  key = { name = 'limit_key', name_type = 'plain', scope = 'global' },
-                  conn = 1, burst = 0, delay = 0.5,
-                  condition = false_condition
-                }
-              }
-            })
-
-            -- Limit is 1. Make 2 requests and check that they're not limited
-            assert(rate_limit_policy:access(context))
-            assert(rate_limit_policy:access(context))
-          end)
+          assert.returns_error('limits exceeded', rate_limit_policy:access(context))
+          assert.spy(ngx.exit).was_called_with(429)
         end)
 
-        describe('and the type of the limit is "leaky_bucket"', function()
-          it('applies the limit when the condition is true', function()
-            local rate_limit_policy = RateLimitPolicy.new({
-              leaky_bucket_limiters = {
-                {
-                  key = { name = 'limit_key', name_type = 'plain', scope = 'global' },
-                  rate = 1,
-                  burst = 0,
-                  condition = true_condition
-                }
+        it('does not apply the limit when the condition is false', function()
+          local rate_limit_policy = RateLimitPolicy.new({
+            connection_limiters = {
+              {
+                key = { name = 'limit_key', name_type = 'plain', scope = 'global' },
+                conn = 1, burst = 0, delay = 0.5,
+                condition = false_condition
               }
-            })
+            }
+          })
 
-            assert(rate_limit_policy:access(context))
+          -- Limit is 1. Make 2 requests and check that they're not limited
+          assert(rate_limit_policy:access(context))
+          assert(rate_limit_policy:access(context))
+        end)
+      end)
 
-            assert.returns_error('limits exceeded', rate_limit_policy:access(context))
-            assert.spy(ngx.exit).was_called_with(429)
-          end)
-
-          it('does not apply the limit when the condition is false', function()
-            local rate_limit_policy = RateLimitPolicy.new({
-              leaky_bucket_limiters = {
-                {
-                  key = { name = 'limit_key', name_type = 'plain', scope = 'global' },
-                  rate = 1,
-                  burst = 0,
-                  condition = false_condition
-                }
+      describe('and the type of the limit is "leaky_bucket"', function()
+        it('applies the limit when the condition is true', function()
+          local rate_limit_policy = RateLimitPolicy.new({
+            leaky_bucket_limiters = {
+              {
+                key = { name = 'limit_key', name_type = 'plain', scope = 'global' },
+                rate = 1,
+                burst = 0,
+                condition = true_condition
               }
-            })
+            }
+          })
 
-            -- Limit is 1. Make 2 requests and check that they're not limited
-            assert(rate_limit_policy:access(context))
-            assert(rate_limit_policy:access(context))
-          end)
+          assert(rate_limit_policy:access(context))
+
+          assert.returns_error('limits exceeded', rate_limit_policy:access(context))
+          assert.spy(ngx.exit).was_called_with(429)
         end)
 
-        describe('and the type of the limits is "fixed_window"', function()
-          it('applies the limit when the condition is true', function()
-            local rate_limit_policy = RateLimitPolicy.new({
-              fixed_window_limiters = {
-                {
-                  key = { name = 'limit_key', name_type = 'plain', scope = 'global' },
-                  count = 1,
-                  window = 10,
-                  condition = true_condition
-                }
+        it('does not apply the limit when the condition is false', function()
+          local rate_limit_policy = RateLimitPolicy.new({
+            leaky_bucket_limiters = {
+              {
+                key = { name = 'limit_key', name_type = 'plain', scope = 'global' },
+                rate = 1,
+                burst = 0,
+                condition = false_condition
               }
-            })
+            }
+          })
 
-            assert(rate_limit_policy:access(context))
+          -- Limit is 1. Make 2 requests and check that they're not limited
+          assert(rate_limit_policy:access(context))
+          assert(rate_limit_policy:access(context))
+        end)
+      end)
 
-            assert.returns_error('limits exceeded', rate_limit_policy:access(context))
-            assert.spy(ngx.exit).was_called_with(429)
-          end)
-
-          it('does not apply the limit when the condition is false', function()
-            local rate_limit_policy = RateLimitPolicy.new({
-              fixed_window_limiters = {
-                {
-                  key = { name = 'limit_key', name_type = 'plain', scope = 'global' },
-                  count = 1,
-                  window = 10,
-                  condition = false_condition
-                }
+      describe('and the type of the limits is "fixed_window"', function()
+        it('applies the limit when the condition is true', function()
+          local rate_limit_policy = RateLimitPolicy.new({
+            fixed_window_limiters = {
+              {
+                key = { name = 'limit_key', name_type = 'plain', scope = 'global' },
+                count = 1,
+                window = 10,
+                condition = true_condition
               }
-            })
+            }
+          })
 
-            -- Limit is 1. Make 2 requests and check that they're not limited
-            assert(rate_limit_policy:access(context))
-            assert(rate_limit_policy:access(context))
-          end)
+          assert(rate_limit_policy:access(context))
+
+          assert.returns_error('limits exceeded', rate_limit_policy:access(context))
+          assert.spy(ngx.exit).was_called_with(429)
         end)
 
-        describe('and there are several limits applied', function()
-          it('denies access when the condition of any limit is false', function()
-            local rate_limit_policy = RateLimitPolicy.new({
-              leaky_bucket_limiters = {
-                {
-                  key = { name = 'limit_key', name_type = 'plain', scope = 'global' },
-                  rate = 1,
-                  burst = 0,
-                  condition = false_condition
-                }
-              },
-              fixed_window_limiters = {
-                {
-                  key = { name = 'limit_key', name_type = 'plain', scope = 'global' },
-                  count = 1,
-                  window = 10,
-                  condition = true_condition
-                }
-              },
-              connection_limiters = {
-                {
-                  key = { name = 'limit_key', name_type = 'plain', scope = 'global' },
-                  conn = 1, burst = 0, delay = 0.5,
-                  condition = true_condition
-                }
+        it('does not apply the limit when the condition is false', function()
+          local rate_limit_policy = RateLimitPolicy.new({
+            fixed_window_limiters = {
+              {
+                key = { name = 'limit_key', name_type = 'plain', scope = 'global' },
+                count = 1,
+                window = 10,
+                condition = false_condition
               }
-            })
+            }
+          })
 
-            assert(rate_limit_policy:access(context))
+          -- Limit is 1. Make 2 requests and check that they're not limited
+          assert(rate_limit_policy:access(context))
+          assert(rate_limit_policy:access(context))
+        end)
+      end)
 
-            assert.returns_error('limits exceeded', rate_limit_policy:access(context))
-            assert.spy(ngx.exit).was_called_with(429)
-          end)
+      describe('and there are several limits applied', function()
+        it('denies access when the condition of any limit is false', function()
+          local rate_limit_policy = RateLimitPolicy.new({
+            leaky_bucket_limiters = {
+              {
+                key = { name = 'limit_key', name_type = 'plain', scope = 'global' },
+                rate = 1,
+                burst = 0,
+                condition = false_condition
+              }
+            },
+            fixed_window_limiters = {
+              {
+                key = { name = 'limit_key', name_type = 'plain', scope = 'global' },
+                count = 1,
+                window = 10,
+                condition = true_condition
+              }
+            },
+            connection_limiters = {
+              {
+                key = { name = 'limit_key', name_type = 'plain', scope = 'global' },
+                conn = 1, burst = 0, delay = 0.5,
+                condition = true_condition
+              }
+            }
+          })
+
+          assert(rate_limit_policy:access(context))
+
+          assert.returns_error('limits exceeded', rate_limit_policy:access(context))
+          assert.spy(ngx.exit).was_called_with(429)
         end)
       end)
     end)
 
-    describe('.log', function()
-      it('success in leaving', function()
-        local rate_limit_policy = RateLimitPolicy.new({
-          connection_limiters = {
-            { key = { name = 'test1', scope = 'global' }, conn = 20, burst = 10, delay = 0.5 }
-          },
-          redis_url = redis_url
-        })
+    it('accepts "matches" as an operation in the conditions', function()
+      local condition_with_matches = {
+        operations = {
+          {
+            left = '{{ uri }}',
+            left_type = 'liquid',
+            op = 'matches',
+            right = '/v1/.*/something/.*',
+            right_type = 'plain'
+          }
+        }
+      }
 
-        assert(rate_limit_policy:access(context))
+      local rate_limit_policy = RateLimitPolicy.new({
+        fixed_window_limiters = {
+          {
+            key = { name = 'limit_key', name_type = 'plain', scope = 'global' },
+            count = 2,
+            window = 10,
+            condition = condition_with_matches
+          }
+        }
+      })
 
-        assert(rate_limit_policy:log())
+      -- We are going to make 3 requests that match the url pattern defined
+      -- above. As the limit is set to 2, only the third one should fail.
+
+      ngx_variable.available_context:revert()
+      stub(ngx_variable, 'available_context', function()
+        return { uri = '/v1/aaa/something/bbb' }
       end)
+      assert(rate_limit_policy:access({}))
 
-      it('success when redis url is empty', function()
-        local rate_limit_policy = RateLimitPolicy.new({
-          connection_limiters = {
-            { key = { name = 'test1', scope = 'global' }, conn = 20, burst = 10, delay = 0.5 }
-          },
-          redis_url = ''
-        })
-
-        assert(rate_limit_policy:access(context))
-
-        assert(rate_limit_policy:log())
+      ngx_variable.available_context:revert()
+      stub(ngx_variable, 'available_context', function()
+        return { uri = '/v1/ccc/something/ddd' }
       end)
+      assert(rate_limit_policy:access({}))
+
+      ngx_variable.available_context:revert()
+      stub(ngx_variable, 'available_context', function()
+        return { uri = '/v1/eee/something/fff' }
+      end)
+      assert.returns_error('limits exceeded', rate_limit_policy:access({}))
+      assert.spy(ngx.exit).was_called_with(429)
+    end)
+  end)
+
+  describe('.log', function()
+    it('success in leaving', function()
+      local rate_limit_policy = RateLimitPolicy.new({
+        connection_limiters = {
+          { key = { name = 'test1', scope = 'global' }, conn = 20, burst = 10, delay = 0.5 }
+        },
+        redis_url = redis_url
+      })
+
+      assert(rate_limit_policy:access(context))
+
+      assert(rate_limit_policy:log())
+    end)
+
+    it('success when redis url is empty', function()
+      local rate_limit_policy = RateLimitPolicy.new({
+        connection_limiters = {
+          { key = { name = 'test1', scope = 'global' }, conn = 20, burst = 10, delay = 0.5 }
+        },
+        redis_url = ''
+      })
+
+      assert(rate_limit_policy:access(context))
+
+      assert(rate_limit_policy:log())
     end)
   end)
 end)
