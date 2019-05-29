@@ -483,6 +483,53 @@ describe('Rate limit policy', function()
         end)
       end)
     end)
+
+    it('accepts "matches" as an operation in the conditions', function()
+      local condition_with_matches = {
+        operations = {
+          {
+            left = '{{ uri }}',
+            left_type = 'liquid',
+            op = 'matches',
+            right = '/v1/.*/something/.*',
+            right_type = 'plain'
+          }
+        }
+      }
+
+      local rate_limit_policy = RateLimitPolicy.new({
+        fixed_window_limiters = {
+          {
+            key = { name = 'limit_key', name_type = 'plain', scope = 'global' },
+            count = 2,
+            window = 10,
+            condition = condition_with_matches
+          }
+        }
+      })
+
+      -- We are going to make 3 requests that match the url pattern defined
+      -- above. As the limit is set to 2, only the third one should fail.
+
+      ngx_variable.available_context:revert()
+      stub(ngx_variable, 'available_context', function()
+        return { uri = '/v1/aaa/something/bbb' }
+      end)
+      assert(rate_limit_policy:access({}))
+
+      ngx_variable.available_context:revert()
+      stub(ngx_variable, 'available_context', function()
+        return { uri = '/v1/ccc/something/ddd' }
+      end)
+      assert(rate_limit_policy:access({}))
+
+      ngx_variable.available_context:revert()
+      stub(ngx_variable, 'available_context', function()
+        return { uri = '/v1/eee/something/fff' }
+      end)
+      assert.returns_error('limits exceeded', rate_limit_policy:access({}))
+      assert.spy(ngx.exit).was_called_with(429)
+    end)
   end)
 
   describe('.log', function()
