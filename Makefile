@@ -50,7 +50,7 @@ endif
 
 export COMPOSE_PROJECT_NAME
 
-.PHONY: benchmark
+.PHONY: benchmark lua_modules
 
 test: ## Run all tests
 	$(MAKE) --keep-going busted prove builder-image test-builder-image prove-docker runtime-image test-runtime-image
