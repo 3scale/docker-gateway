@@ -1281,3 +1281,59 @@ making 3 requests and checking that only the last one is rejected.
 [200, 200, 200, 429]
 --- no_error_log
 [error]
+
+=== TEST 21: condition with "matches" operation
+This test makes 3 requests that match the URL pattern defined in the
+limit. The limit is set to 2. Only the third one should fail.
+--- http_config
+  include $TEST_NGINX_UPSTREAM_CONFIG;
+  lua_package_path "$TEST_NGINX_LUA_PATH";
+
+  init_by_lua_block {
+    require "resty.core"
+    ngx.shared.limiter:flush_all()
+    require('apicast.configuration_loader').mock({
+      services = {
+        {
+          id = 42,
+          proxy = {
+            policy_chain = {
+              {
+                name = "apicast.policy.rate_limit",
+                configuration = {
+                  fixed_window_limiters = {
+                    {
+                      key = { name = "test21_key_1" },
+                      count = 2,
+                      window = 60,
+                      condition = {
+                        operations = {
+                          {
+                            left = "{{ uri }}",
+                            left_type = "liquid",
+                            op = "matches",
+                            right = "/v1/.*/something/.*",
+                            right_type = "plain"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  limits_exceeded_error = { status_code = 429 }
+                }
+              }
+            }
+          }
+        }
+      }
+    })
+  }
+  lua_shared_dict limiter 1m;
+--- config
+  include $TEST_NGINX_APICAST_CONFIG;
+--- pipelined_requests eval
+["GET /v1/aaa/something/bbb", "GET /v1/ccc/something/ddd", "GET /v1/eee/something/fff"]
+--- error_code eval
+[200, 200, 429]
+--- no_error_log
+[error]
