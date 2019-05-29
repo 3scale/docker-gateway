@@ -1276,9 +1276,9 @@ making 3 requests and checking that only the last one is rejected.
 --- config
   include $TEST_NGINX_APICAST_CONFIG;
 --- pipelined_requests eval
-["GET /flush_redis", "GET /", "GET /", "GET /"]
+["GET /", "GET /", "GET /"]
 --- error_code eval
-[200, 200, 200, 429]
+[200, 200, 429]
 --- no_error_log
 [error]
 
