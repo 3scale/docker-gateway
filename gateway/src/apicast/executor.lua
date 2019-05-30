@@ -38,7 +38,11 @@ local function build_context(executor)
 end
 
 local function shared_build_context(executor)
-    local ctx = ngx.ctx or {}
+    local ok, ctx = pcall(function() return ngx.ctx end)
+    if not ok then
+      ctx = {}
+    end
+
     local context = ctx.context
 
     if not context then
