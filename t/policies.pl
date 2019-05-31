@@ -71,3 +71,39 @@ our $expect_json = sub ($) {
 };
 
 add_response_body_check($expect_json);
+
+# This response body helper function check is like a response_body_like but it
+# can be used with multiple values for a single request.
+#
+# An usage example can be like this:
+# --- expected_response_body_like_multiple eval
+# [
+# qr/.*/,
+# qr/[0-9]*/,
+# [
+#     qr/^a.*/,
+#     qr/Z$/
+# ]]
+#
+# Where the third request will validate that starts with a and finish with Z.
+add_response_body_check(sub {
+    my ($block, $body, $req_idx, $repeated_req_idx, $dry_run) = @_;
+
+    if (!$block->expected_response_body_like_multiple) {
+        return "";
+    }
+
+    my @asserts = @{$block->{expected_response_body_like_multiple}};
+    my $assertValues = ${asserts}[0][$req_idx];
+    if (ref(${assertValues}) eq 'ARRAY') {
+        foreach my $regexp(@{$assertValues}){
+            if (!($body =~ m/$regexp/)) {
+                fail(sprintf("Regular expression: '%s' does not match with the body: \n %s",$regexp, $body));
+            }
+        }
+    }else{
+        if (!($body =~ m/$assertValues/)) {
+            fail(sprintf("Regular expression: '%s' does not match with the body: \n %s",$assertValues, $body));
+        }
+    }
+});
