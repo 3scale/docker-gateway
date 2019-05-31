@@ -76,7 +76,7 @@ env APICAST_CONFIGURATION_LOADER=lazy;
 GET /t?user_key=fake
 --- error_code: 200
 --- user_files eval
-[ 
+[
   [ 'config.json', qq|
   {
     "services": [{
@@ -123,3 +123,56 @@ GET /t?user_key=fake
 {Hello, world}
 --- no_error_log
 [error]
+
+=== TEST 5: load invalid oidc target url
+--- main_config
+env THREESCALE_PORTAL_ENDPOINT=http://127.0.0.1:$TEST_NGINX_SERVER_PORT/;
+env APICAST_CONFIGURATION_LOADER=lazy;
+--- http_config
+  include $TEST_NGINX_HTTP_CONFIG;
+  include $TEST_NGINX_UPSTREAM_CONFIG;
+  lua_package_path "$TEST_NGINX_LUA_PATH";
+--- config
+  include $TEST_NGINX_APICAST_CONFIG;
+  include $TEST_NGINX_BACKEND_CONFIG;
+
+  location = /admin/api/nginx/spec.json {
+    try_files /config.json =404;
+  }
+
+  location /api/ {
+    echo "all ok";
+  }
+--- request
+GET /t?user_key=fake
+--- error_code: 401
+--- user_files eval
+[
+  [ 'config.json', qq|
+  {
+    "services": [{
+      "id": 1,
+      "backend_version": 1,
+      "backend_version": "oauth",
+      "proxy": {
+        "api_backend": "http://127.0.0.1:$Test::Nginx::Util::ServerPortForClient/api/",
+        "service_id": 2555417794444,
+        "oidc_issuer_endpoint": "www.fgoodl/adasd",
+        "authentication_method": "oidc",
+        "service_backend_version": "oauth",
+        "hosts": [
+          "localhost"
+        ],
+        "backend": {
+          "endpoint": "http://127.0.0.1:$Test::Nginx::Util::ServerPortForClient"
+        },
+        "proxy_rules": [
+          { "pattern": "/t", "http_method": "GET", "metric_system_name": "test" }
+        ]
+      }
+    }]
+  }
+  | ]
+]
+--- error_log
+OIDC url is not valid, uri:
