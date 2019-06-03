@@ -14,20 +14,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Add the option to obtain client_id from any JWT claim [THREESCALE-2264](https://issues.jboss.org/browse/THREESCALE-2264) [PR #1034](https://github.com/3scale/APIcast/pull/1034)
 - Added `APICAST_PATH_ROUTING_ONLY` variable that allows to perform path-based routing without falling back to the default host-based routing [PR #1035](https://github.com/3scale/APIcast/pull/1035), [THREESCALE-1150](https://issues.jboss.org/browse/THREESCALE-1150)
 - Added the option to manage access based on method on Keycloak Policy. [THREESCALE-2236](https://issues.jboss.org/browse/THREESCALE-2236) [PR #1039](https://github.com/3scale/APIcast/pull/1039)
-- The Rate Limit policy now supports conditions defined with the "matches" operation. [PR #1051](https://github.com/3scale/APIcast/pull/1051), [https://issues.jboss.org/browse/THREESCALE-2590](https://issues.jboss.org/browse/THREESCALE-2590)
+- The Rate Limit policy now supports conditions defined with the "matches" operation. [PR #1051](https://github.com/3scale/APIcast/pull/1051), [THREESCALE-2590](https://issues.jboss.org/browse/THREESCALE-2590)
 
 ### Fixed
 
 - Fixed incorrect description of the `client` attribute in the Keycloak role check policy [PR #1005](https://github.com/3scale/APIcast/pull/1005), [THREESCALE_1867](https://issues.jboss.org/browse/THREESCALE-1867)
-- `export()` now works correctly in policies of the local chain. It was only working in the `rewrite` phase [PR #1023](https://github.com/3scale/APIcast/pull/1023)
-- The caching policy now works correctly when combined with the 3scale batcher one [PR #1023](https://github.com/3scale/APIcast/pull/1023)
+- `export()` now works correctly in policies of the local chain. It was only working in the `rewrite` phase [PR #1023](https://github.com/3scale/APIcast/pull/1023), [THREESCALE-2705](https://issues.jboss.org/browse/THREESCALE-2705)
+- The caching policy now works correctly when combined with the 3scale batcher one [PR #1023](https://github.com/3scale/APIcast/pull/1023), [THREESCALE-2705](https://issues.jboss.org/browse/THREESCALE-2705)
 - Fixed the name of the 3scale batching policy in the logs. Some logs showed "Caching policy" where it should have said "3scale Batcher" [PR #1029](https://github.com/3scale/APIcast/pull/1029)
 - Changed the schema of the IP check policy so it renders correctly in the UI [PR #1026](https://github.com/3scale/APIcast/pull/1026), [THREESCALE-1692](https://issues.jboss.org/browse/THREESCALE-1692)
 - Allow uppercase backend API in the service.[PR #1044](https://github.com/3scale/APIcast/pull/1044), [THREESCALE-2540](https://issues.jboss.org/browse/THREESCALE-2540)
 
 ### Removed
 
-- Checking `aud` JWT claim for app_id when using OIDC integration [PR #1007](https://github.com/3scale/APIcast/pull/1007)
+- Checking `aud` JWT claim for app_id when using OIDC integration [PR #1007](https://github.com/3scale/APIcast/pull/1007), [THREESCALE-2263](https://issues.jboss.org/projects/THREESCALE/issues/THREESCALE-2263)
 
 ## [3.5.1] - 2019-05-07
 
