@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Added `APICAST_PATH_ROUTING_ONLY` variable that allows to perform path-based routing without falling back to the default host-based routing [PR #1035](https://github.com/3scale/APIcast/pull/1035), [THREESCALE-1150](https://issues.jboss.org/browse/THREESCALE-1150)
 - Added the option to manage access based on method on Keycloak Policy. [THREESCALE-2236](https://issues.jboss.org/browse/THREESCALE-2236) [PR #1039](https://github.com/3scale/APIcast/pull/1039)
 - The Rate Limit policy now supports conditions defined with the "matches" operation. [PR #1051](https://github.com/3scale/APIcast/pull/1051), [THREESCALE-2590](https://issues.jboss.org/browse/THREESCALE-2590)
+- Upgrade OpenResty to 1.15.8.1 release.[PR #1049](https://github.com/3scale/APIcast/pull/1049), [THREESCALE-2200](https://issues.jboss.org/browse/THREESCALE-2200)
 
 ### Fixed
 
