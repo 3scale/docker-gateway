@@ -27,6 +27,11 @@ __DATA__
       }
     })
 
+    -- Response codes cannot be sent when the request is not cached. In that
+    -- case, the authrep is called before calling the upstream, so the
+    -- response code is not available. Response codes are only sent in the
+    -- post-action phase. The cache is populated here to force a post-action
+    -- phase.
     ngx.shared.api_keys:set('42:somekey:usage%5Bbar%5D=0', 200)
   }
   lua_shared_dict api_keys 1m;
