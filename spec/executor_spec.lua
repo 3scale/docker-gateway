@@ -170,6 +170,12 @@ describe('executor', function()
       assert.same(3, ngx.ctx.context.balancer_retries)
     end)
 
+    it('sets a var in the context that marks that the peer has not been set yet in the current try', function()
+      executor:balancer()
+
+      assert.is_false(ngx.ctx.context.peer_set_in_current_balancer_try)
+    end)
+
     it('forwards the call to the policy chain', function()
       executor:balancer()
 

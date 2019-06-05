@@ -119,6 +119,7 @@ do
     function _M:balancer()
         local context = self:context('balancer')
         context.balancer_retries = (context.balancer_retries and context.balancer_retries + 1) or 0
+        context.peer_set_in_current_balancer_try = false
         return self.policy_chain.balancer(self.policy_chain, context)
     end
 

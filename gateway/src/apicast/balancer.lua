@@ -22,7 +22,7 @@ local function get_upstream(context)
     return nil, 'missing upstream'
   end
 
-  if context[upstream] then
+  if context.peer_set_in_current_balancer_try then
     return nil, 'already set peer'
   end
 
@@ -114,7 +114,7 @@ function _M.call(_, context, bal)
 
     -- I wish there would be a nicer way, but unfortunately ngx.exit(ngx.OK) does not
     -- terminate the current phase handler and will evaluate all remaining balancer phases.
-    context[upstream] = peer
+    context.peer_set_in_current_balancer_try = true
     return peer
   else
     ngx.log(ngx.ERR, 'failed to set current backend peer: ', err)
