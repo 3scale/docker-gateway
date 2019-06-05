@@ -30,7 +30,7 @@ local reporting_executor = require('resty.concurrent.immediate_executor')
 do
   local reporting_threads = tonumber(env.value('APICAST_REPORTING_THREADS')) or 0
 
-  if reporting_threads > 0 and not response_codes then
+  if reporting_threads > 0 then
     reporting_executor = require('resty.concurrent.timer_pool_executor').new({
       max_timers = reporting_threads,
       fallback_policy = 'caller_runs',
@@ -300,26 +300,20 @@ function _M:access(service, usage, credentials, ttl)
   return self:authorize(service, usage or ctx.usage, credentials or ctx.credentials, ttl or ctx.ttl)
 end
 
-local function response_codes_data()
-  local params = {}
-
+local function response_codes_data(status)
   if not response_codes then
-    return params
+    return {}
+  else
+    return { ["log[code]"] = status }
   end
-
-  if response_codes then
-    params["log[code]"] = ngx.var.status
-  end
-
-  return params
 end
 
-local function post_action(self, cached_key, service, credentials, formatted_usage)
+local function post_action(self, cached_key, service, credentials, formatted_usage, response_status_code)
   local backend = build_backend_client(self, service)
   local res = backend:authrep(
           formatted_usage,
           credentials,
-          response_codes_data(),
+          response_codes_data(response_status_code),
           self.extra_params_backend_authrep
   )
 
@@ -342,7 +336,7 @@ function _M:post_action(context)
   local credentials = context.credentials
   local formatted_usage = format_usage(context.usage)
 
-  reporting_executor:post(post_action, self, cached_key, service, credentials, formatted_usage)
+  reporting_executor:post(post_action, self, cached_key, service, credentials, formatted_usage, ngx.var.status)
 end
 
 -- Returns the rejection reason from the headers of a 3scale backend response.
