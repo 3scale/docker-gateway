@@ -31,3 +31,18 @@ encode_json $::policies->();
 --- error_code: 200
 --- no_error_log
 [error]
+
+=== TEST 2: expose only policies
+APICAST_MANAGEMENT_API=policies enables the endpoint without enabling other
+status info
+--- env eval
+(APICAST_MANAGEMENT_API => "policies")
+--- request eval
+["GET /policies", "GET /status/info"]
+--- error_code eval
+[ 200, 404]
+--- expected_json eval
+use JSON;
+encode_json $::policies->();
+--- no_error_log
+[error]
