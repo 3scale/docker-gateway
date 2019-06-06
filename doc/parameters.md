@@ -240,7 +240,7 @@ This is the value that will be used in the nginx `worker_processes` [directive](
 
 ### `BACKEND_ENDPOINT_OVERRIDE`
 
-URI that overrides the backend endpoint from the configuration, by default it is the external route. Is is useful when deploying APIcast into the same OpenShift cluster than 3scale API Manager as to use the internal hostname of the backend listener service instead of the public route. 
+URI that overrides the backend endpoint from the configuration, by default it is the external route. Is is useful when deploying APIcast into the same OpenShift cluster than 3scale as to use the internal hostname of the backend listener service instead of the public route. 
 
 ### `OPENSSL_VERIFY`
 
