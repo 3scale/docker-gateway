@@ -1,4 +1,4 @@
-# Performance
+# Profiling
 
 There is a Vagrantfile with performance inspection tools like SystemTap.
 
