@@ -3,6 +3,7 @@
 -- @classmod resty.synchronization
 
 local semaphore = require "ngx.semaphore"
+local safe_task = require('resty.concurrent.safe_task_executor')
 
 local rawset = rawset
 local setmetatable = setmetatable
@@ -15,7 +16,7 @@ local mt = {
 }
 --- initialize new synchronization table
 -- @tparam int size how many resources for each key
-function _M.new(_, size)
+function _M.new(size)
   local semaphore_mt = {
     __index = function(t, k)
       local sema = semaphore.new(size or 1)
@@ -24,7 +25,6 @@ function _M.new(_, size)
       return sema
     end
   }
-
 
   local semaphores = setmetatable({}, semaphore_mt)
   return setmetatable({ semaphores = semaphores }, mt)
@@ -51,6 +51,35 @@ function _M:release(key)
     return nil, 'not initialized'
   end
   semaphores[key] = nil
+end
+
+--- run a new function, callback using locks on the given key
+-- @tparam string key: key for the semaphore
+-- @tparam int timeout: timeout for getting the lock before raise an error.
+-- @tparam function callback: function to execute if the lock is acquired correctly
+-- @param ...: the variable number of arguments that are going to be send to the callback function.
+function _M:run(key, timeout, callback, ...)
+  local sema, err = self:acquire(key)
+  if err ~= key then
+    ngx.log(ngx.WARN, 'failed to acquire lock on key: ', key, ' error: ', err)
+    return false
+  end
+
+  local lock_acquired, acquire_err = sema:wait(timeout)
+  if not lock_acquired then
+    ngx.log(ngx.WARN, 'failed to acquire lock on key: ', key, ' error: ', acquire_err)
+    return false
+  end
+
+  local task = safe_task.new(callback)
+  local ret, result, execute_error = task:execute(...)
+
+  if lock_acquired then
+    self.release(key)
+    sema:post()
+  end
+
+  return ret, result, execute_error
 end
 
 return _M
