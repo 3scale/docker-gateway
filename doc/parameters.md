@@ -84,7 +84,8 @@ Allows to set the log level for the logs related to OpenID Connect integration
 **Values:**
 
 - `disabled`: completely disabled, just listens on the port
-- `status`: only the `/status/` endpoints enabled for health checks
+- `status`: enables the `/status/` endpoint for health checks, and the `/policies` endpoint that shows the list of available policies.
+- `policies`: enables only the `/policies` endpoint.
 - `debug`: full API is open
 
 The [Management API](./management-api.md) is powerful and can control the APIcast configuration.
