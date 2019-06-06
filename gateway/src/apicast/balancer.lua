@@ -22,7 +22,7 @@ local function get_upstream(context)
     return nil, 'missing upstream'
   end
 
-  if context[upstream] then
+  if context.peer_set_in_current_balancer_try then
     return nil, 'already set peer'
   end
 
@@ -70,6 +70,24 @@ local function set_timeouts(balancer, timeouts)
   end
 end
 
+local function set_balancer_retry(balancer)
+  local _, err = balancer:retry_next_request()
+
+  if err then
+    ngx.log(ngx.ERR, 'Error while setting more balancer tries: ', err)
+  end
+end
+
+local function set_more_tries_if_needed(balancer, context)
+  -- If the retry policy is not enabled, then don't retry.
+  -- context.upstream_retries is only set by the retry policy
+  if not context.upstream_retries then return end
+
+  if context.balancer_retries < context.upstream_retries then
+    set_balancer_retry(balancer)
+  end
+end
+
 function _M.call(_, context, bal)
   local balancer = assert(bal or _M.default_balancer, 'missing balancer')
   local upstream, peer, err, ok
@@ -86,6 +104,8 @@ function _M.call(_, context, bal)
     return nil, err
   end
 
+  set_more_tries_if_needed(balancer, context or {})
+
   ok, err = balancer:set_current_peer(peer[1], peer[2] or upstream.uri.port or resty_url.default_port(upstream.uri.scheme))
 
   if ok then
@@ -94,7 +114,7 @@ function _M.call(_, context, bal)
 
     -- I wish there would be a nicer way, but unfortunately ngx.exit(ngx.OK) does not
     -- terminate the current phase handler and will evaluate all remaining balancer phases.
-    context[upstream] = peer
+    context.peer_set_in_current_balancer_try = true
     return peer
   else
     ngx.log(ngx.ERR, 'failed to set current backend peer: ', err)

@@ -223,6 +223,14 @@ Replace `${ID}` with the actual Service ID. The value should be the configuratio
 
 Setting it to a particular version will prevent it from auto-updating and will always use that version.
 
+### `APICAST_UPSTREAM_RETRY_CASES`
+
+**Default**:
+**Values**: error | timeout | invalid_header | http_500 | http_502 | http_503 | http_504 | http_403 | http_404 | http_429 | non_idempotent | off
+
+Used only when the retry policy is configured. Specified in which cases a request to the upstream API should be retried.
+This accepts the same values as https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_next_upstream
+
 ### `APICAST_WORKERS`
 
 **Default:** auto  

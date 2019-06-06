@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - The Rate Limit policy now supports conditions defined with the "matches" operation. [PR #1051](https://github.com/3scale/APIcast/pull/1051), [THREESCALE-2590](https://issues.jboss.org/browse/THREESCALE-2590)
 - Upgrade OpenResty to 1.15.8.1 release.[PR #1049](https://github.com/3scale/APIcast/pull/1049), [THREESCALE-2200](https://issues.jboss.org/browse/THREESCALE-2200)
 - Now it is possible to report status codes when using reporting threads [PR #1058](https://github.com/3scale/APIcast/pull/1058), [THREESCALE-2340](https://issues.jboss.org/browse/THREESCALE-2340)
+- New Retry policy. Allows to configure retries for calls to the upstream APIs [PR #1057](https://github.com/3scale/APIcast/pull/1057), [THREESCALE-1517](https://issues.jboss.org/browse/THREESCALE-1517)
 
 ### Fixed
 

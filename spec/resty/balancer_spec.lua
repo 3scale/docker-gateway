@@ -149,4 +149,26 @@ describe('resty.balancer', function()
       assert.equals('balancer not available', err)
     end)
   end)
+
+  describe('.retry_next_request', function()
+    it('calls .set_more_tries(1) on the internal balancer', function()
+      local b = resty_balancer.new(function() end)
+      b.balancer = { } -- Internal balancer
+      stub.new(b.balancer, 'set_more_tries', function() end)
+
+      b:retry_next_request()
+
+      assert.stub(b.balancer.set_more_tries).was_called_with(1)
+    end)
+
+    it('returns an error when the internal balancer has not been set', function()
+      local b = resty_balancer.new(function() end)
+      b.balancer = nil -- Internal balancer
+
+      local res, err = b:retry_next_request()
+
+      assert.is_nil(res)
+      assert.equals('balancer not available', err)
+    end)
+  end)
 end)
