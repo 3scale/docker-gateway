@@ -242,6 +242,8 @@ This is the value that will be used in the nginx `worker_processes` [directive](
 
 URI that overrides the backend endpoint from the configuration, by default it is the external route. Is is useful when deploying APIcast into the same OpenShift cluster than 3scale as to use the internal hostname of the backend listener service instead of the public route. 
 
+**Example**: `http://backend-listener.<AMP_PROJECT>.svc.cluster.local:3000`.
+
 ### `OPENSSL_VERIFY`
 
 **Values:**
