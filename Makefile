@@ -18,7 +18,19 @@ RUNTIME_IMAGE ?= $(BUILDER_IMAGE)-runtime
 
 DEVEL_IMAGE ?= apicast-development
 DEVEL_DOCKERFILE ?= Dockerfile-development
+
 DEVEL_DOCKER_COMPOSE_FILE ?= docker-compose-devel.yml
+DEVEL_DOCKER_COMPOSE_VOLMOUNT_MAC_FILE ?= docker-compose-devel-volmount-mac.yml
+DEVEL_DOCKER_COMPOSE_VOLMOUNT_DEFAULT_FILE ?= docker-compose-devel-volmount-default.yml
+
+os = "$(shell uname -s)"
+
+# if running on Mac
+ifeq ($(os),"Darwin")
+    DEVEL_DOCKER_COMPOSE_VOLMOUNT_FILE = $(DEVEL_DOCKER_COMPOSE_VOLMOUNT_MAC_FILE)
+else
+    DEVEL_DOCKER_COMPOSE_VOLMOUNT_FILE = $(DEVEL_DOCKER_COMPOSE_VOLMOUNT_DEFAULT_FILE)
+endif
 
 S2I_CONTEXT ?= gateway
 
@@ -190,12 +202,13 @@ development: USER := $(shell id -u $(USER))
 endif
 development: .docker/lua_modules .docker/local .docker/cpanm .docker/vendor/cache
 development: ## Run bash inside the development image
-	- $(DOCKER_COMPOSE) -f $(DEVEL_DOCKER_COMPOSE_FILE) up --detach
+	@echo "Running on $(os)"
+	- $(DOCKER_COMPOSE) -f $(DEVEL_DOCKER_COMPOSE_FILE) -f $(DEVEL_DOCKER_COMPOSE_VOLMOUNT_FILE) up -d
 	@ # https://github.com/moby/moby/issues/33794#issuecomment-312873988 for fixing the terminal width
-	$(DOCKER_COMPOSE) -f $(DEVEL_DOCKER_COMPOSE_FILE) exec -e COLUMNS="`tput cols`" -e LINES="`tput lines`" --user $(USER) development bash
+	$(DOCKER_COMPOSE) -f $(DEVEL_DOCKER_COMPOSE_FILE) -f $(DEVEL_DOCKER_COMPOSE_VOLMOUNT_FILE) exec -e COLUMNS="`tput cols`" -e LINES="`tput lines`" --user $(USER) development bash
 
 stop-development: ## Stop development environment
-	- $(DOCKER_COMPOSE) -f $(DEVEL_DOCKER_COMPOSE_FILE) down
+	- $(DOCKER_COMPOSE) -f $(DEVEL_DOCKER_COMPOSE_FILE) -f $(DEVEL_DOCKER_COMPOSE_VOLMOUNT_FILE) down
 
 rover: $(ROVER)
 	@echo $(ROVER)

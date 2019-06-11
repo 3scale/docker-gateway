@@ -6,11 +6,9 @@ services:
       - redis
     working_dir: /home/centos/
     volumes:
-      - .:/home/centos/:cached
       - .docker/lua_modules:/home/centos/lua_modules
       - .docker/local:/home/centos/local
       - .docker/vendor/cache:/home/centos/vendor/cache
-      - .docker/cpanm:/home/centos/.cpanm:delegated
       # no need to access those from docker
       - /home/centos/.docker
       - /home/centos/.git
