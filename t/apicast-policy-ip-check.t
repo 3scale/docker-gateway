@@ -281,3 +281,80 @@ A custom error message
 --- error_code: 403
 --- no_error_log
 [error]
+
+=== TEST 9: Validate that X-Forwarded-for header is working
+On IP blacklist if the client_ip_sources is set to X-Forwarded-for, if the IP
+is set the first one should be block 
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "proxy": {
+        "policy_chain": [
+          {
+            "name": "apicast.policy.ip_check",
+            "configuration": {
+              "ips": [ "1.2.3.4" ],
+              "client_ip_sources": [
+                "X-Forwarded-For"
+              ],
+              "check_type": "blacklist",
+              "error_msg": "A custom error message"
+            }
+          },
+          { "name": "apicast.policy.echo" }
+        ]
+      }
+    }
+  ]
+}
+--- request eval
+["GET /", "GET /", "GET /"]
+--- more_headers eval
+["X-forwarded-for:1.2.3.4", "X-forwarded-for: 6.6.6.6", "X-forwarded-for: 6.6.6.6, 1.2.3.4"]
+--- response_body eval
+[ "A custom error message\n", "GET / HTTP/1.1\n", "GET / HTTP/1.1\n"]
+--- error_code eval 
+[403, 200, 200]
+--- no_error_log
+[error]
+
+=== TEST 10: Validate that X-Forwarded-for header is working
+If two headers are set in the request, resty will join that and the first one
+is always the valid one. 
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "proxy": {
+        "policy_chain": [
+          {
+            "name": "apicast.policy.ip_check",
+            "configuration": {
+              "ips": [ "1.2.3.4" ],
+              "client_ip_sources": [
+                "X-Forwarded-For"
+              ],
+              "check_type": "blacklist",
+              "error_msg": "A custom error message"
+            }
+          },
+          { "name": "apicast.policy.echo" }
+        ]
+      }
+    }
+  ]
+}
+--- request eval
+["GET /", "GET /"]
+--- more_headers eval
+[
+"X-forwarded-for:1.2.3.4\r\nX-test: true\r\nX-forwarded-for: 9.9.9.9",
+"X-forwarded-for:9.9.9.9\r\nX-test: true\r\nX-forwarded-for: 1.2.3.4",
+]
+--- response_body eval
+[ "A custom error message\n", "GET / HTTP/1.1\n"]
+--- error_code eval
+[403, 200]

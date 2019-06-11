@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Changed the schema of the IP check policy so it renders correctly in the UI [PR #1026](https://github.com/3scale/APIcast/pull/1026), [THREESCALE-1692](https://issues.jboss.org/browse/THREESCALE-1692)
 - Allow uppercase backend API in the service.[PR #1044](https://github.com/3scale/APIcast/pull/1044), [THREESCALE-2540](https://issues.jboss.org/browse/THREESCALE-2540)
 - Fixed lock issues on configuration loader when Lazy mode is enabled.[PR #1050](https://github.com/3scale/APIcast/pull/1050), [THREESCALE-2194](https://issues.jboss.org/browse/THREESCALE-2194)
+- Fixed multiple x-forwarded-for headers issue on IP Check policy.[PR #1065](https://github.com/3scale/APIcast/pull/1065), [Issue #1061](https://github.com/3scale/APIcast/issues/1061)[THREESCALE-2775](https://issues.jboss.org/browse/THREESCALE-2775)
 
 ### Removed
 
