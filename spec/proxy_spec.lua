@@ -163,6 +163,44 @@ describe('Proxy', function()
       assert.equal('some_reason', rejection_reason)
     end)
 
+    it('returns an empty rejection reason instead of "limits exceeded" for disabled metrics', function()
+      local authorized, rejection_reason = proxy:handle_backend_response(
+        lrucache.new(1),
+        http_ng_response.new(
+            nil,
+            409,
+            {
+              ['3scale-rejection-reason'] = 'limits_exceeded',
+              ['3scale-limit-max-value'] = 0,
+            },
+            ''
+        ),
+        nil
+      )
+
+      assert.falsy(authorized)
+      assert.is_nil(rejection_reason)
+    end)
+
+    it('returns limits exceeded for enabled metrics', function()
+      local authorized, rejection_reason = proxy:handle_backend_response(
+          lrucache.new(1),
+          http_ng_response.new(
+              nil,
+              409,
+              {
+                ['3scale-rejection-reason'] = 'limits_exceeded',
+                ['3scale-limit-max-value'] = 100,
+              },
+              ''
+          ),
+          nil
+      )
+
+      assert.falsy(authorized)
+      assert.equal('limits_exceeded', rejection_reason)
+    end)
+
     describe('when backend is unavailable', function()
       local backend_unavailable_statuses = { 0, 499, 502 } -- Not exhaustive
       local cache_key = 'a_cache_key'
