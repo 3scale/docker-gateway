@@ -355,6 +355,15 @@ local function limit_reset(response_headers)
   return response_headers and response_headers['3scale-limit-reset']
 end
 
+-- Returns the '3scale-limit-max-value' from the headers of a 3scale backend
+-- response.
+-- This header is set only when enabled via the '3scale-options' header of the
+-- request.
+local function limit_max_value(response_headers)
+  local max = response_headers and response_headers['3scale-limit-max-value']
+  return tonumber(max)
+end
+
 local function backend_is_unavailable(response_status)
   -- 499 is a non-standard error returned by NGINX (client closed request)
   return not response_status or response_status == 0 or response_status >= 499
@@ -372,6 +381,17 @@ function _M:handle_backend_response(cached_key, response, ttl)
   local authorized = (response.status == 200)
   local unauthorized_reason = not authorized and rejection_reason(response.headers)
   local retry_after = not authorized and limit_reset(response.headers)
+  local limit_max = limit_max_value(response.headers)
+
+  -- This is for disabled metrics. Those have a limit of 0 in the 3scale
+  -- backend. When authorizing a disabled metric, backend returns "limits
+  -- exceeded" as the unauthorized reason. However, from the point of view of
+  -- APIcast, we want to distinguish between limits exceeded vs disabled
+  -- metric. That's why we reset the reason. The generic auth fail (403) will
+  -- be returned.
+  if limit_max == 0 and unauthorized_reason == 'limits_exceeded' then
+    unauthorized_reason = nil
+  end
 
   return authorized, unauthorized_reason, retry_after
 end

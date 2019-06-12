@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Allow uppercase backend API in the service.[PR #1044](https://github.com/3scale/APIcast/pull/1044), [THREESCALE-2540](https://issues.jboss.org/browse/THREESCALE-2540)
 - Fixed lock issues on configuration loader when Lazy mode is enabled.[PR #1050](https://github.com/3scale/APIcast/pull/1050), [THREESCALE-2194](https://issues.jboss.org/browse/THREESCALE-2194)
 - Fixed multiple x-forwarded-for headers issue on IP Check policy.[PR #1065](https://github.com/3scale/APIcast/pull/1065), [Issue #1061](https://github.com/3scale/APIcast/issues/1061)[THREESCALE-2775](https://issues.jboss.org/browse/THREESCALE-2775)
+- APIcast now returns "Auth failed" instead of "Limits Exceeded" for disabled metrics [PR #1066](https://github.com/3scale/APIcast/pull/1066), [THREESCALE-2755](https://issues.jboss.org/browse/THREESCALE-2755)
 
 ### Removed
 
