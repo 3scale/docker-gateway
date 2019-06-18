@@ -445,10 +445,10 @@ DISTRIBUTIONS
       Test::More 0
       Time::HiRes 0
       XML::Simple 0
-  Test-APIcast-0.22
-    pathname: M/MC/MCICHRA/Test-APIcast-0.22.tar.gz
+  Test-APIcast-0.24
+    pathname: M/MC/MCICHRA/Test-APIcast-0.24.tar.gz
     provides:
-      Test::APIcast 0.22
+      Test::APIcast 0.24
       Test::APIcast::Blackbox undef
     requirements:
       File::Slurp 0
