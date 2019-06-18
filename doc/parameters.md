@@ -241,9 +241,10 @@ This is the value that will be used in the nginx `worker_processes` [directive](
 
 ### `BACKEND_ENDPOINT_OVERRIDE`
 
-URI that overrides backend endpoint from the configuration. Useful when deploying outside OpenShift deployed AMP.
+URI that overrides the backend endpoint. By default, it is the external route. 
+This parameter is useful when deploying APIcast into the same OpenShift cluster than 3scale, as when using the internal hostname of the backend listener service instead of the public route. 
 
-**Example**: `https://backend.example.com`.
+**Example**: `http://backend-listener.<3scale-namespace>.svc.cluster.local:3000`
 
 ### `OPENSSL_VERIFY`
 
