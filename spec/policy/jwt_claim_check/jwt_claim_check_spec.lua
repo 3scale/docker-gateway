@@ -19,6 +19,8 @@ describe('JWT claim check policy', function()
     ngx.header = {}
     stub(ngx, 'print')
 
+    stub(ngx, 'say')
+
     stub(ngx.req, 'get_method', function() return 'GET' end)
     -- avoid stubbing all the ngx.var.* and ngx.req.* in the available context
     stub(ngx_variable, 'available_context', function(ctx) return ctx end)
@@ -266,7 +268,6 @@ describe('JWT claim check policy', function()
 
   it("validates custom error message", function()
       local message = "custom one"
-      spy.on(ngx, "say")
       local jwt_check = JWTClaimCheckPolicy.new({
         rules={
           {
@@ -279,8 +280,8 @@ describe('JWT claim check policy', function()
         error_message=message})
       jwt_check:access(context)
       assert.same(ngx.status, 403)
-      assert.spy(ngx.say).was.called()
-      assert.spy(ngx.say).was.called_with(message)
+      assert.stub(ngx.say).was.called()
+      assert.stub(ngx.say).was.called_with(message)
   end)
 
 end)
