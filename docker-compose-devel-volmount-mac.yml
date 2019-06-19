@@ -1,0 +1,6 @@
+version: '2.2'
+services:
+  development:
+    volumes:
+      - .:/home/centos/:cached
+      - .docker/cpanm:/home/centos/.cpanm:delegated
