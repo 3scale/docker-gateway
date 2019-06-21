@@ -122,7 +122,7 @@
     },
     "properties": {
       "rules": {
-        "description": "list of rules to be applied",
+        "description": "List of rules to be applied",
         "type": "array",
         "items": {
           "type": "object",

@@ -13,7 +13,9 @@ local re_match = ngx.re.match
 local insert = table.insert
 local re_gsub = ngx.re.gsub
 
-local _M = {}
+local _M = {
+  any_method = "ANY"
+}
 
 local mt = { __index = _M }
 
@@ -132,7 +134,7 @@ end
 -- @tparam table args Table with the args and values of an HTTP request.
 -- @treturn boolean Whether the mapping rule matches the given request.
 function _M:matches(method, uri, args)
-  local match = self.method == method and
+  local match = (self.method == self.any_method or self.method == method) and
       matches_uri(self.regexpified_pattern, uri) and
       self.querystring_params(args)
 

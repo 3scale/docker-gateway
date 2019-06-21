@@ -75,12 +75,10 @@ Return 200 code.
 
   location /flush_redis {
     content_by_lua_block {
-      local env = require('resty.env')
-      local redis_host = "$TEST_NGINX_REDIS_HOST" or '127.0.0.1'
-      local redis_port = "$TEST_NGINX_REDIS_PORT" or 6379
-      local redis = require('resty.redis'):new()
-      redis:connect(redis_host, redis_port)
-      redis:select(1)
+      local redis = require('apicast.threescale_utils').connect_redis({
+         host = "$TEST_NGINX_REDIS_HOST",
+         port = "$TEST_NGINX_REDIS_PORT",
+         db=1})
       redis:del('42_connections_test1')
     }
   }
@@ -150,12 +148,10 @@ Return 200 code.
 
   location /flush_redis {
     content_by_lua_block {
-      local env = require('resty.env')
-      local redis_host = "$TEST_NGINX_REDIS_HOST" or '127.0.0.1'
-      local redis_port = "$TEST_NGINX_REDIS_PORT" or 6379
-      local redis = require('resty.redis'):new()
-      redis:connect(redis_host, redis_port)
-      redis:select(1)
+      local redis = require('apicast.threescale_utils').connect_redis({
+         host = "$TEST_NGINX_REDIS_HOST",
+         port = "$TEST_NGINX_REDIS_PORT",
+         db=1})
       redis:del('42_connections_test2')
     }
   }
@@ -267,12 +263,10 @@ Return 200 code.
 
   location /flush_redis {
     content_by_lua_block {
-      local env = require('resty.env')
-      local redis_host = "$TEST_NGINX_REDIS_HOST" or '127.0.0.1'
-      local redis_port = "$TEST_NGINX_REDIS_PORT" or 6379
-      local redis = require('resty.redis'):new()
-      redis:connect(redis_host, redis_port)
-      redis:select(1)
+      local redis = require('apicast.threescale_utils').connect_redis({
+         host = "$TEST_NGINX_REDIS_HOST",
+         port = "$TEST_NGINX_REDIS_PORT",
+         db=1})
       redis:del('connections_test4')
     }
   }
@@ -383,12 +377,10 @@ Return 200 code.
 
   location /flush_redis {
     content_by_lua_block {
-      local env = require('resty.env')
-      local redis_host = "$TEST_NGINX_REDIS_HOST" or '127.0.0.1'
-      local redis_port = "$TEST_NGINX_REDIS_PORT" or 6379
-      local redis = require('resty.redis'):new()
-      redis:connect(redis_host, redis_port)
-      redis:select(1)
+      local redis = require('apicast.threescale_utils').connect_redis({
+         host = "$TEST_NGINX_REDIS_HOST",
+         port = "$TEST_NGINX_REDIS_PORT",
+         db=1})
       local redis_key = redis:keys('*_fixed_window_test6_3')[1]
       redis:del('leaky_bucket_test6_1', 'connections_test6_2', redis_key)
     }
@@ -458,12 +450,10 @@ Return 429 code.
 
   location /flush_redis {
     content_by_lua_block {
-      local env = require('resty.env')
-      local redis_host = "$TEST_NGINX_REDIS_HOST" or '127.0.0.1'
-      local redis_port = "$TEST_NGINX_REDIS_PORT" or 6379
-      local redis = require('resty.redis'):new()
-      redis:connect(redis_host, redis_port)
-      redis:select(1)
+      local redis = require('apicast.threescale_utils').connect_redis({
+         host = "$TEST_NGINX_REDIS_HOST",
+         port = "$TEST_NGINX_REDIS_PORT",
+         db=1})
       redis:del('connections_test7')
     }
   }
@@ -517,12 +507,10 @@ Return 503 code.
 
   location /flush_redis {
     content_by_lua_block {
-      local env = require('resty.env')
-      local redis_host = "$TEST_NGINX_REDIS_HOST" or '127.0.0.1'
-      local redis_port = "$TEST_NGINX_REDIS_PORT" or 6379
-      local redis = require('resty.redis'):new()
-      redis:connect(redis_host, redis_port)
-      redis:select(1)
+      local redis = require('apicast.threescale_utils').connect_redis({
+         host = "$TEST_NGINX_REDIS_HOST",
+         port = "$TEST_NGINX_REDIS_PORT",
+         db=1})
       redis:del('leaky_bucket_test8')
     }
   }
@@ -576,12 +564,10 @@ Return 429 code.
 
   location /flush_redis {
     content_by_lua_block {
-      local env = require('resty.env')
-      local redis_host = "$TEST_NGINX_REDIS_HOST" or '127.0.0.1'
-      local redis_port = "$TEST_NGINX_REDIS_PORT" or 6379
-      local redis = require('resty.redis'):new()
-      redis:connect(redis_host, redis_port)
-      redis:select(1)
+      local redis = require('apicast.threescale_utils').connect_redis({
+         host = "$TEST_NGINX_REDIS_HOST",
+         port = "$TEST_NGINX_REDIS_PORT",
+         db=1})
       local redis_key = redis:keys('*_fixed_window_test9')[1]
       redis:del(redis_key)
     }
@@ -654,12 +640,10 @@ Return 200 code.
 
   location /flush_redis {
     content_by_lua_block {
-      local env = require('resty.env')
-      local redis_host = "$TEST_NGINX_REDIS_HOST" or '127.0.0.1'
-      local redis_port = "$TEST_NGINX_REDIS_PORT" or 6379
-      local redis = require('resty.redis'):new()
-      redis:connect(redis_host, redis_port)
-      redis:select(1)
+      local redis = require('apicast.threescale_utils').connect_redis({
+         host = "$TEST_NGINX_REDIS_HOST",
+         port = "$TEST_NGINX_REDIS_PORT",
+         db=1})
       redis:del('connections_test10')
     }
   }
@@ -714,12 +698,10 @@ Return 200 code.
 
   location /flush_redis {
     content_by_lua_block {
-      local env = require('resty.env')
-      local redis_host = "$TEST_NGINX_REDIS_HOST" or '127.0.0.1'
-      local redis_port = "$TEST_NGINX_REDIS_PORT" or 6379
-      local redis = require('resty.redis'):new()
-      redis:connect(redis_host, redis_port)
-      redis:select(1)
+      local redis = require('apicast.threescale_utils').connect_redis({
+         host = "$TEST_NGINX_REDIS_HOST",
+         port = "$TEST_NGINX_REDIS_PORT",
+         db=1})
       redis:del('leaky_bucket_test11')
     }
   }
@@ -1047,12 +1029,10 @@ so only the third call returns 429.
 
   location /flush_redis {
     content_by_lua_block {
-      local env = require('resty.env')
-      local redis_host = "$TEST_NGINX_REDIS_HOST" or '127.0.0.1'
-      local redis_port = "$TEST_NGINX_REDIS_PORT" or 6379
-      local redis = require('resty.redis'):new()
-      redis:connect(redis_host, redis_port)
-      redis:select(1)
+      local redis = require('apicast.threescale_utils').connect_redis({
+         host = "$TEST_NGINX_REDIS_HOST",
+         port = "$TEST_NGINX_REDIS_PORT",
+         db=1})
       local redis_key1 = redis:keys('*_fixed_window_test17_1')[1]
       local redis_key2 = redis:keys('*_fixed_window_test17_2')[1]
       redis:del(redis_key1, redis_key2)
@@ -1136,12 +1116,10 @@ so only the third call returns 429.
 
   location /flush_redis {
     content_by_lua_block {
-      local env = require('resty.env')
-      local redis_host = "$TEST_NGINX_REDIS_HOST" or '127.0.0.1'
-      local redis_port = "$TEST_NGINX_REDIS_PORT" or 6379
-      local redis = require('resty.redis'):new()
-      redis:connect(redis_host, redis_port)
-      redis:select(1)
+      local redis = require('apicast.threescale_utils').connect_redis({
+         host = "$TEST_NGINX_REDIS_HOST",
+         port = "$TEST_NGINX_REDIS_PORT",
+         db=1})
       local redis_key1 = redis:keys('*_fixed_window_localhost/test18_1')[1]
       local redis_key2 = redis:keys('*_fixed_window_localhost/test18_2')[1]
       redis:del(redis_key1, redis_key2)
@@ -1195,12 +1173,10 @@ and rejected properly.
 
   location /flush_redis {
     content_by_lua_block {
-      local env = require('resty.env')
-      local redis_host = "$TEST_NGINX_REDIS_HOST" or '127.0.0.1'
-      local redis_port = "$TEST_NGINX_REDIS_PORT" or 6379
-      local redis = require('resty.redis'):new()
-      redis:connect(redis_host, redis_port)
-      redis:select(1)
+      local redis = require('apicast.threescale_utils').connect_redis({
+         host = "$TEST_NGINX_REDIS_HOST",
+         port = "$TEST_NGINX_REDIS_PORT",
+         db=1})
       redis:flushdb()
     }
   }
@@ -1276,8 +1252,64 @@ making 3 requests and checking that only the last one is rejected.
 --- config
   include $TEST_NGINX_APICAST_CONFIG;
 --- pipelined_requests eval
-["GET /flush_redis", "GET /", "GET /", "GET /"]
+["GET /", "GET /", "GET /"]
 --- error_code eval
-[200, 200, 200, 429]
+[200, 200, 429]
+--- no_error_log
+[error]
+
+=== TEST 21: condition with "matches" operation
+This test makes 3 requests that match the URL pattern defined in the
+limit. The limit is set to 2. Only the third one should fail.
+--- http_config
+  include $TEST_NGINX_UPSTREAM_CONFIG;
+  lua_package_path "$TEST_NGINX_LUA_PATH";
+
+  init_by_lua_block {
+    require "resty.core"
+    ngx.shared.limiter:flush_all()
+    require('apicast.configuration_loader').mock({
+      services = {
+        {
+          id = 42,
+          proxy = {
+            policy_chain = {
+              {
+                name = "apicast.policy.rate_limit",
+                configuration = {
+                  fixed_window_limiters = {
+                    {
+                      key = { name = "test21_key_1" },
+                      count = 2,
+                      window = 60,
+                      condition = {
+                        operations = {
+                          {
+                            left = "{{ uri }}",
+                            left_type = "liquid",
+                            op = "matches",
+                            right = "/v1/.*/something/.*",
+                            right_type = "plain"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  limits_exceeded_error = { status_code = 429 }
+                }
+              }
+            }
+          }
+        }
+      }
+    })
+  }
+  lua_shared_dict limiter 1m;
+--- config
+  include $TEST_NGINX_APICAST_CONFIG;
+--- pipelined_requests eval
+["GET /v1/aaa/something/bbb", "GET /v1/ccc/something/ddd", "GET /v1/eee/something/fff"]
+--- error_code eval
+[200, 200, 429]
 --- no_error_log
 [error]

@@ -8,7 +8,9 @@ local rawget = rawget
 local lower = string.lower
 local gsub = string.gsub
 local select = select
+
 local re = require 'ngx.re'
+local match = ngx.re.match
 
 local http_authorization = require 'resty.http_authorization'
 
@@ -162,7 +164,14 @@ function backend_version_credentials.version_oauth(config)
   return setmetatable({ access_token, access_token = access_token }, credentials_oauth_mt)
 end
 
-local function get_auth_params(method)
+-- Returns a table with the args included in the request. If it's a GET, it
+-- returns the args in the URI. Otherwise, it returns the args in the body.
+-- According to the specs, it's possible to define mapping rules like:
+-- POST /some_path?a_param={a_value}
+-- That match a request like POST "http://apicast_host:8080/some_path" with
+-- a form URL-encoded body like: "a_param=abc".
+-- That's the reason why we need to read the body.
+local function get_request_params(method)
   local params = ngx.req.get_uri_args()
 
   if method == "GET" then
@@ -226,7 +235,7 @@ local function extract_usage_v2(config, method, path)
 
   ngx.log(ngx.DEBUG, '[mapping] service ', config.id, ' has ', #rules, ' rules')
 
-  local args = get_auth_params(method)
+  local args = get_request_params(method)
   return mapping_rules_matcher.get_usage_from_matches(method, path, args, rules)
 end
 
@@ -255,6 +264,24 @@ function _M:get_usage(method, path)
   else
     return extract_usage_v2(self, method, path)
   end
+end
+
+--- Validate that the given regexp match with one of the service hosts.
+--- This function needs a valid regexp, if not will return false
+-- @tparam string regexp Regular expresion to match with the host
+-- @return bool true if match
+function _M:match_host(regexp)
+  if not regexp or not self.hosts then
+      return false
+  end
+
+  for j = 1, #self.hosts do
+    local val, _ = match(self.hosts[j], regexp, 'oj')
+    if val then
+      return true
+    end
+  end
+  return false
 end
 
 return _M

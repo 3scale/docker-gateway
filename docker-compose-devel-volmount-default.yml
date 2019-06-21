@@ -1,0 +1,7 @@
+version: '2.2'
+services:
+  development:
+    volumes:
+      - .:/home/centos/
+      - .docker/cpanm:/home/centos/.cpanm
+

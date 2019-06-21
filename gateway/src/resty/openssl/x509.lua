@@ -55,7 +55,8 @@ local function normalize_pem_cert(str)
   if not str then return end
   if #(str) == 0 then return end
 
-  return re_gsub(str, [[\s(?!CERTIFICATE)]], '\n', 'oj')
+  -- using also jit compiler (j) will result in a segfault with some certificates
+  return re_gsub(str, [[\s(?!CERTIFICATE)]], '\n', 'o')
 end
 
 function _M.parse_pem_cert(str)

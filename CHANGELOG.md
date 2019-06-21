@@ -6,10 +6,65 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+## [3.6.0-beta1] - 2019-06-18
+
 ### Added
 
 - Environment files now can use global `context` variable to share data [PR #964](https://github.com/3scale/apicast/pull/964)
 - Adde sevice id and service name headers in debug context [PR #987](https://github.com/3scale/apicast/pull/987)
+- You can filter services by endpoint name using Regexp [PR #1022](https://github.com/3scale/APIcast/pull/1022) [THREESCALE-1524](https://issues.jboss.org/browse/THREESCALE-1524)
+- "Upstream Connection" policy. It allows to configure several options for the connections to the upstream [PR #1025](https://github.com/3scale/APIcast/pull/1025), [THREESCALE-2166](https://issues.jboss.org/browse/THREESCALE-2166)
+- Enable APICAST_EXTENDED_METRICS environment variable to provide additional details [PR #1024](https://github.com/3scale/APIcast/pull/1024) [THREESCALE-2150](https://issues.jboss.org/browse/THREESCALE-2150)
+- Add the option to obtain client_id from any JWT claim [THREESCALE-2264](https://issues.jboss.org/browse/THREESCALE-2264) [PR #1034](https://github.com/3scale/APIcast/pull/1034)
+- Added `APICAST_PATH_ROUTING_ONLY` variable that allows to perform path-based routing without falling back to the default host-based routing [PR #1035](https://github.com/3scale/APIcast/pull/1035), [THREESCALE-1150](https://issues.jboss.org/browse/THREESCALE-1150)
+- Added the option to manage access based on method on Keycloak Policy. [THREESCALE-2236](https://issues.jboss.org/browse/THREESCALE-2236) [PR #1039](https://github.com/3scale/APIcast/pull/1039)
+- The Rate Limit policy now supports conditions defined with the "matches" operation. [PR #1051](https://github.com/3scale/APIcast/pull/1051), [THREESCALE-2590](https://issues.jboss.org/browse/THREESCALE-2590)
+- Upgrade OpenResty to 1.15.8.1 release.[PR #1049](https://github.com/3scale/APIcast/pull/1049), [THREESCALE-2200](https://issues.jboss.org/browse/THREESCALE-2200)
+- Now it is possible to report status codes when using reporting threads [PR #1058](https://github.com/3scale/APIcast/pull/1058), [THREESCALE-2340](https://issues.jboss.org/browse/THREESCALE-2340)
+- New Retry policy. Allows to configure retries for calls to the upstream APIs [PR #1057](https://github.com/3scale/APIcast/pull/1057), [THREESCALE-1517](https://issues.jboss.org/browse/THREESCALE-1517)
+- JWT claim policy. Allows to allow/deny traffic based on JWT claim constraint [PR #1070](https://github.com/3scale/APIcast/pull/1070), [THREESCALE-2265](https://issues.jboss.org/browse/THREESCALE-2265)
+
+### Fixed
+
+- Fixed incorrect description of the `client` attribute in the Keycloak role check policy [PR #1005](https://github.com/3scale/APIcast/pull/1005), [THREESCALE_1867](https://issues.jboss.org/browse/THREESCALE-1867)
+- `export()` now works correctly in policies of the local chain. It was only working in the `rewrite` phase [PR #1023](https://github.com/3scale/APIcast/pull/1023), [THREESCALE-2705](https://issues.jboss.org/browse/THREESCALE-2705)
+- The caching policy now works correctly when combined with the 3scale batcher one [PR #1023](https://github.com/3scale/APIcast/pull/1023), [THREESCALE-2705](https://issues.jboss.org/browse/THREESCALE-2705)
+- Fixed the name of the 3scale batching policy in the logs. Some logs showed "Caching policy" where it should have said "3scale Batcher" [PR #1029](https://github.com/3scale/APIcast/pull/1029)
+- Changed the schema of the IP check policy so it renders correctly in the UI [PR #1026](https://github.com/3scale/APIcast/pull/1026), [THREESCALE-1692](https://issues.jboss.org/browse/THREESCALE-1692)
+- Allow uppercase backend API in the service.[PR #1044](https://github.com/3scale/APIcast/pull/1044), [THREESCALE-2540](https://issues.jboss.org/browse/THREESCALE-2540)
+- Fixed lock issues on configuration loader when Lazy mode is enabled.[PR #1050](https://github.com/3scale/APIcast/pull/1050), [THREESCALE-2194](https://issues.jboss.org/browse/THREESCALE-2194)
+- Fixed multiple x-forwarded-for headers issue on IP Check policy.[PR #1065](https://github.com/3scale/APIcast/pull/1065), [Issue #1061](https://github.com/3scale/APIcast/issues/1061)[THREESCALE-2775](https://issues.jboss.org/browse/THREESCALE-2775)
+- APIcast now returns "Auth failed" instead of "Limits Exceeded" for disabled metrics [PR #1066](https://github.com/3scale/APIcast/pull/1066), [THREESCALE-2755](https://issues.jboss.org/browse/THREESCALE-2755)
+
+### Removed
+
+- Checking `aud` JWT claim for app_id when using OIDC integration [PR #1007](https://github.com/3scale/APIcast/pull/1007), [THREESCALE-2263](https://issues.jboss.org/projects/THREESCALE/issues/THREESCALE-2263)
+
+## [3.5.1] - 2019-05-07
+
+Apart from the changes mentioned in this section, this version also includes the changes introduced in `3.5.0-rc1` that were not included in `3.5.0`.
+
+### Added
+
+- Ability to configure client certificate chain depth [PR #1006](https://github.com/3scale/APIcast/pull/1006), [THREESCALE-2383](https://issues.jboss.org/browse/THREESCALE-2383)
+
+### Fixed
+
+- Segfault when normalizing some client certificates [PR #1006](https://github.com/3scale/APIcast/pull/1006)
+- Fixed incorrect connection reuse for requests on different domains [PR #1021](https://github.com/3scale/APIcast/pull/1021), [THREESCALE-2205](https://issues.jboss.org/browse/THREESCALE-2205)
+
+## [3.5.0] - 2019-05-07
+
+`3.5.0-beta1` was considered final and became `3.5.0`. Notice that this version does not include the changes introduced in `3.5.0-rc1`.
+
+## [3.5.0-rc1] - 2019-03-29
+
+### Changed
+
+- Do not send OpenResty version in the `Server` response header [PR #997](https://github.com/3scale/APIcast/pull/997), [THREESCALE-1989](https://issues.jboss.org/browse/THREESCALE-1989)
+- When using OIDC, the "no-body" option is now set when contacting the 3scale backend. This option helps reducing the workload in the 3scale backend and the network traffic [#998](https://github.com/3scale/APIcast/pull/998), [THREESCALE-2006](https://issues.jboss.org/browse/THREESCALE-2006)
+
+## [3.5.0-beta1] - 2019-03-12
 
 ### Changed
 
@@ -29,6 +84,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - New routing policy that selects an upstream based on the request path, a header, a query argument, or a jwt claim [PR #976](https://github.com/3scale/apicast/pull/976), [PR #983](https://github.com/3scale/apicast/pull/983), [PR #984](https://github.com/3scale/apicast/pull/984), [THREESCALE-1709](https://issues.jboss.org/browse/THREESCALE-1709)
 - Added "last" attribute in the mapping rules. When set to true indicates that, if the rule matches, APIcast should not try to match the rules placed after this one [PR #982](https://github.com/3scale/apicast/pull/982), [THREESCALE-1344](https://issues.jboss.org/browse/THREESCALE-1344)
 - Added TLS Validation policy to verify TLS Client Certificate against a whitelist. [PR #966](https://github.com/3scale/apicast/pull/966), [THREESCALE-1671](https://issues.jboss.org/browse/THREESCALE-1671)
+- New CLI command "push_policy" that pushes a policy schema to the 3scale admin portal [PR #986](https://github.com/3scale/apicast/pull/986), [PR #992](https://github.com/3scale/apicast/pull/992), [THREESCALE-871](https://issues.jboss.org/browse/THREESCALE-871)
+- Added support for experimental standalone YAML configuration [PR #926](https://github.com/3scale/apicast/pull/926)
+- Environment files now can use global `context` variable to share data [PR #964](https://github.com/3scale/apicast/pull/964)
+- Added service id and service name headers in debug context [PR #987](https://github.com/3scale/apicast/pull/987)
 
 ### Changed
 
@@ -584,7 +643,7 @@ expressed might change in future releases.
 ### Changed
 - Major rewrite using JSON configuration instead of code generation.
 
-[Unreleased]: https://github.com/3scale/apicast/compare/v3.4.0-rc2...HEAD
+[Unreleased]: https://github.com/3scale/apicast/compare/v3.6.0-beta1...HEAD
 [2.0.0]: https://github.com/3scale/apicast/compare/v0.2...v2.0.0
 [3.0.0-alpha1]: https://github.com/3scale/apicast/compare/v2.0.0...v3.0.0-alpha1
 [3.0.0-alpha2]: https://github.com/3scale/apicast/compare/v3.0.0-alpha1...v3.0.0-alpha2
@@ -616,3 +675,8 @@ expressed might change in future releases.
 [3.4.0-rc1]: https://github.com/3scale/apicast/compare/v3.4.0-beta1...v3.4.0-rc1
 [3.4.0-rc2]: https://github.com/3scale/apicast/compare/v3.4.0-rc1...v3.4.0-rc2
 [3.4.0]: https://github.com/3scale/apicast/compare/v3.4.0-rc2...v3.4.0
+[3.5.0-beta1]: https://github.com/3scale/apicast/compare/v3.4.0...v3.5.0-beta1
+[3.5.0-rc1]: https://github.com/3scale/apicast/compare/v3.5.0-beta1...v3.5.0-rc1
+[3.5.0]: https://github.com/3scale/apicast/compare/v3.5.0-beta1...v3.5.0
+[3.5.1]: https://github.com/3scale/apicast/compare/v3.5.0...v3.5.1
+[3.6.0-beta1]: https://github.com/3scale/apicast/compare/v3.5.1...v3.6.0-beta1

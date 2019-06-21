@@ -26,9 +26,13 @@ describe('find_service', function()
         end)
       end)
 
-      describe('and there is not a service with a matching path', function()
-        it('fallbacks to find a service by host and stores it in the context', function()
+      describe('and fallback to find by host is enabled', function()
+        before_each(function()
           ConfigurationStore.path_routing = true
+          ConfigurationStore.path_routing_only = false
+        end)
+
+        it('finds the service by host and stores it in the context', function()
           local service = { id = '1' }
           local context = { configuration = ConfigurationStore.new(), host = 'example.com' }
           stub(PathBasedFinder, 'find_service', function() return nil end)
@@ -46,7 +50,6 @@ describe('find_service', function()
         end)
 
         it('stores nil in the context if there is not a service for the host', function()
-          ConfigurationStore.path_routing = true
           local context = { }
           stub(PathBasedFinder, 'find_service', function() return nil end)
           stub(HostBasedFinder, 'find_service', function() return nil end)
@@ -58,11 +61,39 @@ describe('find_service', function()
           assert.is_nil(context.service)
         end)
       end)
+
+      describe('and fallback to find by host is disabled', function()
+        before_each(function()
+          ConfigurationStore.path_routing = true
+          ConfigurationStore.path_routing_only = true
+        end)
+
+        it('stores nil in the context even if there is a service for the host', function()
+          local service = { id = '1' }
+          local context = { configuration = ConfigurationStore.new(), host = 'example.com' }
+          stub(PathBasedFinder, 'find_service', function() return nil end)
+          stub(HostBasedFinder, 'find_service', function(config_store, host)
+            if config_store == context.configuration and host == context.host then
+              return service
+            end
+          end)
+
+          local find_service = FindService.new()
+
+          find_service:rewrite(context)
+
+          assert.is_nil(context.service)
+        end)
+      end)
     end)
 
     describe('when path routing is disabled', function()
-      it('finds the service by host and stores it in the context', function()
+      before_each(function()
         ConfigurationStore.path_routing = false
+        ConfigurationStore.path_routing_only = false
+      end)
+
+      it('finds the service by host and stores it in the context', function()
         local service = { id = '1' }
         local context = { configuration = ConfigurationStore.new(), host = 'example.com' }
         stub(HostBasedFinder, 'find_service', function(config_store, host)
@@ -80,7 +111,6 @@ describe('find_service', function()
       end)
 
       it('stores nil in the context if there is not a service for the host', function()
-        ConfigurationStore.path_routing = false
         local context = { }
         stub(HostBasedFinder, 'find_service', function() return nil end)
         local find_service = FindService.new()

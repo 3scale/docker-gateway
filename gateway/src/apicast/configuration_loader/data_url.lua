@@ -6,6 +6,7 @@ local _M = {}
 
 local MimeType = require('resty.mime')
 local cjson = require('cjson')
+local YAML = require('resty.yaml')
 
 local pattern = [[^data:(?<mediatype>[a-z]+\/[a-z0-9-+.]+(?<charset>;[a-z-]+=[a-z0-9-]+)?)?(?<base64>;base64)?,(?<data>[a-z0-9!$&',()*+;=\-._~:@\/?%\s]*?)$]]
 local re_match = ngx.re.match
@@ -26,7 +27,8 @@ local function parse(url)
 end
 
 local decoders = {
-  ['application/json'] = function(data) return cjson.encode(cjson.decode(data)) end,
+  ['application/json'] = function(data) return cjson.decode(data) end,
+  ['application/yaml'] = function(data) return YAML.load(data) end,
 }
 
 local function decode(data_url)
@@ -50,12 +52,20 @@ local function decode(data_url)
   end
 end
 
-function _M.call(uri)
+function _M.parse(uri)
   local data_url, err = parse(uri)
 
   if not data_url then return nil, err end
 
   return decode(data_url)
+end
+
+function _M.call(uri)
+  local data, err = _M.parse(uri)
+
+  if err then return nil, err end
+
+  return cjson.encode(data)
 end
 
 

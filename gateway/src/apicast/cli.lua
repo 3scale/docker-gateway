@@ -24,6 +24,7 @@ _M.commands = load_commands({
   'start',
   'generate',
   'console',
+  'push_policy'
 }, parser)
 
 function mt.__call(self, arg)

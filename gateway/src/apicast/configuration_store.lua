@@ -10,7 +10,9 @@ local lrucache = require 'resty.lrucache'
 
 local _M = {
   _VERSION = '0.1',
-  path_routing = env.enabled('APICAST_PATH_ROUTING') or env.enabled('APICAST_PATH_ROUTING_ENABLED'),
+  path_routing = env.enabled('APICAST_PATH_ROUTING') or env.enabled('APICAST_PATH_ROUTING_ENABLED') or
+                 env.enabled('APICAST_PATH_ROUTING_ONLY'),
+  path_routing_only = env.enabled('APICAST_PATH_ROUTING_ONLY'),
   cache_size = 1000
 }
 
@@ -19,12 +21,18 @@ if env.enabled('APICAST_PATH_ROUTING_ENABLED') then ngx.log(ngx.WARN, 'DEPRECATI
 local mt = { __index = _M, __tostring = function() return 'Configuration Store' end }
 
 function _M.new(cache_size, options)
-  local path_routing
+  local path_routing, path_routing_only
 
   if options and options.path_routing ~= nil then
     path_routing = options.path_routing
   else
     path_routing = _M.path_routing
+  end
+
+  if options and options.path_routing_only ~= nil then
+    path_routing_only = options.path_routing_only
+  else
+    path_routing_only = _M.path_routing_only
   end
 
   return setmetatable({
@@ -41,6 +49,7 @@ function _M.new(cache_size, options)
     cache = lrucache.new(cache_size or _M.cache_size),
 
     path_routing = path_routing,
+    path_routing_only = path_routing_only,
 
     cache_size = cache_size
 

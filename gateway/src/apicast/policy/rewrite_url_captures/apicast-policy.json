@@ -3,11 +3,11 @@
   "name": "URL rewriting with captures",
   "summary": "Captures arguments in a URL and rewrites the URL using them.",
   "description":
-    ["Captures arguments in a URL and rewrites the URL using those arguments. ",
+    ["Captures arguments in a URL and rewrites the URL using these arguments. ",
      "For example, we can specify a matching rule with arguments like ",
      "'/{orderId}/{accountId}' and a template that specifies how to rewrite ",
-     "the URL using those arguments, for example: ",
-     "'/sales/v2/{orderId}?account={accountId}'. In that case, the request ",
+     "the URL using those arguments. Example: ",
+     "'/sales/v2/{orderId}?account={accountId}'; in this case, the request ",
      "'/123/456' will be transformed into '/sales/v2/123?account=456'"],
   "version": "builtin",
   "configuration": {

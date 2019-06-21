@@ -1,0 +1,174 @@
+global:
+  log_level: debug
+  error_log: stderr
+  access_log: stdout
+  opentracing_tracer: jaeger
+  upstream:
+    load_balancer: least_conn
+    retry: 5xx
+    retry_times: 3
+
+# we can pretend this would be nested inside `servers` block in the future
+server:
+  # nginx config options like client_body_timeout or send_timeout
+  listen:
+  - port: 8090
+    name: management
+  - port: 8081
+    name: echo # and also fake backend
+  - port: 8080
+    name: default # default would be the default name
+  - port: 8089
+    name: default # default would be the default name
+    proxy_protocol: true
+  - port: 8443
+    # name: default # several listen could have the same name
+    protocol: http2 # | spdy | http
+    tls: true
+  - port: 8444
+    name: default
+    protocol: http2 # | spdy | http
+    proxy_protocol: true
+    tls:
+      protocols: TLSv1.3
+      # those two could be the defaults as policies have ssl_certificate phase
+      certificate: conf/server.crt
+      certificate_key: conf/server.key
+      ciphers: "HIGH:!aNULL:!MD5"
+  - port: 9421
+    name: prometheus
+    tls:
+      protocols: TLSv1.3
+      # those two could be the defaults as policies have ssl_certificate phase
+      certificate: conf/server.crt
+      certificate_key: conf/server.key
+      ciphers:
+        - HIGH
+        - "!aNULL"
+        - "!MD5"
+
+routes:
+  - # Route object
+    name: management
+    match:
+      # Condition DSL to be defined by Rate limit policy and Conditional policy evaluation
+      server_port: management # otherwise would match the default
+    destination: # Destination DSL, AB testing, traffic split, etc. to be extended in the future
+      service: management
+      policy_chain: management
+      upstream: management
+
+  - name: echo
+    match:
+      server_port: echo # otherwise would match the default
+    destination:
+      service: echo
+
+  - match:
+      server_port: prometheus
+    routes:
+    - match:
+        uri_path: '/metrics'
+        http_method: 'GET'
+      destination:
+        service: prometheus
+
+    - match:
+        http_method: 'POST'
+      destination:
+        http_response: 405
+
+    # I'd like to treat this as a route tree.
+    # If it matches all conditions of this rule then we can route it deeper.
+    # But if it does not match the child rules we should reject the request with 404 (or with some other policy).
+    destination:
+      service: not_found
+
+  - match:
+      http_host: auth.example.com
+    destination:
+      service: auth-server
+
+  - match:
+      server_port: default # could be ommited, default would be the default
+    destination:
+      service: 3scale
+
+  - match:
+      always: true
+    destination:
+      service: not_found
+
+internal: # TODO: if we can figure out better name than "service" we would make our life much easier, vhost?
+
+- name: auth-server
+  policy_chain:
+  - policy: example.authentication.server
+    configuration:
+      redis: external://redis
+
+- name: 3scale
+  policy_chain:
+  - policy: apicast.policy.load_configuration
+  - policy: apicast.policy.find_service
+  - policy: apicast.policy.local_chain
+
+- name: simple
+  policy_chain:
+  - policy: example.authentication.client
+    configuration:
+      server: internal://auth-server
+
+  upstream: http://echo-api.3scale.net
+
+- name: echo
+  policy_chain:
+  - logging
+  # - echo
+  # upstream: http://echo-api.3scale.net
+  upstream: external://echo
+
+- name: backend # this is fake backend
+  policy_chain:
+  - echo
+
+- name: management
+  policy_chain:
+  - policy: apicast.policy.management
+    configuration:
+      mode: debug
+
+- name: prometheus
+  policy_chain:
+  - policy: apicast.policy.prometheus
+
+- name: echo
+  policy_chain:
+  - policy: apicast.policy.cors
+    configuration:
+      allow_methods: GET
+      allow_origin: '*'
+  - policy: apicast.policy.echo
+
+- name: logging
+  policy_chain:
+  - policy: log
+    configuration:
+      url: syslog://localhost
+      fields: url, path, client_ip
+
+external: # kind of like egress, but it could also be an internal service
+# an abstraction for stubbing out external services with policies (fake backend vs external service)
+- name: backend
+  server: https://su1.3scale.net
+  load_balancer: least_conn
+
+- name: echo
+  server: https://echo-api.3scale.net
+  load_balancer: least_conn
+
+- name: redis
+  server: tcp://localhost:6879
+  load_balancer: least_conn
+  retries: 3
+

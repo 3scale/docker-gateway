@@ -12,6 +12,7 @@ local sub = string.sub
 local exec = require('resty.execvp')
 local resty_env = require('resty.env')
 local re = require('ngx.re')
+local resty_url = require('resty.url')
 
 local Template = require('apicast.cli.template')
 local Environment = require('apicast.cli.environment')
@@ -106,9 +107,19 @@ local function openresty_binary(candidates)
         find_openresty_command(candidates)
 end
 
+local function to_uri(uri)
+    local url = resty_url.parse(uri)
+
+    if url then
+        return uri
+    elseif uri then
+        return format('file:%s', uri)
+    end
+end
+
 local function build_env(options, config, context)
     return {
-        APICAST_CONFIGURATION = options.configuration or context.configuration,
+        APICAST_CONFIGURATION = to_uri(options.configuration or context.configuration),
         APICAST_CONFIGURATION_LOADER = options.configuration_loader or context.configuration_loader or 'lazy',
         APICAST_CONFIGURATION_CACHE = options.cache or context.configuration_cache,
         THREESCALE_DEPLOYMENT_ENV = context.configuration_channel or options.channel or config.name,

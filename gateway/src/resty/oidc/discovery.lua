@@ -61,6 +61,12 @@ function _M:openid_configuration(issuer)
         return nil, 'no OIDC endpoint'
     end
 
+    local _, err = resty_url.parse(uri)
+    if err then
+      ngx.log(ngx.WARN, 'OIDC url is not valid, uri: "' .. uri ..'", error: ' .. err)
+      return nil, 'OIDC url is not valid, uri: "' .. uri ..'", error: ' .. err
+    end
+
     local res = http_client.get(uri)
 
     if res.status ~= 200 then

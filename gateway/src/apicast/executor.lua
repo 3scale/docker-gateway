@@ -38,7 +38,11 @@ local function build_context(executor)
 end
 
 local function shared_build_context(executor)
-    local ctx = ngx.ctx or {}
+    local ok, ctx = pcall(function() return ngx.ctx end)
+    if not ok then
+      ctx = {}
+    end
+
     local context = ctx.context
 
     if not context then
@@ -101,6 +105,22 @@ do
                 executed[policy.init_worker] = true
             end
         end
+    end
+
+    -- balancer() cannot be forwarded directly because we want to keep track of
+    -- the number of times the balancer phase was executed for the current
+    -- request. That's needed for retrying the upstream request a given number
+    -- of times.
+    -- Having this counter in the retry policy instead of here would impose
+    -- restrictions on the place the retry policy needs to occupy in the chain.
+    -- The counter is used in the balancer module, which can be called from
+    -- several policies. The counter would only be updated if the retry policy
+    -- was run because the others than run on balancer().
+    function _M:balancer()
+        local context = self:context('balancer')
+        context.balancer_retries = (context.balancer_retries and context.balancer_retries + 1) or 0
+        context.peer_set_in_current_balancer_try = false
+        return self.policy_chain.balancer(self.policy_chain, context)
     end
 
     function _M.reset_available_policies()

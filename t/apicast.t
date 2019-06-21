@@ -919,3 +919,51 @@ GET /?user_key=value
 --- error_code: 403
 --- no_error_log
 [error]
+
+=== TEST 24: returns "authorization failed" instead of "limits exceeded" for disabled metrics
+"Disabled metrics" are those that have a limit of 0 in the 3scale backend.
+--- http_config
+  lua_package_path "$TEST_NGINX_LUA_PATH";
+  include $TEST_NGINX_UPSTREAM_CONFIG;
+  init_by_lua_block {
+    require('apicast.configuration_loader').mock({
+      services = {
+        {
+          backend_version = 1,
+          proxy = {
+            api_backend = "http://127.0.0.1:$TEST_NGINX_SERVER_PORT/api-backend/",
+            proxy_rules = {
+              { pattern = '/', http_method = 'GET', metric_system_name = 'hits' }
+            }
+          }
+        }
+      }
+    })
+  }
+--- config
+  include $TEST_NGINX_APICAST_CONFIG;
+
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+      local expected_3scale_opts = 'rejection_reason_header=1&limit_headers=1&no_body=1'
+      require('luassert').same(ngx.var['http_3scale_options'], expected_3scale_opts)
+
+      ngx.header['3scale-rejection-reason'] = 'limits_exceeded';
+      ngx.header['3scale-limit-reset'] = 60;
+      ngx.header['3scale-limit-max-value'] = 0;
+
+      ngx.status = 409;
+      ngx.exit(ngx.HTTP_OK);
+    }
+  }
+
+  location /api-backend/ {
+     echo 'yay';
+  }
+--- request
+GET /?user_key=value
+--- response_body chomp
+Authentication failed
+--- error_code: 403
+--- no_error_log
+[error]

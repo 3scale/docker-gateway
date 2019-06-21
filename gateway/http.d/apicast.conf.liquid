@@ -72,6 +72,7 @@ server {
 
   ssl_verify_client optional_no_ca;
   ssl_certificate_by_lua_block { require('apicast.executor'):ssl_certificate() }
+  ssl_verify_depth {{ env.APICAST_HTTPS_VERIFY_DEPTH | default: 1 }};
   {%- endif %}
 
   server_name _;

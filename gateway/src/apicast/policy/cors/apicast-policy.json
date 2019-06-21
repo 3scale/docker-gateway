@@ -3,7 +3,7 @@
   "name": "CORS",
   "summary": "Enables CORS (Cross Origin Resource Sharing) request handling.",
   "description":
-    ["This policy enables CORS (Cross Origin Resource Sharing) request ",
+    ["This policy enables Cross Origin Resource Sharing (CORS) request ",
      "handling. It allows to define CORS headers such as ",
      "Access-Control-Allow-Headers, Access-Control-Allow-Methods, etc. \n",
      "When combined with the APIcast policy, the CORS policy should be ",

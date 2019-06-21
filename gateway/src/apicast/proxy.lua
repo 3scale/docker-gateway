@@ -30,7 +30,7 @@ local reporting_executor = require('resty.concurrent.immediate_executor')
 do
   local reporting_threads = tonumber(env.value('APICAST_REPORTING_THREADS')) or 0
 
-  if reporting_threads > 0 and not response_codes then
+  if reporting_threads > 0 then
     reporting_executor = require('resty.concurrent.timer_pool_executor').new({
       max_timers = reporting_threads,
       fallback_policy = 'caller_runs',
@@ -300,26 +300,20 @@ function _M:access(service, usage, credentials, ttl)
   return self:authorize(service, usage or ctx.usage, credentials or ctx.credentials, ttl or ctx.ttl)
 end
 
-local function response_codes_data()
-  local params = {}
-
+local function response_codes_data(status)
   if not response_codes then
-    return params
+    return {}
+  else
+    return { ["log[code]"] = status }
   end
-
-  if response_codes then
-    params["log[code]"] = ngx.var.status
-  end
-
-  return params
 end
 
-local function post_action(self, cached_key, service, credentials, formatted_usage)
+local function post_action(self, cached_key, service, credentials, formatted_usage, response_status_code)
   local backend = build_backend_client(self, service)
   local res = backend:authrep(
           formatted_usage,
           credentials,
-          response_codes_data(),
+          response_codes_data(response_status_code),
           self.extra_params_backend_authrep
   )
 
@@ -342,7 +336,7 @@ function _M:post_action(context)
   local credentials = context.credentials
   local formatted_usage = format_usage(context.usage)
 
-  reporting_executor:post(post_action, self, cached_key, service, credentials, formatted_usage)
+  reporting_executor:post(post_action, self, cached_key, service, credentials, formatted_usage, ngx.var.status)
 end
 
 -- Returns the rejection reason from the headers of a 3scale backend response.
@@ -359,6 +353,15 @@ end
 -- request.
 local function limit_reset(response_headers)
   return response_headers and response_headers['3scale-limit-reset']
+end
+
+-- Returns the '3scale-limit-max-value' from the headers of a 3scale backend
+-- response.
+-- This header is set only when enabled via the '3scale-options' header of the
+-- request.
+local function limit_max_value(response_headers)
+  local max = response_headers and response_headers['3scale-limit-max-value']
+  return tonumber(max)
 end
 
 local function backend_is_unavailable(response_status)
@@ -378,6 +381,17 @@ function _M:handle_backend_response(cached_key, response, ttl)
   local authorized = (response.status == 200)
   local unauthorized_reason = not authorized and rejection_reason(response.headers)
   local retry_after = not authorized and limit_reset(response.headers)
+  local limit_max = limit_max_value(response.headers)
+
+  -- This is for disabled metrics. Those have a limit of 0 in the 3scale
+  -- backend. When authorizing a disabled metric, backend returns "limits
+  -- exceeded" as the unauthorized reason. However, from the point of view of
+  -- APIcast, we want to distinguish between limits exceeded vs disabled
+  -- metric. That's why we reset the reason. The generic auth fail (403) will
+  -- be returned.
+  if limit_max == 0 and unauthorized_reason == 'limits_exceeded' then
+    unauthorized_reason = nil
+  end
 
   return authorized, unauthorized_reason, retry_after
 end

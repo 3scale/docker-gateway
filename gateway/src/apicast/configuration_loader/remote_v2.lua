@@ -38,7 +38,6 @@ function _M.new(url, options)
   }
 
   local path = resty_url.split(endpoint or '')
-
   return setmetatable({
     endpoint = endpoint,
     path = path and path[6],

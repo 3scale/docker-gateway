@@ -898,11 +898,11 @@ Content-Type: application/json
 --- no_error_log
 [error]
 
-=== TEST 21: correct 3scale backend options
+=== TEST 21: correct 3scale backend options when using oauth native
 When authorizing against 3scale's backend, the call includes the correct
 options in the headers. That is, it includes the 'rejection_reason' option,
-but not the 'no_body' one, as in the oauth flow, parsing the response body is
-necessary.
+but not the 'no_body' one, as in the native oauth flow, parsing the response
+body is necessary.
 --- http_config
   lua_package_path "$TEST_NGINX_LUA_PATH";
   include $TEST_NGINX_UPSTREAM_CONFIG;
@@ -936,9 +936,10 @@ necessary.
 
   location = /backend/transactions/oauth_authrep.xml {
     content_by_lua_block {
-      if ngx.var['http_3scale_options'] == 'rejection_reason_header=1' then
-        ngx.header['3scale-rejection-reason'] = 'limits_exceeded';
-      end
+      require('luassert').same(
+        ngx.var['http_3scale_options'],
+        'rejection_reason_header=1&limit_headers=1'
+      )
     }
   }
 --- request

@@ -61,7 +61,7 @@
                   },
                   "client": {
                     "type": "string",
-                    "description": "Client of the role. When this is not defined, this policy uses the 'aud' claim as the client."
+                    "description": "Client of the role."
                   },
                   "client_type": {
                     "description": "How to evaluate 'client'",
@@ -77,6 +77,26 @@
             "resource_type": {
               "description": "How to evaluate 'resource'",
               "$ref": "#/definitions/value_type"
+            },
+            "methods": {
+                "description": "Allowed methods",
+                "type": "array",
+                "default": ["ANY"],
+                "items": {
+                    "type": "string",
+                    "enum": [
+                        "ANY",
+                        "GET",
+                        "HEAD",
+                        "POST",
+                        "PUT",
+                        "DELETE",
+                        "PATCH",
+                        "OPTIONS",
+                        "TRACE",
+                        "CONNECT"
+                    ]
+                }
             }
           }
         }

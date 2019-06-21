@@ -1,6 +1,6 @@
 # APIcast
 
-[![CircleCI](https://circleci.com/gh/3scale/apicast/tree/master.svg?style=shield)](https://circleci.com/gh/3scale/apicast/tree/master)
+[![CircleCI](https://circleci.com/gh/3scale/APIcast/tree/master.svg?style=shield)](https://circleci.com/gh/3scale/APIcast/tree/master)
 [![Docker Repository on Quay](https://quay.io/repository/3scale/apicast/status "Docker Repository on Quay")](https://quay.io/repository/3scale/apicast)
 [![codecov](https://codecov.io/gh/3scale/apicast/branch/master/graph/badge.svg)](https://codecov.io/gh/3scale/apicast)
 

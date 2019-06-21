@@ -137,4 +137,26 @@ function _M.set_peer(self, peers)
   end
 end
 
+function _M:set_timeouts(connect_timeout, send_timeout, read_timeout)
+  local ngx_balancer = self.balancer
+
+  if not ngx_balancer then
+    return nil, 'balancer not available'
+  end
+
+  -- If one of the values is nil, the default applies:
+  -- https://github.com/openresty/lua-resty-core/blob/master/lib/ngx/balancer.md#set_timeouts
+  return ngx_balancer.set_timeouts(connect_timeout, send_timeout, read_timeout)
+end
+
+function _M:retry_next_request()
+  local ngx_balancer = self.balancer
+
+  if not ngx_balancer then
+    return nil, 'balancer not available'
+  end
+
+  return ngx_balancer.set_more_tries(1)
+end
+
 return _M

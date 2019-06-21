@@ -6,7 +6,8 @@
 - [**Liquid templating**](#liquid-templating)
 - [**Requests over limits**](#requests-over-limits)
 - [**Per-gateway vs shared**](#per-gateway-vs-shared)
-- [**Complete config example**](#complete-config-example)
+- [**Limits with conditions**](#limits-with-conditions)
+- [**Complete config example**](#complete-config-examples)
 
 
 ## Description
@@ -141,7 +142,38 @@ To use Redis, we just need to provide the `redis_url` attribute in the config
 of the policy: `"redis_url": "redis://a_host:6379"`
 
 
-## Complete config example
+## Limits with conditions
+
+The policy allows to define limits with conditions. The limit will be applied
+only when the condition is true. The following example shows how to define a
+limit that applies only when the path of the request matches
+`/v1/.*/something/.*`.
+
+```json
+{
+  "key": {
+    "name": "limit_path"
+  },
+  "count": 10,
+  "window": 60,
+  "condition": {
+    "operations": [
+      {
+        "left": "{{ uri }}",
+        "left_type": "liquid",
+        "op": "matches",
+        "right": "/v1/.*/something/.*",
+        "right_type": "plain"
+      }
+    ]
+  }
+}
+```
+
+Apart from "matches", the policy also supports operations with "==" and "!=".
+
+
+## Complete config examples
 
 ```json
 {
@@ -177,6 +209,78 @@ of the policy: `"redis_url": "redis://a_host:6379"`
       }
     ],
     "redis_url": "redis://localhost:6379"
+  }
+}
+```
+
+Another example with different applications, paths, and limits:
+- 2 app IDs: `app_id_1`, `app_id_2`. Assuming they come in the `app-id` header.
+- 2 different endpoints: `/path1`, `/path2`.
+- Rate_limits:
+    - `app_id_1`. 10 rps on `/path1`.
+    - `app_id_2`. 20 rps on `/path2`.
+
+```json
+{
+  "name": "rate_limit",
+  "version": "builtin",
+  "configuration": {
+    "fixed_window_limiters": [
+      {
+        "key": {
+          "name": "app_id_1_path_1"
+        },
+        "scope": "service",
+        "condition": {
+          "operations": [
+            {
+              "left": "{{ uri }}",
+              "left_type": "liquid",
+              "op": "==",
+              "right": "/path1",
+              "right_type": "plain"
+            },
+            {
+              "left": "{{ headers['app-id'] }}",
+              "left_type": "liquid",
+              "op": "==",
+              "right": "app_id_1",
+              "right_type": "plain"
+            }
+          ],
+          "combine_op": "and"
+        },
+        "count": 10,
+        "window": 1
+      },
+      {
+        "key": {
+          "name": "app_id_2_path_2"
+        },
+        "scope": "service",
+        "condition": {
+          "operations": [
+            {
+              "left": "{{ uri }}",
+              "left_type": "liquid",
+              "op": "==",
+              "right": "/path2",
+              "right_type": "plain"
+            },
+            {
+              "left": "{{ headers['app-id'] }}",
+              "left_type": "liquid",
+              "op": "==",
+              "right": "app_id_2",
+              "right_type": "plain"
+            }
+          ],
+          "combine_op": "and"
+        },
+        "count": 20,
+        "window": 1
+      }
+    ]
   }
 }
 ```

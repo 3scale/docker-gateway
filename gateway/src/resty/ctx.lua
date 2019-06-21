@@ -19,11 +19,17 @@ local tonumber = tonumber
 local _M = {
 }
 
+local function __ngx_req()
+  return getfenv(0).__ngx_req
+end
+
+local get_request = base.get_request or __ngx_req
+
 --- Return ctx reference number
 -- @raise no request found, no request ctx found
 -- @treturn int
 function _M.ref()
-  local r = getfenv(0).__ngx_req
+  local r = get_request()
 
   if not r then
     return error("no request found")
@@ -52,7 +58,7 @@ function _M.stash(var)
 end
 
 local function get_ctx(ref)
-  local r = getfenv(0).__ngx_req
+  local r = get_request()
 
   if not r then
     return error("no request found")

@@ -84,7 +84,8 @@ Allows to set the log level for the logs related to OpenID Connect integration
 **Values:**
 
 - `disabled`: completely disabled, just listens on the port
-- `status`: only the `/status/` endpoints enabled for health checks
+- `status`: enables the `/status/` endpoint for health checks, and the `/policies` endpoint that shows the list of available policies.
+- `policies`: enables only the `/policies` endpoint.
 - `debug`: full API is open
 
 The [Management API](./management-api.md) is powerful and can control the APIcast configuration.
@@ -111,6 +112,16 @@ When configured to authenticate using OAuth, this param specifies the TTL (in se
 - `false`, `0` or empty for _false_
 
 When this parameter is set to _true_, the gateway will use path-based routing in addition to the default host-based routing. The API request will be routed to the first service that has a matching mapping rule, from the list of services for which the value of the `Host` header of the request matches the _Public Base URL_.
+
+### `APICAST_PATH_ROUTING_ONLY`
+
+**Values:**
+- `true` or `1` for _true_
+- `false`, `0` or empty for _false_
+
+When this parameter is set to _true_, the gateway uses path-based routing and will not fallback to the default host-based routing. The API request will be routed to the first service that has a matching mapping rule, from the list of services for which the value of the `Host` header of the request matches the _Public Base URL_.
+
+This parameter has precedence over `APICAST_PATH_ROUTING`. If `APICAST_PATH_ROUTING_ONLY` is enabled, APIcast will only do path-based routing regardless of the value of `APICAST_PATH_ROUTING`.
 
 ### `APICAST_POLICY_LOAD_PATH`
 
@@ -178,6 +189,29 @@ before the client is throttled by adding latency.
 When set to _true_, APIcast will log the response code of the response returned by the API backend in 3scale. In some plans this information can later be consulted from the 3scale admin portal.
 Find more information about the Response Codes feature on the [3scale support site](https://access.redhat.com/documentation/en-us/red_hat_3scale/2.saas/html/analytics/response-codes-tracking).
 
+### `APICAST_SERVICES_FILTER_BY_URL`
+**Value:** a PCRE (Perl Compatible Regular Expression)
+**Example:** .*.example.com
+
+Used to filter the service configured in the 3scale API Manager, the filter
+matches with the public base URL. Services that do not match the filter will be
+discarded. If the regular expression cannot be compiled no services will be
+loaded. 
+
+Note: If a service does not match, but is included in the
+`APICAST_SERVICES_LIST`, service will not be discarded
+
+Example:
+
+Regexp Filter: http:\/\/.*.google.com
+Service 1: backend endpoint http://www.google.com
+Service 2: backend endpoint http://www.yahoo.com
+Service 3: backend endpoint http://mail.google.com
+Service 4: backend endpoint http://mail.yahoo.com
+
+The services that will be configured in Apicast will be 1 and 3. Services 2 and
+4 will be discarded.
+
 ### `APICAST_SERVICES_LIST`
 **Value:** a comma-separated list of service IDs
 
@@ -190,6 +224,14 @@ Replace `${ID}` with the actual Service ID. The value should be the configuratio
 
 Setting it to a particular version will prevent it from auto-updating and will always use that version.
 
+### `APICAST_UPSTREAM_RETRY_CASES`
+
+**Default**:
+**Values**: error | timeout | invalid_header | http_500 | http_502 | http_503 | http_504 | http_403 | http_404 | http_429 | non_idempotent | off
+
+Used only when the retry policy is configured. Specified in which cases a request to the upstream API should be retried.
+This accepts the same values as https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_next_upstream
+
 ### `APICAST_WORKERS`
 
 **Default:** auto  
@@ -199,9 +241,10 @@ This is the value that will be used in the nginx `worker_processes` [directive](
 
 ### `BACKEND_ENDPOINT_OVERRIDE`
 
-URI that overrides backend endpoint from the configuration. Useful when deploying outside OpenShift deployed AMP.
+URI that overrides the backend endpoint. By default, it is the external route. 
+This parameter is useful when deploying APIcast into the same OpenShift cluster than 3scale, as when using the internal hostname of the backend listener service instead of the public route. 
 
-**Example**: `https://backend.example.com`.
+**Example**: `http://backend-listener.<3scale-namespace>.svc.cluster.local:3000`
 
 ### `OPENSSL_VERIFY`
 
@@ -258,7 +301,7 @@ The value will also be used in the header `X-3scale-User-Agent` in the authorize
 
 ### `THREESCALE_PORTAL_ENDPOINT`
 
-URI that includes your password and portal endpoint in the following format: `<schema>://<password>@<admin-portal-domain>`. The `<password>` can be either the [provider key](https://support.3scale.net/docs/terminology#apikey) or an [access token](https://support.3scale.net/docs/terminology#tokens) for the 3scale Account Management API. `<admin-portal-domain>` is the URL used to log into the admin portal.
+URI that includes your password and portal endpoint in the following format: `<schema>://<password>@<admin-portal-domain>`. The `<password>` can be either the provider key or an access token for the 3scale Account Management API. `<admin-portal-domain>` is the URL used to log into the admin portal.
 
 **Example:** `https://access-token@account-admin.3scale.net`.
 
@@ -312,6 +355,14 @@ Path to a file with X.509 certificate in the PEM format for HTTPS.
 
 Path to a file with the X.509 certificate secret key in the PEM format.
 
+### `APICAST_HTTPS_VERIFY_DEPTH`
+
+**Default:** 1
+**Values:** positive integers
+
+Defines the maximum length of the client certificate chain.
+If this parameter has 1 as its value, it implies that this length might include one additional certificate (eg. intermediate CA).
+
 ### `all_proxy`, `ALL_PROXY`
 
 **Default:** no value
@@ -343,3 +394,18 @@ Defines a HTTP proxy to be used for connecting to HTTPS services. Authentication
 **Example:** `foo,bar.com,.extra.dot.com`
 
 Defines a comma-separated list of hostnames and domain names for which the requests should not be proxied. Setting to a single `*` character, which matches all hosts, effectively disables the proxy.
+
+### `APICAST_EXTENDED_METRICS`
+
+**Default:** false
+**Value:** boolean
+**Example:** "true"
+
+Enables additional information on Prometheus metrics; some labels will be used
+with specific information that will provide more in-depth details about APIcast.
+
+The metrics that will have extended information are:
+
+- total_response_time_seconds: labels service_id and service_system_name
+- upstream_response_time_seconds: labels service_id and service_system_name
+- upstream_status: labels service_id and service_system_name

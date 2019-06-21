@@ -53,6 +53,18 @@ local function all_builtin_policy_manifests()
   return manifests
 end
 
+local function get_manifest_of_builtin_policy(name)
+  for _, policy_dir in dir_iter(builtin_policy_load_path()) do
+    local manifest_file = format('%s/%s', policy_dir, policy_manifest_name)
+    local manifest = pl_file.read(manifest_file)
+    local policy_name = extract_policy_name(policy_dir)
+
+    if policy_name == name then
+      return cjson.decode(manifest)
+    end
+  end
+end
+
 -- Returns a manifest from a 'version' directory. Policies that are not
 -- built-in, are located in a path like policies/my_policy/1.0.0.
 -- This function tries to fetch a manifest starting from that `1.0.0` directory.
@@ -84,7 +96,6 @@ end
 -- These paths always follow the same pattern. It contains a directory for each
 -- policy, and each of those contain a directory for each version of that
 -- policy. The json manifest is in that 'version' directory.
-
 local function all_loaded_policy_manifests()
   local manifests = setmetatable({}, manifests_mt)
 
@@ -99,6 +110,23 @@ local function all_loaded_policy_manifests()
   end
 
   return manifests
+end
+
+local function get_manifest_of_non_builtin_policy(policy_name, policy_version)
+  for _, load_path in ipairs(policy_load_paths()) do
+    for _, policy_dir in dir_iter(load_path) do
+      local name = extract_policy_name(policy_dir)
+
+      if name == policy_name then
+        for _, version_dir in dir_iter(policy_dir) do
+          local manifest = get_manifest_from_version_dir(version_dir)
+          if manifest and manifest.version == policy_version then
+            return manifest
+          end
+        end
+      end
+    end
+  end
 end
 
 --- Get the manifests for all the policies. Both the builtin policies and the
@@ -116,6 +144,18 @@ function _M.get_all()
   end
 
   return manifests
+end
+
+--- Get the manifest of the policy with the given name and version.
+-- @tparam string policy_name The policy name
+-- @tparam string policy_version The policy version
+-- @treturn the manifest of the policy, or nil if it does not exist.
+function _M.get(policy_name, policy_version)
+  if policy_version == 'builtin' then
+    return get_manifest_of_builtin_policy(policy_name)
+  else
+    return get_manifest_of_non_builtin_policy(policy_name, policy_version)
+  end
 end
 
 return _M

@@ -34,6 +34,8 @@ to_json({
   }]
 });
 --- test env
+proxy_ssl_verify on;
+proxy_ssl_trusted_certificate $TEST_NGINX_SERVER_ROOT/html/ca.crt;
 proxy_ssl_certificate $TEST_NGINX_SERVER_ROOT/html/client.crt;
 proxy_ssl_certificate_key $TEST_NGINX_SERVER_ROOT/html/client.key;
 proxy_pass https://$server_addr:$apicast_port/t;
@@ -60,7 +62,7 @@ to_json({
           { name => 'apicast.policy.tls_validation',
             configuration => {
               whitelist => [
-                { pem_certificate => CORE::join('', read_file('t/fixtures/CA/CA.crt')) }
+                { pem_certificate => CORE::join('', read_file('t/fixtures/CA/intermediate-ca.crt')) }
               ]
             }
           },
@@ -70,6 +72,8 @@ to_json({
   }]
 });
 --- test env
+proxy_ssl_verify on;
+proxy_ssl_trusted_certificate $TEST_NGINX_SERVER_ROOT/html/ca.crt;
 proxy_ssl_certificate $TEST_NGINX_SERVER_ROOT/html/client.crt;
 proxy_ssl_certificate_key $TEST_NGINX_SERVER_ROOT/html/client.key;
 proxy_pass https://$server_addr:$apicast_port/t;
@@ -104,6 +108,8 @@ to_json({
   }]
 });
 --- test env
+proxy_ssl_verify on;
+proxy_ssl_trusted_certificate $TEST_NGINX_SERVER_ROOT/html/ca.crt;
 proxy_ssl_certificate $TEST_NGINX_SERVER_ROOT/html/client.crt;
 proxy_ssl_certificate_key $TEST_NGINX_SERVER_ROOT/html/client.key;
 proxy_pass https://$server_addr:$apicast_port/t;
@@ -138,6 +144,8 @@ to_json({
   }]
 });
 --- test env
+proxy_ssl_verify on;
+proxy_ssl_trusted_certificate $TEST_NGINX_SERVER_ROOT/html/ca.crt;
 proxy_pass https://$server_addr:$apicast_port/t;
 proxy_set_header Host localhost;
 log_by_lua_block { collectgarbage() }
@@ -147,4 +155,44 @@ Invalid certificate verification context
 --- no_error_log
 [error]
 [alert]
+--- user_files fixture=CA/files.pl eval
+
+
+
+=== TEST 5: TLS Client Certificate contains whole certificate chain
+--- env eval
+("APICAST_HTTPS_VERIFY_DEPTH" => 2)
+--- configuration eval
+use JSON qw(to_json);
+use File::Slurp qw(read_file);
+
+to_json({
+  services => [{
+    proxy => {
+        policy_chain => [
+          { name => 'apicast.policy.tls_validation',
+            configuration => {
+              whitelist => [
+                { pem_certificate => CORE::join('', read_file('t/fixtures/CA/intermediate-ca.crt')) }
+              ]
+            }
+          },
+          { name => 'apicast.policy.echo' },
+        ]
+    }
+  }]
+});
+--- test env
+proxy_ssl_verify on;
+proxy_ssl_trusted_certificate $TEST_NGINX_SERVER_ROOT/html/ca.crt;
+proxy_ssl_certificate $TEST_NGINX_SERVER_ROOT/html/client-bundle.crt;
+proxy_ssl_certificate_key $TEST_NGINX_SERVER_ROOT/html/client.key;
+proxy_pass https://$server_addr:$apicast_port/t;
+proxy_set_header Host localhost;
+log_by_lua_block { collectgarbage() }
+--- response_body
+GET /t HTTP/1.0
+--- error_code: 200
+--- no_error_log
+[error]
 --- user_files fixture=CA/files.pl eval

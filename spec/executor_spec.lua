@@ -146,4 +146,42 @@ describe('executor', function()
       assert.equal('3', context.p3)
     end)
   end)
+
+  describe('.balancer', function()
+    local chain
+    local executor
+
+    before_each(function()
+      ngx.ctx.context = {}
+      chain = PolicyChain.default()
+
+      for _, policy in ipairs(chain) do
+        stub(policy, 'balancer')
+      end
+
+      executor = Executor.new(chain)
+    end)
+
+    it('sets the balancer retries in the context', function()
+      ngx.ctx.context = { balancer_retries = 2 }
+
+      executor:balancer()
+
+      assert.same(3, ngx.ctx.context.balancer_retries)
+    end)
+
+    it('sets a var in the context that marks that the peer has not been set yet in the current try', function()
+      executor:balancer()
+
+      assert.is_false(ngx.ctx.context.peer_set_in_current_balancer_try)
+    end)
+
+    it('forwards the call to the policy chain', function()
+      executor:balancer()
+
+      for _, policy in ipairs(chain) do
+        assert.stub(policy.balancer).was_called(1)
+      end
+    end)
+  end)
 end)

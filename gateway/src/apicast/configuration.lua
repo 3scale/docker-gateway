@@ -12,13 +12,15 @@ local insert = table.insert
 local setmetatable = setmetatable
 local null = ngx.null
 
-local re = require 'ngx.re'
 local env = require 'resty.env'
 local resty_url = require 'resty.url'
 local util = require 'apicast.util'
 local policy_chain = require 'apicast.policy_chain'
 local mapping_rule = require 'apicast.mapping_rule'
 local tab_new = require('resty.core.base').new_tab
+
+local re = require 'ngx.re'
+local match = ngx.re.match
 
 local mt = { __index = _M, __tostring = function() return 'Configuration' end }
 
@@ -83,9 +85,9 @@ function _M.parse_service(service)
   local proxy = service.proxy or empty_t
   local backend = backend_endpoint(proxy)
 
-
   return Service.new({
       id = tostring(service.id or 'default'),
+      system_name = tostring(service.system_name or ''),
       backend_version = backend_version,
       authentication_method = proxy.authentication_method or backend_version,
       hosts = proxy.hosts or { 'localhost' }, -- TODO: verify localhost is good default
@@ -113,6 +115,8 @@ function _M.parse_service(service)
       backend = backend,
       oidc = {
         issuer_endpoint = value(proxy.oidc_issuer_endpoint),
+        claim_with_client_id = value(proxy.jwt_claim_with_client_id),
+        claim_with_client_id_type = proxy.jwt_claim_with_client_id_type or "plain",
       },
       credentials = {
         location = proxy.credentials_location or 'query',
@@ -140,21 +144,34 @@ function _M.services_limit()
 end
 
 function _M.filter_services(services, subset)
-  subset = subset and util.to_hash(subset) or _M.services_limit()
-  if not subset or not next(subset) then return services end
+  local selected_services = {}
+  local service_regexp_filter  = env.value("APICAST_SERVICES_FILTER_BY_URL")
 
-  local s = {}
+  if service_regexp_filter then
+    -- Checking that the regexp sent is correct, if not an empty service list
+    -- will be returned.
+    local _, err = match("", service_regexp_filter, 'oj')
+    if err then
+      -- @todo this return and empty list, Apicast will continue running maybe
+      -- process need to be stopped here.
+      ngx.log(ngx.ERR, "APICAST_SERVICES_FILTER_BY_URL cannot compile and all services are filtering out, error: ", err)
+      return selected_services
+    end
+  end
+
+  subset = subset and util.to_hash(subset) or _M.services_limit()
+  if (not subset or not next(subset)) and not service_regexp_filter then return services end
+  subset = subset or {}
 
   for i = 1, #services do
     local service = services[i]
-    if subset[service.id] then
-      insert(s, service)
+    if service:match_host(service_regexp_filter) or subset[service.id] then
+      insert(selected_services, service)
     else
       ngx.log(ngx.WARN, 'filtering out service ', service.id)
     end
   end
-
-  return s
+  return selected_services
 end
 
 function _M.new(configuration)

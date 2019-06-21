@@ -7,24 +7,41 @@ local _M = Policy.new('Find Service Policy')
 
 local new = _M.new
 
+local function path_based_with_fallback_to_host(configuration, host)
+  return path_based_finder.find_service(configuration, host) or
+         host_based_finder.find_service(configuration, host)
+end
+
+local function find_service_func(path_routing_enabled, path_routing_only)
+  if path_routing_only then
+    ngx.log(ngx.DEBUG, 'Using path-based routing')
+    return path_based_finder.find_service
+  elseif path_routing_enabled then
+    ngx.log(ngx.DEBUG, 'Using path-based routing with fallback to host-based routing')
+    return path_based_with_fallback_to_host
+  else
+    ngx.log(ngx.DEBUG, 'Using host-based routing')
+    return host_based_finder.find_service
+  end
+end
+
 function _M.new(...)
   local self = new(...)
 
-  if configuration_store.path_routing then
-    ngx.log(ngx.WARN, 'apicast path routing enabled')
-    self.find_service = function(configuration, host)
-      return path_based_finder.find_service(configuration, host) or
-             host_based_finder.find_service(configuration, host)
-    end
-  else
-    self.find_service = host_based_finder.find_service
-  end
+  self.find_service = find_service_func(
+    configuration_store.path_routing,
+    configuration_store.path_routing_only
+  )
 
   return self
 end
 
 local function find_service(policy, context)
   context.service = context.service or policy.find_service(context.configuration, context.host)
+
+  if not context.service then
+    ngx.log(ngx.DEBUG, 'Could not find a service for the request')
+  end
 end
 
 _M.rewrite = find_service

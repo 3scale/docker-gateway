@@ -14,7 +14,11 @@ local setmetatable = setmetatable
 local concat = table.concat
 
 local _G = _G
-local _M = {}
+local _M = {
+  -- Changing this to true enables very verbose debug logging of all requires in the sandbox.
+  -- It is recommended to be enabled only in development time as it can easily overwhelm the log.
+  debug = false,
+}
 
 local searchpath = package.searchpath
 local root_loaded = package.loaded
@@ -22,6 +26,12 @@ local root_loaded = package.loaded
 local root_require = require
 
 local preload = package.preload
+
+local function debug_log(...)
+  if _M.debug then
+    ngx.log(ngx.DEBUG, ...)
+  end
+end
 
 --- create a require function not using the global namespace
 -- loading code from a namespace should have no effect on the global namespace
@@ -39,7 +49,7 @@ local function gen_require(package)
     mod = package.loaded[modname]
 
     if not mod then
-      ngx.log(ngx.DEBUG, 'native require for: ', modname)
+      debug_log('native require for: ', modname)
       mod = root_require(modname)
     end
 
@@ -81,7 +91,7 @@ local function gen_require(package)
   -- @tparam boolean exclusive load only sandboxed code, turns off the fallback loader
   return function(modname, exclusive)
     -- http://www.lua.org/manual/5.2/manual.html#pdf-require
-    ngx.log(ngx.DEBUG, 'sandbox require: ', modname)
+    debug_log('sandbox require: ', modname)
 
     -- The function starts by looking into the package.loaded table
     -- to determine whether modname is already loaded.
@@ -97,13 +107,13 @@ local function gen_require(package)
 
     -- Once a loader is found,
     if loader then
-      ngx.log(ngx.DEBUG, 'sandboxed require for: ', modname, ' file: ', file)
+      debug_log('sandboxed require for: ', modname, ' file: ', file)
       -- require calls the loader with two arguments:
       --   modname and an extra value dependent on how it got the loader.
       -- (If the loader came from a file, this extra value is the file name.)
       mod = loader(modname, file)
     elseif not exclusive then
-      ngx.log(ngx.DEBUG, 'fallback loader for: ', modname, ' error: ', err)
+      debug_log('fallback loader for: ', modname, ' error: ', err)
       mod = fallback(modname)
     else
       -- If there is any error loading or running the module,
@@ -239,7 +249,7 @@ function _M.new(load_paths, cache)
     if file then
       loader, err = loadfile(file, 'bt', env)
 
-      ngx.log(ngx.DEBUG, 'loading file: ', file)
+      debug_log('loading file: ', file)
 
       if loader then return loader, file end
     end

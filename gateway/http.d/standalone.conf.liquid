@@ -1,0 +1,90 @@
+{% for server in standalone.server.listen %}
+server {
+    access_log {{ server.access_log | default: access_log | default: 'stdout' }};
+
+    listen {{ server.port }} default_server
+    {%- if server.tls %} ssl {% endif -%}
+    {%- case server.protocol -%}
+    {%- when 'http2' %}{{- server.protocol -}}
+    {%- when 'spdy' %}{{- server.protocol -}}
+    {%- endcase -%}
+    {%- if server.proxy_protocol %} proxy_protocol {% endif -%}
+    ;
+
+    {% if server.tls.protocols -%}
+        ssl_protocols {{ server.tls.protocols | join: " " }};
+    {%- endif %}
+    {% if server.tls.certificate -%}
+        ssl_certificate {{ server.tls.certificate | filesystem | first }};
+    {%- endif %}
+    {% if server.tls.certificate_key -%}
+        ssl_certificate_key {{ server.tls.certificate_key | filesystem | first }};
+    {%- endif %}
+    {% if server.tls.ciphers -%}
+        ssl_ciphers {{ server.tls.ciphers | join: ":" }};
+    {%- endif %}
+
+    {%- capture server_name -%}{{ server.name | default: 'default' }}{%- endcapture %}
+    set $port_name {{ server_name }};
+    server_name {{ server_name }};
+
+    set $ctx_ref -1;
+    set $proxy_pass '';
+
+    location / {
+        rewrite_by_lua_block {
+          require('resty.ctx').stash()
+          require('apicast.executor'):rewrite()
+        }
+        access_by_lua_block { require('apicast.executor'):access() }
+        content_by_lua_block { require('apicast.executor'):content() }
+        post_action @post_action;
+    }
+
+    body_filter_by_lua_block { require('apicast.executor'):body_filter() }
+    header_filter_by_lua_block { require('apicast.executor'):header_filter() }
+
+    location @post_action {
+      internal;
+
+      proxy_pass_request_headers off;
+
+      rewrite_by_lua_block { require('resty.ctx').apply() }
+      content_by_lua_block { require('apicast.executor'):post_action() }
+      log_by_lua_block { require('apicast.executor'):log() }
+    }
+
+    location @upstream {
+      internal;
+
+      rewrite_by_lua_block {
+        require('resty.ctx').apply()
+      }
+
+      proxy_pass $proxy_pass;
+
+      proxy_http_version 1.1;
+      proxy_set_header Host $http_host;
+      proxy_set_header Connection "";
+
+      # these are duplicated so when request is redirected here those phases are executed
+      post_action @post_action;
+      body_filter_by_lua_block { require('apicast.executor'):body_filter() }
+      header_filter_by_lua_block { require('apicast.executor'):header_filter() }
+    }
+}
+
+{% endfor %}
+
+{% for upstream in standalone.external %}
+upstream {{ upstream.name }} {
+  server 0.0.0.1:1;
+
+  balancer_by_lua_block {
+    require('apicast.executor'):balancer('{{ upstream.load_balancer }}')
+  }
+
+  keepalive {{ upstream.keepalive | default: 64 }};
+}
+
+{% endfor %}

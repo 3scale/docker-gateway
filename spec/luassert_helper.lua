@@ -1,7 +1,32 @@
 local busted = require('busted')
 local assert = require('luassert.assert')
+local spy = require('luassert.spy')
+local stub = require('luassert.stub')
 local util = require ('luassert.util')
 local say = require('say')
+
+-- The stub.new and spy.on functions are patched here to make sure that the
+-- target function is not already a mocked function.
+-- The main reason to do that is to avoid some test that a function is mocked
+-- on  the before_each and after in the test also is mocked again, all mocks
+-- are reverted(state.revert in this module), but if the mock is double, it is
+-- only reverted once, so the first mock function will be leaked to other test.
+local original_stub_new = stub.new
+local original_spy_on = spy.on
+
+function stub.new(object, key, ...)
+  if object and spy.is_spy(object[key]) then
+    error("Stub for key='".. key .."' is already a mocked function, revert the parent function")
+  end
+  return original_stub_new(object, key, ...)
+end
+
+function spy.on(object, key)
+  if object and spy.is_spy(object[key]) then
+    error("Spy for key='".. key .."' is already a mocked function, revert the parent function")
+  end
+  return original_spy_on(object, key)
+end
 
 do -- set up reverting stubs
   local state = require("luassert.state")
@@ -44,7 +69,7 @@ do -- adding assert.returns_error(error_text, ok, ret) : assert.returns_error('n
 
   local function returns_error(state, arguments, level)
     local argc = arguments.n
-    assert(argc == 3, say("assertion.internal.argtolittle", { "error_matches", 3, tostring(argc) }), level)
+    assert(argc >= 2, say("assertion.internal.argtolittle", { "error_matches", 2, tostring(argc) }), level)
 
     local expected = arguments[1]
     local ok = arguments[2]

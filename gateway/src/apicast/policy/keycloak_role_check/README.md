@@ -104,3 +104,17 @@
     ]
   }
   ```
+
+- When you want to allow those who have the realm role `role1` to access `/resource1` and only methods GET and POST.
+
+  ```json
+  {
+    "scopes": [
+      {
+        "realm_roles": [ { "name": "role1" } ],
+        "resource": "/resource1",
+        "methods": ["GET", "POST"]
+      }
+    ]
+  }
+  ```

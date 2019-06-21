@@ -28,7 +28,7 @@ return {
     lua_code_cache = 'on',
     configuration_loader = 'lazy',
     configuration_cache = 0,
-    configuration = data_url('application/json', configuration),
+    configuration = context.configuration or os.getenv('APICAST_CONFIGURATION') or data_url('application/json', configuration),
     port = { metrics = 9421 }, -- see https://github.com/prometheus/prometheus/wiki/Default-port-allocations,
     timer_resolution = false,
 }

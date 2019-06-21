@@ -18,7 +18,19 @@ RUNTIME_IMAGE ?= $(BUILDER_IMAGE)-runtime
 
 DEVEL_IMAGE ?= apicast-development
 DEVEL_DOCKERFILE ?= Dockerfile-development
+
 DEVEL_DOCKER_COMPOSE_FILE ?= docker-compose-devel.yml
+DEVEL_DOCKER_COMPOSE_VOLMOUNT_MAC_FILE ?= docker-compose-devel-volmount-mac.yml
+DEVEL_DOCKER_COMPOSE_VOLMOUNT_DEFAULT_FILE ?= docker-compose-devel-volmount-default.yml
+
+os = "$(shell uname -s)"
+
+# if running on Mac
+ifeq ($(os),"Darwin")
+    DEVEL_DOCKER_COMPOSE_VOLMOUNT_FILE = $(DEVEL_DOCKER_COMPOSE_VOLMOUNT_MAC_FILE)
+else
+    DEVEL_DOCKER_COMPOSE_VOLMOUNT_FILE = $(DEVEL_DOCKER_COMPOSE_VOLMOUNT_DEFAULT_FILE)
+endif
 
 S2I_CONTEXT ?= gateway
 
@@ -50,7 +62,7 @@ endif
 
 export COMPOSE_PROJECT_NAME
 
-.PHONY: benchmark
+.PHONY: benchmark lua_modules
 
 test: ## Run all tests
 	$(MAKE) --keep-going busted prove builder-image test-builder-image prove-docker runtime-image test-runtime-image
@@ -99,7 +111,7 @@ split-tests = $(shell echo $(1) | xargs -n 1 echo | circleci tests split --split
 BUSTED_PATTERN = "{spec,examples}/**/*_spec.lua"
 BUSTED_FILES ?= $(call circleci, $(BUSTED_PATTERN))
 busted: $(ROVER) lua_modules ## Test Lua.
-	$(ROVER) exec bin/busted $(BUSTED_FILES)
+	$(ROVER) exec bin/busted $(BUSTED_FILES) $(BUSTED_ARGS)
 ifeq ($(CI),true)
 	@- luacov
 endif
@@ -190,17 +202,18 @@ development: USER := $(shell id -u $(USER))
 endif
 development: .docker/lua_modules .docker/local .docker/cpanm .docker/vendor/cache
 development: ## Run bash inside the development image
-	- $(DOCKER_COMPOSE) -f $(DEVEL_DOCKER_COMPOSE_FILE) up --detach
+	@echo "Running on $(os)"
+	- $(DOCKER_COMPOSE) -f $(DEVEL_DOCKER_COMPOSE_FILE) -f $(DEVEL_DOCKER_COMPOSE_VOLMOUNT_FILE) up -d
 	@ # https://github.com/moby/moby/issues/33794#issuecomment-312873988 for fixing the terminal width
-	$(DOCKER_COMPOSE) -f $(DEVEL_DOCKER_COMPOSE_FILE) exec -e COLUMNS="`tput cols`" -e LINES="`tput lines`" --user $(USER) development bash
+	$(DOCKER_COMPOSE) -f $(DEVEL_DOCKER_COMPOSE_FILE) -f $(DEVEL_DOCKER_COMPOSE_VOLMOUNT_FILE) exec -e COLUMNS="`tput cols`" -e LINES="`tput lines`" --user $(USER) development bash
 
 stop-development: ## Stop development environment
-	- $(DOCKER_COMPOSE) -f $(DEVEL_DOCKER_COMPOSE_FILE) down
+	- $(DOCKER_COMPOSE) -f $(DEVEL_DOCKER_COMPOSE_FILE) -f $(DEVEL_DOCKER_COMPOSE_VOLMOUNT_FILE) down
 
 rover: $(ROVER)
 	@echo $(ROVER)
 
-$(S2I_CONTEXT)/Roverfile.lock : $(S2I_CONTEXT)/Roverfile
+$(S2I_CONTEXT)/Roverfile.lock : $(S2I_CONTEXT)/Roverfile $(S2I_CONTEXT)/apicast-scm-1.rockspec
 	$(ROVER) lock --roverfile=$(S2I_CONTEXT)/Roverfile
 
 lua_modules: $(ROVER) $(S2I_CONTEXT)/Roverfile.lock
@@ -209,7 +222,7 @@ lua_modules: $(ROVER) $(S2I_CONTEXT)/Roverfile.lock
 lua_modules/bin/rover:
 	@LUAROCKS_CONFIG=$(S2I_CONTEXT)/config-5.1.lua luarocks install --server=http://luarocks.org/dev lua-rover --tree=lua_modules 1>&2
 
-dependencies: lua_modules carton
+dependencies: lua_modules carton  ## Install project dependencies
 
 clean-containers: apicast-source
 	$(DOCKER_COMPOSE) down --volumes

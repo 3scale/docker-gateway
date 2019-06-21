@@ -8,8 +8,7 @@
 
 local _M = { }
 
-local PHASES = {
-    'init', 'init_worker',
+local REQUEST_PHASES = {
     'rewrite', 'access',
     'content', 'balancer',
     'header_filter', 'body_filter',
@@ -17,6 +16,15 @@ local PHASES = {
 
     'ssl_certificate',
 }
+
+local INIT_PHASES = {
+    'init', 'init_worker',
+}
+
+local PHASES = { }
+
+table.move(INIT_PHASES, 1, #INIT_PHASES, #PHASES + 1, PHASES)
+table.move(REQUEST_PHASES, 1, #REQUEST_PHASES, #PHASES + 1, PHASES)
 
 local GC = require('apicast.gc')
 local setmetatable_gc_clone = GC.setmetatable_gc_clone
@@ -62,6 +70,10 @@ end
 
 function _M.phases()
     return ipairs(PHASES)
+end
+
+function _M.request_phases()
+    return ipairs(REQUEST_PHASES)
 end
 
 return _M

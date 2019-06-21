@@ -51,7 +51,13 @@ function _M.build(modules)
 
     for i=1, #list do
         -- TODO: make this error better, possibly not crash and just log and skip the module
-        chain[i] = _M.load_policy(list[i]) or error(format('module %q could not be loaded', list[i]))
+        local policy, err = _M.load_policy(list[i])
+
+        if policy then
+            chain[i] = policy
+        else
+            error(format('module %q could not be loaded: %s', list[i], err))
+        end
     end
 
     return _M.new(chain)
@@ -144,7 +150,7 @@ end
 --- Insert a policy into the chain
 -- @tparam Policy policy the policy to be added to the chain
 -- @tparam[opt] int position the position to add the policy to, defaults to last one
--- @treturn int lenght of the chain
+-- @treturn int length of the chain
 -- @error frozen | returned when chain is not modifiable
 -- @see freeze
 function _M:insert(policy, position)
@@ -153,6 +159,27 @@ function _M:insert(policy, position)
     else
         insert(self, position or #self+1, policy)
         return #self
+    end
+end
+
+--- Load and insert policy into the chain
+-- @tparam string name policy name
+-- @tparam[opt] string version policy version
+-- @tparam[opt] table configuration policy configuration
+-- @treturn length of the chain
+-- @error frozen | returned when chain is not modifiable
+-- @see insert
+function _M:add_policy(name, version, ...)
+    local policy, err = _M.load_policy(name, version, ...)
+
+    if policy then
+        return self:insert(policy)
+
+    elseif err then
+        ngx.log(ngx.WARN, 'failed to load policy: ', name, ' version: ', version)
+        ngx.log(ngx.DEBUG, err)
+
+        return false, err
     end
 end
 

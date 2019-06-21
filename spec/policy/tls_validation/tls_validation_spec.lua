@@ -1,7 +1,7 @@
 local _M = require('apicast.policy.tls_validation')
 
 local server = assert(fixture('CA', 'server.crt'))
-local CA = assert(fixture('CA', 'CA.crt'))
+local CA = assert(fixture('CA', 'intermediate-ca.crt'))
 local client = assert(fixture('CA', 'client.crt'))
 
 describe('tls_validation policy', function()

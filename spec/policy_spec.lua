@@ -1,4 +1,5 @@
 local policy = require 'apicast.policy'
+local tab_clone = require('table.clone')
 
 describe('policy', function()
   local phases = {
@@ -114,6 +115,21 @@ describe('policy', function()
       end
 
       assert.same(phases, res)
+    end)
+  end)
+
+  describe('.request_phases', function()
+    it('returns the request nginx phases where policies can run, sorted by order of execution', function()
+      local request_phases = tab_clone(phases)
+      table.remove(request_phases, 1) -- init
+      table.remove(request_phases, 1) -- init_worker
+
+      local res = {}
+      for _, phase in policy.request_phases() do
+        table.insert(res, phase)
+      end
+
+      assert.same(request_phases, res)
     end)
   end)
 

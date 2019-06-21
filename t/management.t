@@ -277,8 +277,11 @@ init_by_lua_block {
 GET /dns/cache
 --- response_headers
 Content-Type: application/json; charset=utf-8
---- response_body
-{"127.0.0.1.xip.io":{"value":{"1":{"address":"127.0.0.1","class":1,"ttl":199,"name":"127.0.0.1.xip.io","section":1,"type":1},"ttl":199,"name":"127.0.0.1.xip.io"},"expires_in":199}}
+--- expected_response_body_like_multiple eval
+[[
+    qr/"name":"127.0.0.1.xip.io"/,
+    qr/\{"127.0.0.1.xip.io":\{"value":{"1":{"address":"127.0.0.1","class":1,"ttl":199/,
+]]
 --- no_error_log
 [error]
 

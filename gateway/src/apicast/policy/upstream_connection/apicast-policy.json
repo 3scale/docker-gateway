@@ -1,0 +1,26 @@
+{
+  "$schema": "http://apicast.io/policy-v1/schema#manifest#",
+  "name": "Upstream connection",
+  "summary": "Allows to configure several options for the connections to the upstream",
+  "description": "Allows to configure several options for the connections to the upstream",
+  "version": "builtin",
+  "configuration": {
+    "type": "object",
+    "properties": {
+      "connect_timeout": {
+        "description": "Timeout for establishing a connection (in seconds).",
+        "type": "integer"
+      },
+      "send_timeout": {
+        "description": "Timeout between two successive write operations (in seconds).",
+        "type": "number",
+        "exclusiveMinimum": 0
+      },
+      "read_timeout": {
+        "description": "Timeout between two successive read operations (in seconds).",
+        "type": "number",
+        "exclusiveMinimum": 0
+      }
+    }
+  }
+}

@@ -164,6 +164,14 @@ describe('policy_chain', function()
     end)
   end)
 
+  describe('.build', function()
+    it('returns original load error', function()
+      assert.error_matches(function ()
+        _M.build({'unknown'})
+      end, [[module "unknown" could not be loaded: module 'init' not found:]])
+    end)
+  end)
+
   describe('.load_policy', function()
     it('loads defined policy', function()
       assert.same(require('apicast.policy.echo').new({ status = 200 }),

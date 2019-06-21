@@ -12,6 +12,7 @@ description = {
 dependencies = {
    'lua-resty-http',
    'inspect',
+   'lyaml',
    'router',
    'lua-resty-jwt',
    'lua-resty-url',

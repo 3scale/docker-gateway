@@ -8,8 +8,8 @@ local backend_calls_metrics = require 'apicast.metrics.3scale_backend_calls'
 describe('backend client', function()
 
   local test_backend
-  local options_header_oauth = 'rejection_reason_header=1&limit_headers=1'
-  local options_header_no_oauth = 'rejection_reason_header=1&limit_headers=1&no_body=1'
+  local options_header_oauth_native = 'rejection_reason_header=1&limit_headers=1'
+  local options_header_no_oauth_native = 'rejection_reason_header=1&limit_headers=1&no_body=1'
 
   before_each(function()
     test_backend = http_ng.backend()
@@ -29,7 +29,7 @@ describe('backend client', function()
         url = 'http://example.com/transactions/authrep.xml?' ..
             ngx.encode_args({ auth = service.backend_authentication.value, service_id = service.id }),
         headers = { host = 'example.com',
-                    ['3scale-options'] = options_header_no_oauth }
+                    ['3scale-options'] = options_header_no_oauth_native }
       }.respond_with{ status = 200 }
       local backend_client = assert(_M:new(service, test_backend))
 
@@ -50,7 +50,7 @@ describe('backend client', function()
         url = 'http://example.com/transactions/authrep.xml?' ..
             ngx.encode_args({ auth = service.backend_authentication.value, service_id = service.id }) ..
             '&usage%5Bhits%5D=1&user_key=foobar',
-        headers = { ['3scale-options'] = options_header_no_oauth }
+        headers = { ['3scale-options'] = options_header_no_oauth_native }
       }.respond_with{ status = 200 }
       local backend_client = assert(_M:new(service, test_backend))
 
@@ -69,7 +69,7 @@ describe('backend client', function()
       test_backend.expect{
         url = 'http://example.com/transactions/authrep.xml?service_id=42',
         headers = { host = 'foo.example.com',
-                    ['3scale-options'] = options_header_no_oauth }
+                    ['3scale-options'] = options_header_no_oauth_native }
       }.respond_with{ status = 200 }
       local backend_client = assert(_M:new(service, test_backend))
 
@@ -78,7 +78,7 @@ describe('backend client', function()
       assert.equal(200, res.status)
     end)
 
-    it('detects oauth', function()
+    it('detects oauth native', function()
       local service = configuration.parse_service({
         id = '42', backend_version = 'oauth',
         proxy = {
@@ -87,7 +87,26 @@ describe('backend client', function()
       })
       test_backend.expect{
         url = 'http://example.com/transactions/oauth_authrep.xml?service_id=42',
-        headers = { ['3scale-options'] = options_header_oauth }
+        headers = { ['3scale-options'] = options_header_oauth_native }
+      }.respond_with{ status = 200 }
+      local backend_client = assert(_M:new(service, test_backend))
+
+      local res = backend_client:authrep()
+
+      assert.equal(200, res.status)
+    end)
+
+    it('detects OIDC', function()
+      local service = configuration.parse_service({
+        id = '42', backend_version = 'oauth',
+        proxy = {
+          authentication_method = 'oidc',
+          backend = { endpoint = 'http://example.com' },
+        }
+      })
+      test_backend.expect{
+        url = 'http://example.com/transactions/oauth_authrep.xml?service_id=42',
+        headers = { ['3scale-options'] = options_header_no_oauth_native }
       }.respond_with{ status = 200 }
       local backend_client = assert(_M:new(service, test_backend))
 
@@ -121,7 +140,7 @@ describe('backend client', function()
         url = 'http://example.com/transactions/authorize.xml?' ..
             ngx.encode_args({ auth = service.backend_authentication.value, service_id = service.id }),
         headers = { host = 'example.com',
-                    ['3scale-options'] = options_header_no_oauth }
+                    ['3scale-options'] = options_header_no_oauth_native }
       }.respond_with{ status = 200 }
       local backend_client = assert(_M:new(service, test_backend))
 
@@ -142,7 +161,7 @@ describe('backend client', function()
         url = 'http://example.com/transactions/authorize.xml?' ..
             ngx.encode_args({ auth = service.backend_authentication.value, service_id = service.id }) ..
             '&usage%5Bhits%5D=1&user_key=foobar',
-        headers = { ['3scale-options'] = options_header_no_oauth }
+        headers = { ['3scale-options'] = options_header_no_oauth_native }
       }.respond_with{ status = 200 }
       local backend_client = assert(_M:new(service, test_backend))
 
@@ -161,7 +180,7 @@ describe('backend client', function()
       test_backend.expect{
         url = 'http://example.com/transactions/authorize.xml?service_id=42',
         headers = { host = 'foo.example.com',
-                    ['3scale-options'] = options_header_no_oauth }
+                    ['3scale-options'] = options_header_no_oauth_native }
       }.respond_with{ status = 200 }
       local backend_client = assert(_M:new(service, test_backend))
 
@@ -179,7 +198,26 @@ describe('backend client', function()
       })
       test_backend.expect{
         url = 'http://example.com/transactions/oauth_authorize.xml?service_id=42',
-        headers = { ['3scale-options'] = options_header_oauth }
+        headers = { ['3scale-options'] = options_header_oauth_native }
+      }.respond_with{ status = 200 }
+      local backend_client = assert(_M:new(service, test_backend))
+
+      local res = backend_client:authorize()
+
+      assert.equal(200, res.status)
+    end)
+
+    it('detects oauth', function()
+      local service = configuration.parse_service({
+        id = '42', backend_version = 'oauth',
+        proxy = {
+          authentication_method = 'oidc',
+          backend = { endpoint = 'http://example.com' },
+        }
+      })
+      test_backend.expect{
+        url = 'http://example.com/transactions/oauth_authorize.xml?service_id=42',
+        headers = { ['3scale-options'] = options_header_no_oauth_native }
       }.respond_with{ status = 200 }
       local backend_client = assert(_M:new(service, test_backend))
 
