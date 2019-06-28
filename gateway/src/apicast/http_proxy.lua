@@ -75,7 +75,7 @@ local function absolute_url(uri)
             uri.scheme,
             host,
             port,
-            uri.path or ''
+            uri.path or '/'
     )
 end
 
@@ -97,6 +97,7 @@ local function forward_https_request(proxy_uri, uri)
         -- In POST requests with HTTPS, the result of that call is nil, and it
         -- results in a time-out.
         body = ngx.req.get_body_data(),
+        proxy_uri = proxy_uri
     }
 
     local httpc, err = http_proxy.new(request)
@@ -138,8 +139,12 @@ function _M.request(upstream, proxy_uri)
     local uri = upstream.uri
 
     if uri.scheme == 'http' then -- rewrite the request to use http_proxy
+        local err
         upstream:use_host_header(uri.host) -- to keep correct Host header in case we need to resolve it to IP
-        upstream.servers = resolve_servers(proxy_uri)
+        upstream.servers, err = resolve_servers(proxy_uri)
+        if err then
+          ngx.log(ngx.WARN, "HTTP proxy is set, but no servers have been resolved, err: ", err)
+        end
         upstream.uri.path = absolute_url(uri)
         upstream:rewrite_request()
         return
