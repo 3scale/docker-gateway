@@ -1,4 +1,4 @@
-local _M = require('apicast.policy').new('Metrics')
+local _M = require('apicast.policy').new('Metrics', 'builtin')
 
 local resty_env = require('resty.env')
 local errlog = require('ngx.errlog')

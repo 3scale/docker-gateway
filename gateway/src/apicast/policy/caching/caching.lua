@@ -18,7 +18,7 @@
 --   - None: disables caching.
 
 local policy = require('apicast.policy')
-local _M = policy.new('Caching policy')
+local _M = policy.new('Caching policy', 'builtin')
 
 local new = _M.new
 

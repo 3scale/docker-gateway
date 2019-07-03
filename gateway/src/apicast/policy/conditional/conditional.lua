@@ -8,7 +8,7 @@ local Condition = require('apicast.conditions.condition')
 local Operation = require('apicast.conditions.operation')
 local ngx_variable = require('apicast.policy.ngx_variable')
 
-local _M = policy.new('Conditional policy')
+local _M = policy.new('Conditional policy', 'builtin')
 
 local new = _M.new
 

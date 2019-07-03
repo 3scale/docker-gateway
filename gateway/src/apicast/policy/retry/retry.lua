@@ -2,7 +2,7 @@
 
 local tonumber = tonumber
 
-local _M = require('apicast.policy').new('Retry Policy')
+local _M = require('apicast.policy').new('Retry Policy', 'builtin')
 
 local new = _M.new
 

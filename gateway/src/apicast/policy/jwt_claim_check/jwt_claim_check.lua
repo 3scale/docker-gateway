@@ -1,5 +1,5 @@
 local policy = require('apicast.policy')
-local _M = policy.new('JWT check policy')
+local _M = policy.new('JWT check policy', 'builtin')
 
 local Condition = require('apicast.conditions.condition')
 local MappingRule = require('apicast.mapping_rule')
