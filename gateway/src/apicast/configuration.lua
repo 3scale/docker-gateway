@@ -77,7 +77,9 @@ local function build_policy_chain(policies)
       end
   end
 
-  return policy_chain.new(chain)
+  local built_chain = policy_chain.new(chain)
+  built_chain:check_order()
+  return built_chain
 end
 
 function _M.parse_service(service)
