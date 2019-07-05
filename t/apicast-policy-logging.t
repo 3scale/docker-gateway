@@ -131,3 +131,174 @@ qr/"GET \W+ HTTP\/1.1" 200/
 "GET / HTTP/1.1" 200
 --- no_error_log
 [error]
+
+=== TEST 4: service uses a custom access log format
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "proxy": {
+        "policy_chain": [
+          {
+            "name": "apicast.policy.logging",
+            "configuration": {
+                "custom_logging": "Status::{{ status }}"
+            }
+          },
+          {
+            "name": "apicast.policy.upstream",
+            "configuration":
+              {
+                "rules": [ { "regex": "/", "url": "http://echo" } ]
+              }
+          }
+        ]
+      }
+    }
+  ]
+}
+--- upstream
+  location / {
+     content_by_lua_block {
+       ngx.say('yay, api backend');
+     }
+  }
+--- request
+GET /
+--- error_code: 200
+--- grep_error_log_out
+"^Status:: 200$"
+--- no_error_log eval
+[qr/\[error/, qr/GET \/ HTTP\/1.1\" 200/]
+
+=== TEST 5: service uses a custom access log format with a valid condition
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "proxy": {
+        "policy_chain": [
+          {
+            "name": "apicast.policy.logging",
+            "configuration": {
+                "custom_logging": "Status::{{ status }}",
+                "condition": {
+                "operations": [
+                  {"op": "==", "match": "{{status}}", "match_type": "liquid", "value": "200", "value_type": "plain"}
+                ],
+                "combine_op": "and"
+              }
+            }
+          },
+          {
+            "name": "apicast.policy.upstream",
+            "configuration":
+              {
+                "rules": [ { "regex": "/", "url": "http://echo" } ]
+              }
+          }
+        ]
+      }
+    }
+  ]
+}
+--- upstream
+  location / {
+     content_by_lua_block {
+       ngx.say('yay, api backend');
+     }
+  }
+--- request
+GET /
+--- error_code: 200
+--- grep_error_log_out
+"^Status:: 200$"
+--- no_error_log eval
+[qr/\[error/, qr/GET \/ HTTP\/1.1\" 200/]
+
+=== TEST 6: service uses a custom access log format without a valid condition
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "proxy": {
+        "policy_chain": [
+          {
+            "name": "apicast.policy.logging",
+            "configuration": {
+                "custom_logging": "Status::{{ status }}",
+                "condition": {
+                "operations": [
+                  {"op": "==", "match": "{{status}}", "match_type": "liquid", "value": "201", "value_type": "plain"}
+                ],
+                "combine_op": "and"
+              }
+            }
+          },
+          {
+            "name": "apicast.policy.upstream",
+            "configuration":
+              {
+                "rules": [ { "regex": "/", "url": "http://echo" } ]
+              }
+          }
+        ]
+      }
+    }
+  ]
+}
+--- upstream
+  location / {
+     content_by_lua_block {
+       ngx.say('yay, api backend');
+     }
+  }
+--- request
+GET /
+--- error_code: 200
+--- no_error_log eval
+[qr/^Status::200$/, qr/\[error/, qr/GET \/ HTTP\/1.1\" 200/]
+
+
+=== TEST 7: service metadata is retrieved in the access_log
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "proxy": {
+        "policy_chain": [
+          {
+            "name": "apicast.policy.logging",
+            "configuration": {
+              "custom_logging": "Status::{{ status }} {{service.id}}"
+            }
+          },
+          {
+            "name": "apicast.policy.upstream",
+            "configuration":
+              {
+                "rules": [ { "regex": "/", "url": "http://echo" } ]
+              }
+          }
+        ]
+      }
+    }
+  ]
+}
+--- upstream
+  location / {
+     content_by_lua_block {
+       ngx.say('yay, api backend');
+     }
+  }
+--- request
+GET /
+--- error_code: 200
+--- grep_error_log_out
+"^Status:: 200 42$"
+--- no_error_log eval
+[qr/\[error/, qr/GET \/ HTTP\/1.1\" 200/]
