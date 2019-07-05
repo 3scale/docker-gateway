@@ -1,5 +1,5 @@
 {
-  "$schema": "http://apicast.io/policy-v1/schema#manifest#",
+  "$schema": "http://apicast.io/policy-v1.1/schema#manifest#",
   "name": "Echo",
   "summary": "Prints the request back to the client and optionally sets a status code.",
   "description":

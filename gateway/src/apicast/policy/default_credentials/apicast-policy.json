@@ -1,5 +1,5 @@
 {
-  "$schema": "http://apicast.io/policy-v1/schema#manifest#",
+  "$schema": "http://apicast.io/policy-v1.1/schema#manifest#",
   "name": "Anonymous access",
   "summary": "Provides default credentials for unauthenticated requests.",
   "description":
@@ -11,6 +11,14 @@
      "You need to configure a user_key; or, the combination of app_id + app_key. \n",
      "Note: this policy should be placed before the APIcast policy in the chain."],
   "version": "builtin",
+  "order": {
+    "before": [
+      {
+        "name": "apicast",
+        "version": "builtin"
+      }
+    ]
+  },
   "configuration": {
     "type":"object",
     "properties":{

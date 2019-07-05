@@ -1,5 +1,5 @@
 {
-  "$schema": "http://apicast.io/policy-v1/schema#manifest#",
+  "$schema": "http://apicast.io/policy-v1.1/schema#manifest#",
   "name": "Routing",
   "summary": "Allows to modify the upstream URL of the request.",
   "description": [
@@ -10,6 +10,14 @@
     "placed before it in the policy chain."
   ],
   "version": "builtin",
+  "order": {
+    "before": [
+      {
+        "name": "apicast",
+        "version": "builtin"
+      }
+    ]
+  },
   "configuration": {
     "type": "object",
     "definitions": {
