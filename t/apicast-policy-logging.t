@@ -4,7 +4,7 @@ use Test::APIcast::Blackbox 'no_plan';
 # Test::Nginx does not allow to grep access logs, so we redirect them to
 # stderr to be able to use "grep_error_log" by setting APICAST_ACCESS_LOG_FILE
 $ENV{APICAST_ACCESS_LOG_FILE} = "$Test::Nginx::Util::ErrLogFile";
-
+check_accum_error_log();
 run_tests();
 
 __DATA__
@@ -45,7 +45,7 @@ __DATA__
 GET /
 --- error_code: 200
 --- grep_error_log eval
-qr/"GET \W+ HTTP\/1.1" 200/
+[qr/"GET \W+ HTTP\/1.1" 200/]
 --- grep_error_log_out
 "GET / HTTP/1.1" 200
 --- no_error_log
@@ -126,7 +126,7 @@ qr/"GET \W+ HTTP\/1.1" 200/
 GET /
 --- error_code: 200
 --- grep_error_log eval
-qr/"GET \W+ HTTP\/1.1" 200/
+[qr/"GET \W+ HTTP\/1.1" 200/]
 --- grep_error_log_out
 "GET / HTTP/1.1" 200
 --- no_error_log
@@ -158,17 +158,11 @@ qr/"GET \W+ HTTP\/1.1" 200/
     }
   ]
 }
---- upstream
-  location / {
-     content_by_lua_block {
-       ngx.say('yay, api backend');
-     }
-  }
 --- request
 GET /
 --- error_code: 200
---- grep_error_log_out
-"^Status:: 200$"
+--- error_log eval
+[ qr/^Status\:\:200/ ]
 --- no_error_log eval
 [qr/\[error/, qr/GET \/ HTTP\/1.1\" 200/]
 
@@ -204,21 +198,15 @@ GET /
     }
   ]
 }
---- upstream
-  location / {
-     content_by_lua_block {
-       ngx.say('yay, api backend');
-     }
-  }
 --- request
 GET /
 --- error_code: 200
---- grep_error_log_out
-"^Status:: 200$"
+--- error_log eval
+[ qr/^Status\:\:200/ ]
 --- no_error_log eval
 [qr/\[error/, qr/GET \/ HTTP\/1.1\" 200/]
 
-=== TEST 6: service uses a custom access log format without a valid condition
+=== TEST 6: service uses a custom access log format with a not match condition
 --- configuration
 {
   "services": [
@@ -250,12 +238,6 @@ GET /
     }
   ]
 }
---- upstream
-  location / {
-     content_by_lua_block {
-       ngx.say('yay, api backend');
-     }
-  }
 --- request
 GET /
 --- error_code: 200
@@ -289,6 +271,142 @@ GET /
     }
   ]
 }
+--- request
+GET /
+--- error_code: 200
+--- error_log eval
+[ qr/^Status\:\:200 42/ ]
+--- no_error_log eval
+[qr/\[error/, qr/GET \/ HTTP\/1.1\" 200/]
+
+
+=== TEST 8: other services do not inherit access log configuration
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "proxy": {
+        "hosts": [
+          "one"
+        ],
+        "policy_chain": [
+          {
+            "name": "apicast.policy.logging",
+            "configuration": {
+              "custom_logging": "Status::{{ status }} {{service.id}}"
+            }
+          },
+          {
+            "name": "apicast.policy.upstream",
+            "configuration":
+              {
+                "rules": [ { "regex": "/", "url": "http://echo" } ]
+              }
+          }
+        ]
+      }
+    },
+    {
+      "id": 21,
+      "proxy": {
+        "hosts": [
+          "two"
+        ],
+        "policy_chain": [
+          {
+            "name": "apicast.policy.upstream",
+            "configuration":
+              {
+                "rules": [ { "regex": "/", "url": "http://echo" } ]
+              }
+          }
+        ]
+      }
+    }
+  ]
+}
+--- pipelined_requests eval
+["GET /","GET /second_service"]
+--- more_headers eval
+["Host: one", "Host: two"]
+--- error_code eval
+[200, 200]
+--- error_log eval
+[ qr/^Status\:\:200 42/, qr/GET \/second_service HTTP\/1.1/]
+--- no_error_log eval
+[qr/\[error/, qr/GET \/ HTTP\/1.1\" 200/]
+
+
+=== TEST 9: json log with no valid data return empty object
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "proxy": {
+        "policy_chain": [
+          {
+            "name": "apicast.policy.logging",
+            "configuration": {
+              "custom_logging": "Status::{{ status }} {{service.id}}",
+              "enable_json_logs": true
+            }
+          },
+          {
+            "name": "apicast.policy.upstream",
+            "configuration":
+              {
+                "rules": [ { "regex": "/", "url": "http://echo" } ]
+              }
+          }
+        ]
+      }
+    }
+  ]
+}
+--- request
+GET /
+--- error_code: 200
+--- error_log eval
+[qr/^\{\}/]
+--- no_error_log eval
+[qr/\[error/, qr/GET \/ HTTP\/1.1\" 200/, qr/^Status\:\:200/]
+
+=== TEST 10: json log with valid data return a valid json
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "proxy": {
+        "policy_chain": [
+          {
+            "name": "apicast.policy.logging",
+            "configuration": {
+              "custom_logging": "Status::{{ status }} {{service.id}}",
+              "enable_json_logs": true,
+              "json_object_config": [
+				{
+				  "key": "host",
+				  "value": "{{host}}",
+				  "value_type": "liquid"
+				}
+              ]
+            }
+          },
+          {
+            "name": "apicast.policy.upstream",
+            "configuration":
+              {
+                "rules": [ { "regex": "/", "url": "http://echo" } ]
+              }
+          }
+        ]
+      }
+    }
+  ]
+}
 --- upstream
   location / {
      content_by_lua_block {
@@ -298,7 +416,7 @@ GET /
 --- request
 GET /
 --- error_code: 200
---- grep_error_log_out
-"^Status:: 200 42$"
+--- error_log eval
+[qr/^\{\"host\"\:\"echo\"\}/]
 --- no_error_log eval
 [qr/\[error/, qr/GET \/ HTTP\/1.1\" 200/]
