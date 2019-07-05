@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Extended variables in Liquid template operations [PR #1081](https://github.com/3scale/APIcast/pull/1081) 
+
 ## [3.6.0-beta1] - 2019-06-18
 
 ### Added
