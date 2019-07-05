@@ -1,5 +1,11 @@
 log_format time '[$time_local] $host:$server_port $remote_addr:$remote_port "$request" $status $body_bytes_sent ($request_time) $post_action_impact';
 
+map $status $extended_access_log {
+    default '';
+}
+
+log_format extended escape=none '$extended_access_log';
+
 server {
   listen {{ port.management | default: 8090 }};
   server_name {{ server_name.management | default: 'management _' }};
@@ -45,6 +51,8 @@ server {
 
   set $access_logs_enabled '1';
   access_log {{ access_log_file | default: "/dev/stdout" }} time if=$access_logs_enabled;
+  set $extended_access_logs_enabled '0';
+  access_log {{ access_log_file | default: "/dev/stdout" }} extended if=$extended_access_logs_enabled;
 
   {%- assign http_port = port.apicast | default: 8080 %}
   {%- assign https_port = env.APICAST_HTTPS_PORT %}
