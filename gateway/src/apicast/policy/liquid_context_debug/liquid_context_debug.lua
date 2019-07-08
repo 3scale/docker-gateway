@@ -2,7 +2,7 @@ local context_content = require('context_content')
 local cjson = require('cjson')
 local policy = require('apicast.policy')
 local ngx_variable = require('apicast.policy.ngx_variable')
-local _M = policy.new('Liquid context debug')
+local _M = policy.new('Liquid context debug', 'builtin')
 
 local new = _M.new
 

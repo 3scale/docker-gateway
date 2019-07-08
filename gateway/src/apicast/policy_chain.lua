@@ -22,6 +22,8 @@ require('apicast.loader')
 local linked_list = require('apicast.linked_list')
 local policy_phases = require('apicast.policy').phases
 local policy_loader = require('apicast.policy_loader')
+local PolicyOrderChecker = require('apicast.policy_order_checker')
+local policy_manifests_loader = require('apicast.policy_manifests_loader')
 
 local _M = {
 
@@ -181,6 +183,14 @@ function _M:add_policy(name, version, ...)
 
         return false, err
     end
+end
+
+-- Checks if there are any policies placed in the wrong place in the chain.
+-- It doesn't return anything, it prints error messages when there's a problem.
+function _M:check_order(manifests)
+    PolicyOrderChecker.new(
+        manifests or policy_manifests_loader.get_all()
+    ):check(self)
 end
 
 local function call_chain(phase_name)

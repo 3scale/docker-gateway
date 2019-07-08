@@ -2,7 +2,7 @@ local _M = require('apicast.policy').new('Load Configuration')
 local ssl = require('ngx.ssl')
 
 local configuration_loader = require('apicast.configuration_loader').new()
-local configuration_store = require('apicast.configuration_store')
+local configuration_store = require('apicast.configuration_store', 'builtin')
 
 local new = _M.new
 

@@ -1,5 +1,5 @@
 {
-  "$schema": "http://apicast.io/policy-v1/schema#manifest#",
+  "$schema": "http://apicast.io/policy-v1.1/schema#manifest#",
   "name": "Upstream",
   "summary": "Allows to modify the upstream URL of the request based on its path.",
   "description":
@@ -9,6 +9,14 @@
      "When combined with the APIcast policy, the upstream policy should be ",
      "placed before it in the policy chain."],
   "version": "builtin",
+  "order": {
+    "before": [
+      {
+        "name": "apicast",
+        "version": "builtin"
+      }
+    ]
+  },
   "configuration": {
     "type": "object",
     "properties": {

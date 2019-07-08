@@ -2,7 +2,7 @@ local iputils = require("resty.iputils")
 local ClientIP = require('apicast.policy.ip_check.client_ip')
 
 local policy = require('apicast.policy')
-local _M = policy.new('IP check policy')
+local _M = policy.new('IP check policy', 'builtin')
 
 local new = _M.new
 

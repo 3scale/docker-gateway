@@ -1,5 +1,5 @@
 {
-  "$schema": "http://apicast.io/policy-v1/schema#manifest#",
+  "$schema": "http://apicast.io/policy-v1.1/schema#manifest#",
   "name": "Liquid context debug",
   "summary": "Inspects the available liquid context.",
   "description": [
@@ -16,6 +16,22 @@
     "references."
   ],
   "version": "builtin",
+  "order": {
+    "before": [
+      {
+        "name": "apicast",
+        "version": "builtin"
+      },
+      {
+        "name": "upstream",
+        "version": "builtin"
+      },
+      {
+        "name": "routing",
+        "version": "builtin"
+      }
+    ]
+  },
   "configuration": {
     "type": "object",
     "properties": {

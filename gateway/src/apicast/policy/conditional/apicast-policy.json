@@ -1,5 +1,5 @@
 {
-  "$schema": "http://apicast.io/policy-v1/schema#manifest#",
+  "$schema": "http://apicast.io/policy-v1.1/schema#manifest#",
   "name": "Conditional policy [Tech preview]",
   "summary": "Executes a policy chain conditionally.",
   "description": [

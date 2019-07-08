@@ -7,7 +7,7 @@ local UpstreamSelector = require('upstream_selector')
 local Request = require('request')
 local Rule = require('rule')
 
-local _M = require('apicast.policy').new('Routing policy')
+local _M = require('apicast.policy').new('Routing policy', 'builtin')
 
 local new = _M.new
 

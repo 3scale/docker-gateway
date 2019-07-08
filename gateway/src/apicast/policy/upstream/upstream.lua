@@ -8,7 +8,7 @@ local tab_insert = table.insert
 local tab_new = require('resty.core.base').new_tab
 local balancer = require('apicast.balancer')
 
-local _M = require('apicast.policy').new('Upstream policy')
+local _M = require('apicast.policy').new('Upstream policy', 'builtin')
 
 local new = _M.new
 

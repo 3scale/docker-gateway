@@ -1,5 +1,5 @@
 {
-  "$schema": "http://apicast.io/policy-v1/schema#manifest#",
+  "$schema": "http://apicast.io/policy-v1.1/schema#manifest#",
   "name": "JWT Claim Check",
   "summary": "Allow or deny traffic based on a JWT claim",
   "description": [

@@ -1,5 +1,5 @@
 {
-  "$schema": "http://apicast.io/policy-v1/schema#manifest#",
+  "$schema": "http://apicast.io/policy-v1.1/schema#manifest#",
   "name": "Retry",
   "summary": "Allows to retry requests to the upstream",
   "description": "Allows to retry requests to the upstream",

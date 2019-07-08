@@ -8,7 +8,7 @@ local oidc_discovery = require('resty.oidc.discovery')
 local http_authorization = require('resty.http_authorization')
 local resty_url = require('resty.url')
 local policy = require('apicast.policy')
-local _M = policy.new('oidc_authentication')
+local _M = policy.new('oidc_authentication', 'builtin')
 
 local tostring = tostring
 

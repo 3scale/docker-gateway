@@ -1,5 +1,5 @@
 local policy = require('apicast.policy')
-local _M = policy.new('3scale Referrer policy')
+local _M = policy.new('3scale Referrer policy', 'builtin')
 
 function _M.rewrite(_, context)
   local referrer = ngx.var.http_referer

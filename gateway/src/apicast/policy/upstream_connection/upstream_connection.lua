@@ -4,7 +4,7 @@
 
 local tonumber = tonumber
 
-local _M = require('apicast.policy').new('Upstream connection policy')
+local _M = require('apicast.policy').new('Upstream connection policy', 'builtin')
 
 local new = _M.new
 

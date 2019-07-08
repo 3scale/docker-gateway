@@ -6,7 +6,7 @@ local assert = assert
 
 local user_agent = require('apicast.user_agent')
 
-local _M = require('apicast.policy').new('APIcast', require('apicast.version'))
+local _M = require('apicast.policy').new('APIcast', 'builtin')
 
 local mt = {
   __index = _M

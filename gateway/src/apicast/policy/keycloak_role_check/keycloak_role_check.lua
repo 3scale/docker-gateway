@@ -50,7 +50,7 @@
 -- ]
 
 local policy = require('apicast.policy')
-local _M = policy.new('Keycloak Role Check Policy')
+local _M = policy.new('Keycloak Role Check Policy', 'builtin')
 
 local ipairs = ipairs
 local MappingRule = require('apicast.mapping_rule')

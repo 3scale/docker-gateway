@@ -1,6 +1,6 @@
 --- Logging policy
 
-local _M  = require('apicast.policy').new('Logging Policy')
+local _M  = require('apicast.policy').new('Logging Policy', 'builtin')
 
 local new = _M.new
 
