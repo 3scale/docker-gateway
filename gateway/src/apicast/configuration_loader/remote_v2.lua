@@ -77,6 +77,22 @@ local function array()
   return setmetatable({}, cjson.empty_array_mt)
 end
 
+local function services_index_endpoint(portal_endpoint)
+  return resty_url.join(portal_endpoint, '/admin/api/services.json')
+end
+
+local function service_config_endpoint(portal_endpoint, service_id, env, version)
+  local version_override = resty_env.get(
+      format('APICAST_SERVICE_%s_CONFIGURATION_VERSION', service_id)
+  )
+
+  return resty_url.join(
+      portal_endpoint,
+      '/admin/api/services/', service_id , '/proxy/configs/', env, '/',
+      format('%s.json', version_override or version)
+  )
+end
+
 function _M:index(host)
   local http_client = self.http_client
 
@@ -144,6 +160,7 @@ function _M:call(environment)
     local ret, err = m:index(host)
 
     if not ret then
+      -- Notice that this recursive call does not send "environment"
       return m:call()
     else
       return ret, err
@@ -206,6 +223,18 @@ local services_subset = function()
   end
 end
 
+-- Returns a table with services.
+-- There are 2 cases:
+-- A) with APICAST_SERVICES_LIST. The method returns a table where each element
+--    contains a single field "service", which is another table with just one
+--    element: "id".
+--    Example: { { service = { id = 123 } }, { service = { id = 456 } } }
+-- B) without APICAST_SERVICES_LIST. The services are fetched from an endpoint
+--    in Porta: https://ACCESS-TOKEN@ADMIN-DOMAIN/admin/api/services.json
+--    The function returns the services decoded as Lua tables.
+--    Each element follows the same format described above, but instead of
+--    having just "id", there are other fields: "backend_version",
+--    "created_at", "state", "system_name", and other fields.
 function _M:services()
   local services = services_subset()
   if services then return services end
@@ -222,7 +251,7 @@ function _M:services()
     return nil, 'no endpoint'
   end
 
-  local url = resty_url.join(self.endpoint, '/admin/api/services.json')
+  local url = services_index_endpoint(endpoint)
   local res, err = http_client.get(url)
 
   if not res and err then
@@ -259,13 +288,7 @@ function _M:config(service, environment, version)
   if not environment then return nil, 'missing environment' end
   if not version then return nil, 'missing version' end
 
-  local version_override = resty_env.get(format('APICAST_SERVICE_%s_CONFIGURATION_VERSION', id))
-
-  local url = resty_url.join(
-    endpoint,
-    '/admin/api/services/', id , '/proxy/configs/', environment, '/',
-    format('%s.json', version_override or version)
-  )
+  local url = service_config_endpoint(endpoint, id, environment, version)
 
   local res, err = http_client.get(url)
 
