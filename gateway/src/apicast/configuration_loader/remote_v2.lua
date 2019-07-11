@@ -94,6 +94,17 @@ local function service_config_endpoint(portal_endpoint, service_id, env, version
   )
 end
 
+local function endpoint_for_services_with_host(portal_endpoint, env, host)
+  local query_args = encode_args({ host = host })
+
+  return format(
+      "%s/admin/api/services/proxy/configs/%s.json?%s",
+      portal_endpoint,
+      env,
+      query_args
+  )
+end
+
 local function parse_resp_body(self, resp_body)
   local ok, res = pcall(cjson.decode, resp_body)
   if not ok then return nil, res end
@@ -122,6 +133,20 @@ local function parse_resp_body(self, resp_body)
   end
 
   return cjson.encode(config)
+end
+
+local function load_just_the_services_needed()
+  return resty_env.enabled('APICAST_LOAD_SERVICES_WHEN_NEEDED') and
+         resty_env.value('APICAST_CONFIGURATION_LOADER') == 'lazy'
+end
+
+-- When the APICAST_LOAD_SERVICES_WHEN_NEEDED is enabled, but the config loader
+-- is boot, APICAST_LOAD_SERVICES_WHEN_NEEDED is going to be ignored. But in
+-- that case, env refers to a host and we need to reset it to pick the env
+-- again.
+local function reset_env()
+  return resty_env.enabled('APICAST_LOAD_SERVICES_WHEN_NEEDED') and
+         resty_env.value('APICAST_CONFIGURATION_LOADER') == 'boot'
 end
 
 function _M:index(host)
@@ -160,17 +185,35 @@ function _M:index(host)
   end
 end
 
+function _M:load_configs_for_env_and_host(env, host)
+  local url = endpoint_for_services_with_host(self.endpoint, env, host)
+
+  local response = self.http_client.get(url)
+
+  if response.status == 200 then
+    return parse_resp_body(self, response.body)
+  else
+    ngx.log(ngx.ERR, 'failed to load proxy configs')
+    return false
+  end
+end
+
 function _M:call(environment)
+  local load_just_for_host = load_just_the_services_needed()
+
   if self == _M  or not self then
     local host = environment
     local m = _M.new()
     local ret, err = m:index(host)
 
-    if not ret then
-      -- Notice that this recursive call does not send "environment"
-      return m:call()
-    else
+    if ret then
       return ret, err
+    end
+
+    if load_just_for_host then
+      return m:call(host)
+    else
+      return m:call()
     end
   end
 
@@ -180,7 +223,16 @@ function _M:call(environment)
     return nil, 'not initialized'
   end
 
+  if load_just_for_host then
+    return self:load_configs_for_env_and_host(resty_env.value('THREESCALE_DEPLOYMENT_ENV'), environment)
+  end
+
   local env = environment or resty_env.value('THREESCALE_DEPLOYMENT_ENV')
+
+  if reset_env() then
+    env = resty_env.value('THREESCALE_DEPLOYMENT_ENV')
+  end
+
   if not env then
     return nil, 'missing environment'
   end
