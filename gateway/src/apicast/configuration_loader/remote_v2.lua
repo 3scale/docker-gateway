@@ -6,6 +6,7 @@ local insert = table.insert
 local rawset = rawset
 local encode_args = ngx.encode_args
 local tonumber = tonumber
+local pcall = pcall
 
 local tablex = require('pl.tablex')
 local deepcopy = tablex.deepcopy
@@ -93,6 +94,36 @@ local function service_config_endpoint(portal_endpoint, service_id, env, version
   )
 end
 
+local function parse_resp_body(self, resp_body)
+  local ok, res = pcall(cjson.decode, resp_body)
+  if not ok then return nil, res end
+  local json = res
+
+  local config = { services = array(), oidc = array() }
+
+  local proxy_configs = json.proxy_configs or {}
+
+  for i, proxy_conf in ipairs(proxy_configs) do
+    local proxy_config = proxy_conf.proxy_config
+
+    -- Copy the config because parse_service have side-effects. It adds
+    -- liquid templates in some policies and those cannot be encoded into a
+    -- JSON. We should get rid of these side effects.
+    local original_proxy_config = deepcopy(proxy_config)
+
+    local service = configuration.parse_service(proxy_config.content)
+    local oidc = self:oidc_issuer_configuration(service)
+
+    -- Assign false instead of nil to avoid sparse arrays. cjson raises an
+    -- error by default when converting sparse arrays.
+    config.oidc[i] = oidc or false
+
+    config.services[i] = original_proxy_config.content
+  end
+
+  return cjson.encode(config)
+end
+
 function _M:index(host)
   local http_client = self.http_client
 
@@ -123,31 +154,7 @@ function _M:index(host)
   ngx.log(ngx.DEBUG, 'index get status: ', res.status, ' url: ', url)
 
   if res.status == 200 then
-    local json = cjson.decode(res.body)
-
-    local config = { services = array(), oidc = array() }
-
-    local proxy_configs = json.proxy_configs or {}
-
-    for i=1, #proxy_configs do
-      local proxy_config = proxy_configs[i].proxy_config
-
-      -- Copy the config because parse_service have side-effects. It adds
-      -- liquid templates in some policies and those cannot be encoded into a
-      -- JSON. We should get rid of these side effects.
-      local original_proxy_config = deepcopy(proxy_config)
-
-      local service = configuration.parse_service(proxy_config.content)
-      local oidc = self:oidc_issuer_configuration(service)
-
-      -- Assign false instead of nil to avoid sparse arrays. cjson raises an
-      -- error by default when converting sparse arrays.
-      config.oidc[i] = oidc or false
-
-      config.services[i] = original_proxy_config.content
-    end
-
-    return cjson.encode(config)
+    return parse_resp_body(self, res.body)
   else
     return nil, 'invalid status'
   end
@@ -198,12 +205,12 @@ function _M:call(environment)
     end
   end
 
-  for i=1, #configs do
-    configs.services[i] = configs[i].content
+  for i, conf in ipairs(configs) do
+    configs.services[i] = conf.content
 
     -- Assign false instead of nil to avoid sparse arrays. cjson raises an
     -- error by default when converting sparse arrays.
-    configs.oidc[i] = configs[i].oidc or false
+    configs.oidc[i] = conf.oidc or false
 
     configs[i] = nil
   end

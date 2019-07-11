@@ -358,12 +358,16 @@ UwIDAQAB
 
       assert.equals(1, #(cjson.decode(config).services))
     end)
-  end)
 
-  describe('.call', function()
-    it('gets environment from ENV', function()
-      local _, err = loader.call()
-      assert.equal('missing environment', err)
+    it('returns nil and an error if the config is not a valid', function()
+      env.set('THREESCALE_DEPLOYMENT_ENV', 'production')
+      test_backend.expect{ url = 'http://example.com/something/with/path/production.json?host=foobar.example.com' }.
+      respond_with{ status = 200, body = '{ invalid json }'}
+
+      local config, err = loader:index('foobar.example.com')
+
+      assert.is_nil(config)
+      assert.equals('Expected object key string but found invalid token at character 3', err)
     end)
   end)
 end)
