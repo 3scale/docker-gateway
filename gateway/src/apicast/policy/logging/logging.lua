@@ -9,6 +9,8 @@ local Operation = require('apicast.conditions.operation')
 local TemplateString = require('apicast.template_string')
 local cjson = require('cjson')
 
+local ipairs = ipairs
+
 -- Defined in ngx.conf.liquid and used in the 'access_logs' directive.
 local ngx_var_access_logs_enabled = 'access_logs_enabled'
 local ngx_var_extended_access_logs_enabled = 'extended_access_logs_enabled'
