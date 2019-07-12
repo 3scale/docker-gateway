@@ -5,8 +5,6 @@ local gmatch = string.gmatch
 local match = string.match
 local format = string.format
 local find = string.find
-local rep = string.rep
-local unpack = unpack
 local insert = table.insert
 local concat = table.concat
 local io_type = io.type
@@ -259,7 +257,7 @@ end
 
 local servers_mt = {
   __tostring = function(t)
-    return format(rep('%s', #t, ' '), unpack(t))
+    return concat(t, ' ')
   end
 }
 
