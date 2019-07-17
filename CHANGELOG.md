@@ -28,6 +28,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
 
+### Fixed
+
+- Fix typos on JWT claim policy jsonschema [THREESCALE-3046](https://issues.jboss.org/browse/THREESCALE-3046)
+
 ## [3.6.0-rc1] - 2019-07-04
 
 ### Added
