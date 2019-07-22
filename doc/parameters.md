@@ -51,6 +51,25 @@ Double colon (`:`) separated list of environments (or paths) APIcast should load
 It can be used instead of `-e` or `---environment` parameter on the CLI and for example
 stored in the container image as default environment. Any value passed on the CLI overrides this variable.
 
+### `APICAST_LOAD_SERVICES_WHEN_NEEDED`
+**Values:**
+- `true` or `1` for _true_
+- `false`, `0` or empty for _false_
+
+**Default:** _false_
+
+This option might be useful for users with many services configured. By default,
+APIcast loads all the services each time it downloads its configuration from the
+admin portal. With a large number of services, this could become problematic.
+When this option is enabled, the configurations are loaded lazily. APIcast will
+only load the ones configured for the host specified in the host header of the
+request.
+
+Notes:
+- The caching defined by `APICAST_CONFIGURATION_CACHE` applies.
+- This option will be disabled when `APICAST_CONFIGURATION_LOADER` is `boot`.
+- Not compatible with `APICAST_PATH_ROUTING`.
+
 ### `APICAST_LOG_FILE`
 
 **Default:** _stderr_
