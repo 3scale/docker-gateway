@@ -3,6 +3,8 @@ local test_backend_client = require 'resty.http_ng.backend.test'
 local cjson = require 'cjson'
 local user_agent = require 'apicast.user_agent'
 local env = require 'resty.env'
+local format = string.format
+local encode_args = ngx.encode_args
 
 describe('Configuration Remote Loader V2', function()
 
@@ -322,6 +324,79 @@ UwIDAQAB
       assert.equals('string', type(config))
 
       assert.equals(1, #(cjson.decode(config).services))
+    end)
+
+    describe('when configured to load the services by host', function()
+      before_each(function()
+        env.set('APICAST_CONFIGURATION_LOADER', 'lazy')
+        env.set('APICAST_LOAD_SERVICES_WHEN_NEEDED', '1')
+        env.set('THREESCALE_DEPLOYMENT_ENV', 'staging')
+      end)
+
+      local host = 'test_host.com'
+
+      local proxy_config_response = {
+        version = 1,
+        environment = 'staging',
+        content = { id = 1, backend_version = 1 }
+      }
+
+      it('returns just the services for the host', function()
+        -- The important thing for this test is that it sends the request to
+        -- the endpoint that returns services by host
+        local endpoint = format(
+            "http://example.com/admin/api/services/proxy/configs/staging.json?%s",
+            encode_args({ host = host })
+        )
+
+        test_backend.expect { url = endpoint }.
+          respond_with{
+            status = 200,
+            body = cjson.encode(
+              {
+                proxy_configs = {
+                  {
+                    proxy_config = proxy_config_response
+                  }
+                }
+              }
+            )
+          }
+
+        local config = loader:call(host)
+
+        assert.equals(1, #(cjson.decode(config).services))
+        assert.same(proxy_config_response.content, cjson.decode(config).services[1])
+      end)
+
+      it('returns all the services if the config loader is "boot"', function()
+        env.set('APICAST_CONFIGURATION_LOADER', 'boot')
+
+        -- The important thing for this test is that it send the request to the
+        -- endpoint that returns a list of services first, and then, retrieves
+        -- the config for each of them.
+
+        local index_endpoint = 'http://example.com/admin/api/services.json'
+        local service_endpoint = 'http://example.com/admin/api/services/1/proxy/configs/staging/latest.json'
+
+        test_backend.expect{ url = index_endpoint }.
+          respond_with{
+            status = 200,
+            body = cjson.encode(
+                { services = { { service = { id = 1 } } } }
+            )
+          }
+
+        test_backend.expect{ url = service_endpoint }.
+          respond_with{ status = 200, body = cjson.encode(
+            { proxy_config = proxy_config_response }
+          )}
+
+        local config = loader:call(host)
+
+        assert.equals(1, #(cjson.decode(config).services))
+        assert.same(proxy_config_response.content, cjson.decode(config).services[1])
+      end)
     end)
   end)
 
