@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Introduce possibility of specifying policy order restrictions in their schemas. APIcast now shows a warning when those restrictions are not respected [#1088](https://github.com/3scale/APIcast/pull/1088), [THREESCALE-2896](https://issues.jboss.org/browse/THREESCALE-2896)
 - Added new parameters to logging policy to allow custom access log [PR #1081](https://github.com/3scale/APIcast/pull/1089) [THREESCALE-1234](https://issues.jboss.org/browse/THREESCALE-1234)[THREESCALE-2876](https://issues.jboss.org/browse/THREESCALE-2876)
 - Added http_proxy policy to use an HTTP proxy in api_backed calls. [THREESCALE-2696](https://issues.jboss.org/browse/THREESCALE-2696) [PR #1080](https://github.com/3scale/APIcast/pull/1080)
+- Option to load service configurations one by one lazily [PR #1099](https://github.com/3scale/APIcast/pull/1099)
 
 ## [3.6.0-rc1] - 2019-07-04
 
