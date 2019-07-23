@@ -1,13 +1,13 @@
 # Logging policy
 
-This policy has two primary purposes: one is to enable and disable access log
-output, and the second one is to be able to create a custom access log format
-for each service and be able to set conditions to write custom access log. 
+This policy has two purposes: one is to enable and disable access log output,
+and and the other is to create a custom access log format for each service and
+be able to set conditions to write custom access log.
 
 
 ## Exported variables
 
-Liquid templating can be used on custom logging, the exported variables are:
+Liquid templating can be used on custom logging. The exported variables include:
 
 - NGINX default log_format directive variables, as example: `{{remote_addr}}`.
 [Log format documentation](http://nginx.org/en/docs/http/ngx_http_log_module.html). 
@@ -20,7 +20,7 @@ response.
 
 ## Examples
 
-### Disable access log:
+### Disabling access log:
 
 ```json
 {
@@ -31,7 +31,7 @@ response.
 }
 ```
 
-### Enable custom access log:
+### Enabling custom access log:
 
 ```json
 {
@@ -43,7 +43,7 @@ response.
 }
 ```
 
-### Enable custom access log with the service ID:
+### Enabling custom access log with the service ID:
 ```json
 {
   "name": "apicast.policy.logging",
@@ -54,7 +54,8 @@ response.
 }
 ```
 
-### Write access log in JSON format:
+
+### Configuring access logs in JSON format
 
 ```json
 {
@@ -83,7 +84,7 @@ response.
 }
 ```
 
-### Write a custom access log only for a successful request.
+### Configuring a custom access log only for a successful request
 
 ```json
 {
@@ -101,7 +102,9 @@ response.
 }
 ```
 
-### Write a custom access log where reponse status match 200 or 500.
+
+
+### Customizing access logs where reponse status match 200 or 500
 
 ```json
 {
@@ -124,13 +127,14 @@ response.
 ## Caveats
 
 - If `custom_logging` or `enable_json_logs` property is enabled, default access
-  log will be dissabled.
-- If `enable_json_logs` is enabled, `custom_logging` field will be omitted
+  log will be disabled.
+- If `enable_json_logs` is enabled, `custom_logging` field will be omitted.
 
-## Global configuration for all services. 
+## Global configuration for all services
 
-Logging options can be useful in all services, to avoid having issues with logs
-that are not correctly formated in other services, a custom Apicast environment
+
+In all services, logging options help to avoid having issues with logs that are
+not correctly formated in other services, a custom APIcast environment variable
 can be set and all services will implement a specifc policy, in this case
 logging.
 
@@ -157,7 +161,7 @@ return {
 }
 ```
 
-To run Apicast with this specific environment: 
+To run APIcast with this specific environment: 
 
 ```
 docker run --name apicast --rm -p 8080:8080 \
@@ -168,6 +172,6 @@ docker run --name apicast --rm -p 8080:8080 \
 ```
 
 Key concepts of the docker command: 
-  - Current lua file need to be shared to the container `-v $(pwd):/config`
-  - `APICAST_ENVIRONMENT` variable need to be set to the lua file that is
+  - Current Lua file must be shared to the container `-v $(pwd):/config`
+  - `APICAST_ENVIRONMENT` variable must be set to the lua file that is
     stored on `/config` directory.
