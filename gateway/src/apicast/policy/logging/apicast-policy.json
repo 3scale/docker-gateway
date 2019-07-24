@@ -4,15 +4,116 @@
   "summary": "Controls logging.",
   "description": [
     "Controls logging. It allows to enable and disable access logs per ",
-    "service."
+    "service. Also it allows to have a custom access logs format per service"
   ],
   "version": "builtin",
   "configuration": {
+    "definitions": {
+      "value_type": {
+        "type": "string",
+        "oneOf": [
+          {
+            "enum": [
+              "plain"
+            ],
+            "title": "Evaluate as plain text."
+          },
+          {
+            "enum": [
+              "liquid"
+            ],
+            "title": "Evaluate as liquid."
+          }
+        ]
+      }
+    },
     "type": "object",
     "properties": {
       "enable_access_logs": {
         "description": "Whether to enable access logs for the service",
         "type": "boolean"
+      },
+      "custom_logging": {
+        "title": "Custom logging format",
+        "description": "A string variable that uses liquid templating to render a custom access log entry. All Nginx variables can be used plus per service entries",
+        "type": "string"
+      },
+      "enable_json_logs": {
+        "description": "To enable logs in json format. Custom logging format will be disabled",
+        "type": "boolean"
+      },
+      "json_object_config": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "key": {
+              "description": "Key for the the json object",
+              "type": "string"
+            },
+            "value": {
+              "description": "String to get request information",
+              "type": "string"
+            },
+            "value_type": {
+              "description": "How to evaluate 'value' field",
+              "$ref": "#/definitions/value_type"
+            } 
+          }
+        }
+      },
+      "condition": {
+        "type": "object",
+        "properties": {
+          "operations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "op": {
+                  "description": "Match operation to compare match field with the provided value",
+                  "type": "string",
+                  "enum": [
+                    "==",
+                    "!=",
+                    "matches"
+                  ]
+                },
+                "match": {
+                  "description": "String to get request information to match",
+                  "type": "string"
+                },
+                "match_type": {
+                  "description": "How to evaluate 'match' value",
+                  "$ref": "#/definitions/value_type"
+                },
+                "value": {
+                  "description": "Value to compare the retrieved match",
+                  "type": "string"
+                },
+                "value_type": {
+                  "description": "How to evaluate 'value' field",
+                  "$ref": "#/definitions/value_type"
+                }
+              },
+              "required": [
+                "op",
+                "match",
+                "match_type",
+                "value",
+                "value_type"
+              ]
+            }
+          },
+          "combine_op": {
+            "type": "string",
+            "enum": [
+              "and",
+              "or"
+            ],
+            "default": "and"
+          }
+        }
       }
     }
   }
