@@ -1,8 +1,8 @@
 # Logging policy
 
 This policy has two purposes: one is to enable and disable access log output,
-and and the other is to create a custom access log format for each service and
-be able to set conditions to write custom access log.
+and the other is to create a custom access log format for each service and be
+able to set conditions to write custom access log.
 
 
 ## Exported variables
@@ -20,7 +20,7 @@ response.
 
 ## Examples
 
-### Disabling access log:
+### Disabling access log
 
 ```json
 {
@@ -31,7 +31,7 @@ response.
 }
 ```
 
-### Enabling custom access log:
+### Enabling custom access log
 
 ```json
 {
@@ -43,7 +43,8 @@ response.
 }
 ```
 
-### Enabling custom access log with the service ID:
+### Enabling custom access log with the service identifier
+
 ```json
 {
   "name": "apicast.policy.logging",
