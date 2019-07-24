@@ -58,12 +58,16 @@ stored in the container image as default environment. Any value passed on the CL
 
 **Default:** _false_
 
-This option might be useful for users with many services configured. By default,
-APIcast loads all the services each time it downloads its configuration from the
-admin portal. With a large number of services, this could become problematic.
-When this option is enabled, the configurations are loaded lazily. APIcast will
-only load the ones configured for the host specified in the host header of the
-request.
+This option can be used when there are many services configured. However, its
+performance depends on additional factors such as the number of services, the
+latency between APIcast and the 3scale Admin Portal, the Time To Live (TTL) of
+the configuration, etc.
+
+By default, APIcast loads all the services each time it downloads its
+configuration from the Admin Portal. With a large number of services, this could
+become problematic. When this option is enabled, the configurations are loaded
+lazily. APIcast will only load the ones configured for the host specified in the
+host header of the request.
 
 Notes:
 - The caching defined by `APICAST_CONFIGURATION_CACHE` applies.
