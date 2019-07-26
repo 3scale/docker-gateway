@@ -26,7 +26,7 @@ function _M.new()
   }, mt)
 end
 
-function _M:access(context)
+function _M.access(context)
   if not context.jwt then return errors.authorization_failed(context.service) end
 
   local cert = X509.parse_pem_cert(ngx.var.ssl_client_raw_cert)
