@@ -17,7 +17,7 @@ describe('mtls policy', function()
     end)
   end)
 
-  describe('.access', function()
+  describe(':access', function()
     before_each(function()
       ngx.header = {}
       stub(ngx, 'print')
@@ -33,7 +33,7 @@ describe('mtls policy', function()
 
       local policy = _M.new()
 
-      assert.is_true(policy.access(context))
+      assert.is_true(policy:access(context))
     end)
 
     it('rejects when the digest not equals cnf claim', function()
@@ -43,7 +43,7 @@ describe('mtls policy', function()
       context.jwt.cnf['x5t#S256'] = 'invalid_digest'
 
       local policy = _M.new()
-      policy.access(context)
+      policy:access(context)
 
       assert.stub(ngx.exit).was_called_with(403)
       assert.stub(ngx.print).was_called_with('auth failed')
@@ -56,7 +56,7 @@ describe('mtls policy', function()
       context.jwt.cnf['x5t#S256'] = 'Y4/LVlkpE6qkscPbtoKm3iiKBgfwbOfbdKBEdnZ6ZPY'
 
       local policy = _M.new()
-      policy.access(context)
+      policy:access(context)
 
       assert.stub(ngx.exit).was_called_with(403)
       assert.stub(ngx.print).was_called_with('auth failed')
@@ -66,7 +66,7 @@ describe('mtls policy', function()
       ngx.var = { ssl_client_raw_cert = client }
 
       local policy = _M.new()
-      policy.access(context)
+      policy:access(context)
 
       assert.stub(ngx.exit).was_called_with(403)
       assert.stub(ngx.print).was_called_with('auth failed')
