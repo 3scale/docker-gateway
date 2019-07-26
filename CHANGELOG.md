@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 - Introduce possibility of specifying policy order restrictions in their schemas. APIcast now shows a warning when those restrictions are not respected [#1088](https://github.com/3scale/APIcast/pull/1088), [THREESCALE-2896](https://issues.jboss.org/browse/THREESCALE-2896)
 - Added new parameters to logging policy to allow custom access log [PR #1081](https://github.com/3scale/APIcast/pull/1089) [THREESCALE-1234](https://issues.jboss.org/browse/THREESCALE-1234)[THREESCALE-2876](https://issues.jboss.org/browse/THREESCALE-2876)
+- OAuth 2.0 MTLS policy [PR #1101](https://github.com/3scale/APIcast/pull/1101) [Issue #1003](https://github.com/3scale/APIcast/issues/1003)
 
 ## [3.6.0-rc1] - 2019-07-04
 
