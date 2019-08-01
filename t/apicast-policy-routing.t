@@ -1439,3 +1439,120 @@ yay, api backend
 --- error_code: 200
 --- no_error_log
 [error]
+
+=== TEST 22: test with liquid expression
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "proxy": {
+        "policy_chain": [
+          {
+            "name": "apicast.policy.routing",
+            "configuration": {
+              "rules": [
+                {
+                  "url": "http://test:$TEST_NGINX_SERVER_PORT",
+                  "condition": {
+                    "operations": [
+                      {
+                        "match": "liquid",
+                        "liquid_value": "{{headers.foo}}",
+                        "op": "==",
+                        "value": "fooValue"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "apicast.policy.echo"
+          }
+        ]
+      }
+    }
+  ]
+}
+--- upstream
+  location / {
+     content_by_lua_block {
+       ngx.say('yay, api backend');
+     }
+  }
+--- request
+GET /
+--- more_headers
+foo: fooValue
+--- response_body
+yay, api backend
+--- error_code: 200
+--- no_error_log
+[error]
+
+=== TEST 23: test with original request values expression
+This is to validate the issue #1088, where a url_rewriting change the path in
+the rewrite phase and user does not have a way to route the policy. This is to
+validate that a user scenario is working correctly. 
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "proxy": {
+        "policy_chain": [
+          {
+            "name": "apicast.policy.routing",
+            "configuration": {
+              "rules": [
+                {
+                  "url": "http://test:$TEST_NGINX_SERVER_PORT",
+                  "condition": {
+                    "operations": [
+                      {
+                        "match": "liquid",
+                        "liquid_value": "{{ original_request.path }}",
+                        "op": "==",
+                        "value": "/bridge-1"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "url_rewriting",
+            "configuration": {
+              "commands": [
+                {
+                  "op": "sub",
+                  "regex": "^/bridge",
+                  "replace": "/"
+                }
+              ]
+            }
+          },
+          {
+            "name": "apicast.policy.echo"
+          }
+        ]
+      }
+    }
+  ]
+}
+--- upstream
+  location / {
+     content_by_lua_block {
+       ngx.say('yay, api backend');
+     }
+  }
+--- request
+GET /bridge-1
+--- response_body
+yay, api backend
+--- error_code: 200
+--- no_error_log
+[error]
