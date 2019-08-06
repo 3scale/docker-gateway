@@ -1,12 +1,6 @@
 use lib 't';
 use Test::APIcast::Blackbox 'no_plan';
 
-repeat_each(1);
-
-env_to_apicast(
-    'APICAST_POLICY_LOAD_PATH' => "$ENV{PWD}/examples/policies"
-);
-
 run_tests();
 
 __DATA__
@@ -27,7 +21,7 @@ Testing 3 things:
       "backend_authentication_value": "token-value",
       "proxy": {
         "policy_chain": [
-          { "name": "maintenance-mode", "version": "1.0.0" },
+          { "name": "apicast.policy.maintenance_mode" },
           { "name": "apicast.policy.apicast" }
         ],
         "api_backend": "http://test:$TEST_NGINX_SERVER_PORT/",
@@ -42,14 +36,13 @@ Testing 3 things:
   location / {
     content_by_lua_block {
       local assert = require('luassert')
-      assert.is_nil(ngx.req.get_uri_args())
-      ngx.say('No response from me');
+      assert.is_true(false)
     }
   }
 --- request
-GET /?test
+GET /
 --- response_body 
-503 Service Unavailable - Maintenance
+Service Unavailable - Maintenance
 --- error_code: 503
 --- no_error_log
 [error]
@@ -70,7 +63,7 @@ Testing 3 things:
     "backend_authentication_value": "token-value",
     "proxy": {
       "policy_chain": [{
-          "name": "maintenance-mode", "version": "1.0.0",
+          "name": "apicast.policy.maintenance_mode",
           "configuration": {
             "message": "Be back soon",
             "status": 501
@@ -94,14 +87,52 @@ Testing 3 things:
   location / {
     content_by_lua_block {
       local assert = require('luassert')
-      assert.is_nil(ngx.req.get_uri_args())
-      ngx.say('No response from me');
+      assert.is_true(false)
     }
   }
 --- request
-GET /?test
+GET /
 --- response_body 
 Be back soon
 --- error_code: 501
+--- no_error_log
+[error]
+
+=== TEST 3: Maintenance policy works when placed after the APIcast policy
+In this test we need to send the app credentials, because APIcast will check
+that they are there before the maintenance policy runs.
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "backend_version":  1,
+      "backend_authentication_type": "service_token",
+      "backend_authentication_value": "token-value",
+      "proxy": {
+        "policy_chain": [
+          { "name": "apicast.policy.apicast" },
+          { "name": "apicast.policy.maintenance_mode" }
+        ],
+        "api_backend": "http://test:$TEST_NGINX_SERVER_PORT/",
+        "proxy_rules": [
+          { "pattern": "/", "http_method": "GET", "metric_system_name": "hits", "delta": 2 }
+        ]
+      }
+    }
+  ]
+}
+--- upstream
+  location / {
+    content_by_lua_block {
+      local assert = require('luassert')
+      assert.is_true(false)
+    }
+  }
+--- request
+GET /?user_key=uk
+--- response_body
+Service Unavailable - Maintenance
+--- error_code: 503
 --- no_error_log
 [error]

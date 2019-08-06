@@ -1,19 +1,20 @@
 -- This is a simple policy. It allows you reject incoming requests with a
 -- specified status code and message.
--- It's useful for maintance periods or to temporarily block an API
+-- It's useful for maintenance periods or to temporarily block an API
 
-local _M = require('apicast.policy').new('Maintenance mode', '1.0.0')
+local _M = require('apicast.policy').new('Maintenance mode', 'builtin')
 
 local tonumber = tonumber
 local new = _M.new
 
+local default_status_code = 503
+local default_message = "Service Unavailable - Maintenance"
 
 function _M.new(configuration)
   local policy = new(configuration)
 
-  -- Set some default values
-  policy.status_code = 503
-  policy.message = "503 Service Unavailable - Maintenance"
+  policy.status_code = default_status_code
+  policy.message = default_message
 
   if configuration then
     policy.status_code = tonumber(configuration.status) or policy.status_code
@@ -23,13 +24,9 @@ function _M.new(configuration)
   return policy
 end
 
-function _M:access()
-
-  local status = self.status_code
-  local msg = self.message
-
-  ngx.status = status
-  ngx.say(msg)
+function _M:rewrite()
+  ngx.status = self.status_code
+  ngx.say(self.message)
 
   return ngx.exit(ngx.status)
 end
