@@ -136,3 +136,48 @@ Service Unavailable - Maintenance
 --- error_code: 503
 --- no_error_log
 [error]
+
+=== TEST 4: custom content-type
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "backend_version":  1,
+      "backend_authentication_type": "service_token",
+      "backend_authentication_value": "token-value",
+      "proxy": {
+        "policy_chain": [
+          {
+            "name": "apicast.policy.maintenance_mode",
+            "configuration": {
+              "message": "{ \"msg\": \"Be back soon\" }",
+              "message_content_type": "application/json"
+            }
+          },
+          { "name": "apicast.policy.apicast" }
+        ],
+        "api_backend": "http://test:$TEST_NGINX_SERVER_PORT/",
+        "proxy_rules": [
+          { "pattern": "/", "http_method": "GET", "metric_system_name": "hits", "delta": 2 }
+        ]
+      }
+    }
+  ]
+}
+--- upstream
+  location / {
+    content_by_lua_block {
+      local assert = require('luassert')
+      assert.is_true(false)
+    }
+  }
+--- request
+GET /
+--- response_body
+{ "msg": "Be back soon" }
+--- response_headers
+Content-Type: application/json
+--- error_code: 503
+--- no_error_log
+[error]

@@ -5,6 +5,7 @@ describe('Maintenance mode policy', function()
     before_each(function()
       stub(ngx, 'say')
       stub(ngx, 'exit')
+      ngx.header = {}
     end)
 
     context('when using the defaults', function()
@@ -20,6 +21,12 @@ describe('Maintenance mode policy', function()
         maintenance_policy:rewrite()
 
         assert.stub(ngx.say).was_called_with('Service Unavailable - Maintenance')
+      end)
+
+      it('returns the default Content-Type header', function()
+        maintenance_policy:rewrite()
+
+        assert.equals('text/plain; charset=utf-8', ngx.header['Content-Type'])
       end)
     end)
 
@@ -46,6 +53,23 @@ describe('Maintenance mode policy', function()
         maintenance_policy:rewrite()
 
         assert.stub(ngx.say).was_called_with(custom_msg)
+      end)
+    end)
+
+    context('when using a custom content type', function()
+      it('sets the Content-Type header accordingly', function()
+        local custom_content_type = 'application/json'
+        local maintenance_policy = MaintenancePolicy.new(
+            {
+              message = '{ "msg": "some_msg" }',
+              message_content_type = custom_content_type
+            }
+        )
+
+
+        maintenance_policy:rewrite()
+
+        assert.equals('application/json', ngx.header['Content-Type'])
       end)
     end)
   end)

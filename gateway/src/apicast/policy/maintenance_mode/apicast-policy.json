@@ -18,6 +18,11 @@
         "type": "string",
         "description": "HTTP response to return",
         "default": "Service Unavailable - Maintenance"
+      },
+      "message_content_type": {
+        "type": "string",
+        "description": "Content-Type header for the response",
+        "default": "text/plain; charset=utf-8"
       }
     }
   }
