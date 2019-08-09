@@ -85,6 +85,10 @@ server {
 
   server_name _;
 
+  {% if http_keepalive_timeout != empty %}
+      keepalive_timeout {{ http_keepalive_timeout}};
+  {% endif %}
+
   {% if opentracing_tracer != empty %}
   opentracing_operation_name "apicast";
   opentracing_trace_locations on;
