@@ -16,13 +16,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Remove dnsmasq process for APIcast [PR #1090](https://github.com/3scale/APIcast/pull/1090), [THREESCALE-1555](https://issues.jboss.org/browse/THREESCALE-1555)
 - Allow to use capture function in liquid templates. [PR #1107](https://github.com/3scale/APIcast/pull/1107), [THREESCALE-1911](https://issues.jboss.org/browse/THREESCALE-1911)
 - OAuth 2.0 MTLS policy [PR #1101](https://github.com/3scale/APIcast/pull/1101) [Issue #1003](https://github.com/3scale/APIcast/issues/1003)
+- Add an option to enable keepalive_timeout on gateway [THREESCALE-2886](https://issues.jboss.org/browse/THREESCALE-2886) [PR #1106](https://github.com/3scale/APIcast/pull/1106)
 
 
 ### Fixed
 
 - Fix issues when OPENTRACING_FORWARD_HEADER was set [PR #1109](https://github.com/3scale/APIcast/pull/1109), [THREESCALE-1660](https://issues.jboss.org/browse/THREESCALE-1660)
 - New TLS termination policy [PR #1108](https://github.com/3scale/APIcast/pull/1108), [THREESCALE-2898](https://issues.jboss.org/browse/THREESCALE-2898)
-- Add a option to enable keepalive_timeout on gateway [THREESCALE-2886](https://issues.jboss.org/browse/THREESCALE-2886) [PR #1106](https://github.com/3scale/APIcast/pull/1106)
 
 ## [3.6.0-rc1] - 2019-07-04
 
