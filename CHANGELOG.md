@@ -13,12 +13,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Added http_proxy policy to use an HTTP proxy in api_backed calls. [THREESCALE-2696](https://issues.jboss.org/browse/THREESCALE-2696) [PR #1080](https://github.com/3scale/APIcast/pull/1080)
 - Option to load service configurations one by one lazily [PR #1099](https://github.com/3scale/APIcast/pull/1099)
 - New maintenance mode policy, useful for maintenance periods. [PR #1105](https://github.com/3scale/APIcast/pull/1105), [THREESCALE-3189](https://issues.jboss.org/browse/THREESCALE-3189)
+- Remove dnsmasq process for APIcast [PR #1090](https://github.com/3scale/APIcast/pull/1090), [THREESCALE-1555](https://issues.jboss.org/browse/THREESCALE-1555)
 
 ## [3.6.0-rc1] - 2019-07-04
 
 ### Added
 
 - Extended variables in Liquid template operations [PR #1081](https://github.com/3scale/APIcast/pull/1081)[THREESCALE-2927](https://issues.jboss.org/browse/THREESCALE-2927)
+
 
 ## [3.6.0-beta1] - 2019-06-18
 
