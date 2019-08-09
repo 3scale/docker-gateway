@@ -10,6 +10,7 @@ local format = string.format
 local pcall = pcall
 
 local ngx_variable = require('apicast.policy.ngx_variable')
+local LinkedList = require('apicast.linked_list')
 
 local _M = {}
 
@@ -102,7 +103,8 @@ function LiquidTemplateString.new(string)
 end
 
 function LiquidTemplateString:render(context)
-  local available_context = ngx_variable.available_context(context)
+
+  local available_context = LinkedList.readwrite({}, ngx_variable.available_context(context))
 
   return Liquid.Interpreter:new(self.parser):interpret(
     LiquidInterpreterContext:new(available_context),
