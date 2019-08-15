@@ -1,7 +1,7 @@
 -- This is a tls description.
 
 local policy = require('apicast.policy')
-local _M = policy.new('tls')
+local _M = policy.new('tls', "builtin")
 local tab_new = require('table.new')
 local ssl = require('ngx.ssl')
 local cjson = require('cjson')
@@ -77,7 +77,6 @@ end
 
 local function parse_certificates(self, certificate, private_key)
   local err
-
   self.certificate, err = ssl.parse_pem_cert(certificate)
   if err then return nil, err end
 
@@ -139,7 +138,6 @@ local function parse_config_certificates(configs)
 
   for _, config in ipairs(configs)do
     local cert, err = parse_config(config)
-
     if err then
       ngx.log(ngx.WARN, 'could not parse certificate ', cjson.encode(config))
     else
@@ -154,10 +152,49 @@ end
 -- @tparam[opt] table config Policy configuration.
 function _M.new(config)
   local self = new(config)
-
   self.certificates = parse_config_certificates(config and config.certificates or empty)
-
+  if #self.certificates == 0 then
+    ngx.log(ngx.WARN, "No valid certificates loaded")
+  end
   return self
+end
+
+-- Set the given certificate to be the default one for the request.
+-- @tparam cert: certificate table with certificates in der format
+local function set_certificate(cert)
+  local ok, err = ssl.set_cert(cert.certificate)
+  if not ok then
+    ngx.log(ngx.ERR, "failed to set certificate: ", err)
+    return false
+  end
+
+  ok, err = ssl.set_priv_key(cert.certificate_key)
+  if not ok then
+    ngx.log(ngx.ERR, "failed to set DER private key: ", err)
+    return false
+  end
+  return true
+end
+
+function _M:ssl_certificate()
+  if #self.certificates == 0 then
+    -- No valid certificates in place, continue.
+    return
+  end
+
+  local ok, err = ssl.clear_certs()
+  if not ok then
+      ngx.log(ngx.ERR, "failed to clear existing (fallback) certificates, err: ", err)
+      return ngx.exit(ngx.ERROR)
+  end
+
+  for _, cert in ipairs(self.certificates) do
+    if set_certificate(cert) then
+      -- Certificate is set correctly, use this one and end the loop.
+      ngx.exit(ngx.OK)
+      break
+    end
+  end
 end
 
 return _M

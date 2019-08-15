@@ -1,6 +1,20 @@
 local _M = require('apicast.policy.tls')
+local ssl = require('ngx.ssl')
+
+local function assert_certificate_set()
+    assert.spy(ssl.clear_certs).was_called()
+    assert.spy(ssl.set_cert).was_called()
+    assert.spy(ssl.set_priv_key).was_called()
+end
 
 describe('tls policy', function()
+
+  before_each(function()
+    stub.new(ssl, 'clear_certs', function() return true, nil end)
+    stub.new(ssl, 'set_cert', function() return true, nil end)
+    stub.new(ssl, 'set_priv_key', function() return true, nil end)
+  end)
+
   describe('.new', function()
     it('works without configuration', function()
       assert(_M.new())
@@ -9,8 +23,9 @@ describe('tls policy', function()
     it('accepts configuration', function()
         assert(_M.new({ }))
     end)
+  end)
 
-
+  describe("certificate validation", function()
     it('parses embedded PEM certificates', function ()
       local policy = _M.new{
         certificates = {
@@ -22,6 +37,8 @@ describe('tls policy', function()
       }
 
       assert.same(1, #policy.certificates)
+      policy:ssl_certificate()
+      assert_certificate_set()
     end)
 
     it('parses PEM certificates in files', function ()
@@ -35,6 +52,40 @@ describe('tls policy', function()
       }
 
       assert.same(1, #policy.certificates)
+      policy:ssl_certificate()
+      assert_certificate_set()
+    end)
+
+    it("Does not load cert if can't be read", function()
+      local policy = _M.new{
+        certificates = {
+          {
+            certificate_path = 't/fixtures/CA/invalid_va',
+            certificate_key_path = 't/fixtures/CA/invalid_key',
+          }
+        }
+      }
+      assert.same(0, #policy.certificates)
+      policy:ssl_certificate()
+      assert.spy(ssl.clear_certs).was_not_called()
+    end)
+
+    it("Fallbacks correctly to the second certificate if first fails", function()
+      local policy = _M.new{
+        certificates = {
+          {
+            certificate_path = 't/fixtures/CA/invalid_va',
+            certificate_key_path = 't/fixtures/CA/invalid_key',
+          },
+          {
+            certificate_path = 't/fixtures/CA/root-ca.crt',
+            certificate_key_path = 't/fixtures/CA/root-ca.key',
+          }
+        }
+      }
+      assert.same(1, #policy.certificates)
+      policy:ssl_certificate()
+      assert_certificate_set()
     end)
   end)
 end)
