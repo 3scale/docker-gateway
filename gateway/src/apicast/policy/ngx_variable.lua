@@ -5,6 +5,7 @@ local _M = {}
 local function context_values()
   return {
     uri = ngx.var.uri,
+    path = ngx.var.path,
     host = ngx.var.host,
     remote_addr = ngx.var.remote_addr,
     remote_port = ngx.var.remote_port,
