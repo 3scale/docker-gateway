@@ -1,8 +1,11 @@
+local _M = {}
+
 --- Data URL Configuration Loader
 -- This configuration loader parses and URL and exctracts the whole configuration JSON from it.
 -- The URL has to be a Data URL with urlencoded or base64 encoding.
 -- https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URIs
-local _M = {}
+-- This comment is under the module init, because module name is already used
+-- in gateway/apicast and ldocs fails to start, more info in the commit.
 
 local MimeType = require('resty.mime')
 
