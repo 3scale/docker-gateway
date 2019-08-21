@@ -130,6 +130,10 @@ function _M:interpret(str)
         end
     end)
 
+    filter_set:add_filter('tostring', function(string)
+      return tostring(string)
+    end)
+
     return interpreter:interpret(context, filter_set, resource_limit, filesystem)
 end
 
