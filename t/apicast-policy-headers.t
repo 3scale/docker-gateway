@@ -723,3 +723,62 @@ yay, api backend
 --- no_error_log
 [error]
 oauth failed with
+
+=== TEST 12: Liquid validate capture works
+Validate that capture function works correctly THREESCALE-1911
+--- backend
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+      ngx.exit(200)
+    }
+  }
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "backend_version":  1,
+      "backend_authentication_type": "service_token",
+      "backend_authentication_value": "token-value",
+      "proxy": {
+        "api_backend": "http://test:$TEST_NGINX_SERVER_PORT/",
+        "proxy_rules": [
+          { "pattern": "/", "http_method": "GET", "metric_system_name": "hits", "delta": 2 }
+        ],
+        "policy_chain": [
+          { "name": "apicast.policy.apicast" },
+          {
+            "name": "apicast.policy.headers",
+            "configuration":
+              {
+                "request":
+                  [
+                    {
+                      "op": "set",
+                      "header": "New-Header-1",
+                      "value": "{% capture foo%}bar{% endcapture%}{{foo}}",
+                      "value_type": "liquid"
+                    }
+                  ]
+              }
+          }
+        ]
+      }
+    }
+  ]
+}
+--- upstream
+  location / {
+     content_by_lua_block {
+       local assert = require('luassert')
+       assert.same("bar", ngx.req.get_headers()['New-Header-1'])
+       ngx.say('yay, api backend');
+     }
+  }
+--- request
+GET /?user_key=value
+--- response_body
+yay, api backend
+--- error_code: 200
+--- no_error_log
+[error]
