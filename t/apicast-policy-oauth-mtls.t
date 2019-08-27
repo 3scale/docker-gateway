@@ -5,7 +5,6 @@ env_to_apicast(
     'APICAST_HTTPS_PORT' => "$Test::Nginx::Util::ServerPortForClient",
     'APICAST_HTTPS_CERTIFICATE' => "$Test::Nginx::Util::ServRoot/html/server.crt",
     'APICAST_HTTPS_CERTIFICATE_KEY' => "$Test::Nginx::Util::ServRoot/html/server.key",
-    'APICAST_HTTPS_SESSION_REUSE' => 'on',
 );
 
 run_tests();
@@ -57,7 +56,7 @@ __DATA__
           { "pattern": "/", "http_method": "GET", "metric_system_name": "hits", "delta": 1 }
         ],
         "policy_chain": [
-          { "name": "apicast.policy.mtls" },
+          { "name": "apicast.policy.oauth_mtls" },
           { "name": "apicast.policy.apicast" }
         ]
       }
@@ -71,7 +70,7 @@ proxy_ssl_certificate $TEST_NGINX_SERVER_ROOT/html/client.crt;
 proxy_ssl_certificate_key $TEST_NGINX_SERVER_ROOT/html/client.key;
 proxy_pass https://$server_addr:$apicast_port/t;
 proxy_set_header Host localhost;
-proxy_set_header Authorization "Bearer eyJraWQiOiJzb21la2lkIiwiYWxnIjoiUlMyNTYifQ.eyJleHAiOjE5MjI2NTMwMTYsInN1YiI6InNvbWVvbmUiLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiZGlyZWN0b3IiXX0sImZvbyI6IjEiLCJpc3MiOiJodHRwczovL2V4YW1wbGUuY29tL2F1dGgvcmVhbG1zL2FwaWNhc3QiLCJhdWQiOiJhdWRpZW5jZSIsImNuZiI6eyJ4NXQjUzI1NiI6Ilk0L0xWbGtwRTZxa3NjUGJ0b0ttM2lpS0JnZndiT2ZiZEtCRWRuWjZaUFkifX0.YMkzr0eLFjwtJUeCgrbP0rL23GI6hlZvbtEK9e-AP_lc2yFG5TDoACXlqX2ObiygxitxW5egtFZ5Ny3RmokuRw";
+proxy_set_header Authorization "Bearer eyJraWQiOiJzb21la2lkIiwiYWxnIjoiUlMyNTYifQ.eyJleHAiOjE5MjY4NzMwNTQsInN1YiI6InNvbWVvbmUiLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiZGlyZWN0b3IiXX0sImZvbyI6IjEiLCJpc3MiOiJodHRwczovL2V4YW1wbGUuY29tL2F1dGgvcmVhbG1zL2FwaWNhc3QiLCJhdWQiOiJhdWRpZW5jZSIsImNuZiI6eyJ4NXQjUzI1NiI6Ilk0X0xWbGtwRTZxa3NjUGJ0b0ttM2lpS0JnZndiT2ZiZEtCRWRuWjZaUFkifX0.Iin-tr6EVhEXjbj9R6xZSToBxZZBDXhl6i9ROw6SJQE6RWJeLt6mKK4jdTMVdxoZfm1J_NqayGJh3N99kHdIbA";
 log_by_lua_block { collectgarbage() }
 --- response_body
 yay, api backend
@@ -126,7 +125,7 @@ yay, api backend
           { "pattern": "/", "http_method": "GET", "metric_system_name": "hits", "delta": 1 }
         ],
         "policy_chain": [
-          { "name": "apicast.policy.mtls" },
+          { "name": "apicast.policy.oauth_mtls" },
           { "name": "apicast.policy.apicast" }
         ]
       }
@@ -143,8 +142,8 @@ proxy_set_header Host localhost;
 proxy_set_header Authorization "Bearer eyJraWQiOiJzb21la2lkIiwiYWxnIjoiUlMyNTYifQ.eyJleHAiOjE5MjQxMjQ1ODIsInN1YiI6InNvbWVvbmUiLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiZGlyZWN0b3IiXX0sImZvbyI6IjEiLCJpc3MiOiJodHRwczovL2V4YW1wbGUuY29tL2F1dGgvcmVhbG1zL2FwaWNhc3QiLCJhdWQiOiJhdWRpZW5jZSIsImNuZiI6eyJ4NXQjUzI1NiI6ImludmFsaWQifX0.h9Lay5rff08ipXd2juLS_A0fpJKn6UPD1AIxBCibdTi1wyhF5fCLmxzfwozgtqVTlcOGTu9ZtVfp88tRZ2mE-A";
 log_by_lua_block { collectgarbage() }
 --- response_body chomp
-Authentication failed
---- error_code: 403
+{"error": "invalid_token"}
+--- error_code: 401
 --- no_error_log
 [error]
 --- user_files fixture=CA/files.pl eval
@@ -195,7 +194,7 @@ Authentication failed
           { "pattern": "/", "http_method": "GET", "metric_system_name": "hits", "delta": 1 }
         ],
         "policy_chain": [
-          { "name": "apicast.policy.mtls" },
+          { "name": "apicast.policy.oauth_mtls" },
           { "name": "apicast.policy.apicast" }
         ]
       }
@@ -207,11 +206,11 @@ proxy_ssl_verify on;
 proxy_ssl_trusted_certificate $TEST_NGINX_SERVER_ROOT/html/ca.crt;
 proxy_pass https://$server_addr:$apicast_port/t;
 proxy_set_header Host localhost;
-proxy_set_header Authorization "Bearer eyJraWQiOiJzb21la2lkIiwiYWxnIjoiUlMyNTYifQ.eyJleHAiOjE5MjI2NTMwMTYsInN1YiI6InNvbWVvbmUiLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiZGlyZWN0b3IiXX0sImZvbyI6IjEiLCJpc3MiOiJodHRwczovL2V4YW1wbGUuY29tL2F1dGgvcmVhbG1zL2FwaWNhc3QiLCJhdWQiOiJhdWRpZW5jZSIsImNuZiI6eyJ4NXQjUzI1NiI6Ilk0L0xWbGtwRTZxa3NjUGJ0b0ttM2lpS0JnZndiT2ZiZEtCRWRuWjZaUFkifX0.YMkzr0eLFjwtJUeCgrbP0rL23GI6hlZvbtEK9e-AP_lc2yFG5TDoACXlqX2ObiygxitxW5egtFZ5Ny3RmokuRw";
+proxy_set_header Authorization "Bearer eyJraWQiOiJzb21la2lkIiwiYWxnIjoiUlMyNTYifQ.eyJleHAiOjE5MjY4NzMwNTQsInN1YiI6InNvbWVvbmUiLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiZGlyZWN0b3IiXX0sImZvbyI6IjEiLCJpc3MiOiJodHRwczovL2V4YW1wbGUuY29tL2F1dGgvcmVhbG1zL2FwaWNhc3QiLCJhdWQiOiJhdWRpZW5jZSIsImNuZiI6eyJ4NXQjUzI1NiI6Ilk0X0xWbGtwRTZxa3NjUGJ0b0ttM2lpS0JnZndiT2ZiZEtCRWRuWjZaUFkifX0.Iin-tr6EVhEXjbj9R6xZSToBxZZBDXhl6i9ROw6SJQE6RWJeLt6mKK4jdTMVdxoZfm1J_NqayGJh3N99kHdIbA";
 log_by_lua_block { collectgarbage() }
 --- response_body chomp
-Authentication failed
---- error_code: 403
+{"error": "invalid_token"}
+--- error_code: 401
 --- no_error_log
 [error]
 --- user_files fixture=CA/files.pl eval
@@ -262,7 +261,7 @@ Authentication failed
           { "pattern": "/", "http_method": "GET", "metric_system_name": "hits", "delta": 1 }
         ],
         "policy_chain": [
-          { "name": "apicast.policy.mtls" },
+          { "name": "apicast.policy.oauth_mtls" },
           { "name": "apicast.policy.apicast" }
         ]
       }
@@ -279,8 +278,8 @@ proxy_set_header Host localhost;
 proxy_set_header Authorization "Bearer eyJraWQiOiJzb21la2lkIiwiYWxnIjoiUlMyNTYifQ.eyJleHAiOjE5MjQxMjU0MzQsInN1YiI6InNvbWVvbmUiLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiZGlyZWN0b3IiXX0sImZvbyI6IjEiLCJpc3MiOiJodHRwczovL2V4YW1wbGUuY29tL2F1dGgvcmVhbG1zL2FwaWNhc3QiLCJhdWQiOiJhdWRpZW5jZSJ9.GDYu4nT73_vPV4ZGa5DL8TAWZvn2TI47WxbXFH6wnUMn818slif-gUp_14pGleOR6VcLrEAC3VwEidtn08Ah8A";
 log_by_lua_block { collectgarbage() }
 --- response_body chomp
-Authentication failed
---- error_code: 403
+{"error": "invalid_token"}
+--- error_code: 401
 --- no_error_log
 [error]
 --- user_files fixture=CA/files.pl eval
