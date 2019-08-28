@@ -3,7 +3,12 @@ local client = assert(fixture('CA', 'client.crt'))
 local X509 = require('resty.openssl.x509')
 local b64 = require('ngx.base64')
 
+local header_parameter = 'x5t#S256'
 local context = {}
+
+local function jwt_cnf()
+  return { [header_parameter] = b64.encode_base64url(X509.parse_pem_cert(client):digest('SHA256')) }
+end
 
 describe('oauth_mtls policy', function()
   describe('.new', function()
@@ -33,8 +38,7 @@ describe('oauth_mtls policy', function()
     it('accepts when the digest equals cnf claim', function()
       ngx.var = { ssl_client_raw_cert = client }
 
-      context.jwt.cnf = {}
-      context.jwt.cnf['x5t#S256'] = b64.encode_base64url(X509.parse_pem_cert(client):digest('SHA256'))
+      context.jwt.cnf = jwt_cnf()
 
       local policy = _M.new()
 
@@ -45,7 +49,7 @@ describe('oauth_mtls policy', function()
       ngx.var = { ssl_client_raw_cert = client }
 
       context.jwt.cnf = {}
-      context.jwt.cnf['x5t#S256'] = 'invalid_digest'
+      context.jwt.cnf[header_parameter] = 'invalid_digest'
 
       local policy = _M.new()
       policy:access(context)
@@ -57,8 +61,7 @@ describe('oauth_mtls policy', function()
     it('rejects when the client certificate not found', function()
       ngx.var = { ssl_client_raw_cert = nil }
 
-      context.jwt.cnf = {}
-      context.jwt.cnf['x5t#S256'] = b64.encode_base64url(X509.parse_pem_cert(client):digest('SHA256'))
+      context.jwt.cnf = jwt_cnf()
 
       local policy = _M.new()
       policy:access(context)
