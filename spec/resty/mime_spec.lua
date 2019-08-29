@@ -19,6 +19,20 @@ describe('Resty MimeType', function()
 
       assert.same([[charset=utf-8;param=value;quoted="value"]], mime.parameters)
     end)
+
+    it('returns empty on false', function()
+      local mime = _M.new(false)
+
+      assert.is_nil(mime.media_type)
+      assert.is_nil(mime.parameters)
+    end)
+
+    it('returns empty on nil', function()
+      local mime = _M.new(nil)
+
+      assert.is_nil(mime.media_type)
+      assert.is_nil(mime.parameters)
+    end)
   end)
 
   describe(':parameter(name)', function()

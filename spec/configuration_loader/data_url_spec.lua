@@ -35,6 +35,5 @@ describe('Configuration Data URL loader', function()
 
       assert.same({nil, 'unsupported mediatype'}, { loader.call(url) })
     end)
-
   end)
 end)

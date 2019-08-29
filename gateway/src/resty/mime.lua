@@ -11,6 +11,10 @@ local MimeType_mt = { __index = _M }
 
 
 function _M.new(media_type)
+  if not media_type then
+    return setmetatable({}, MimeType_mt)
+  end
+
   -- The [RFC[(https://tools.ietf.org/html/rfc7231#section-3.1.1.1) defines
 
   -- that space around `;` is irrelevant, so remove it when splitting

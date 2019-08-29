@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 
 - Fix issues when OPENTRACING_FORWARD_HEADER was set [PR #1109](https://github.com/3scale/APIcast/pull/1109), [THREESCALE-1660](https://issues.jboss.org/browse/THREESCALE-1660)
+- New TLS termination policy [PR #1108](https://github.com/3scale/APIcast/pull/1108), [THREESCALE-2898](https://issues.jboss.org/browse/THREESCALE-2898)
 
 ## [3.6.0-rc1] - 2019-07-04
 

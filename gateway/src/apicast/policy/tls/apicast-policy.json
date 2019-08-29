@@ -1,0 +1,56 @@
+{
+  "$schema": "http://apicast.io/policy-v1/schema#manifest#",
+  "name": "tls",
+  "summary": "Configure TLS certificates",
+  "description": [
+      "Configure APIcast to serve TLS certificates for HTTPS connections."
+  ],
+  "version": "builtin",
+  "configuration": {
+    "type": "object",
+    "properties": {
+      "certificates": {
+        "title": "TLS certificates",
+        "description": "The first valid certificate is going to be served to the client.",
+        "type": "array",
+        "items": {
+          "type": "object",
+          "anyOf": [
+            {
+              "title": "Embedded certificate",
+              "properties":  {
+                "certificate_path": {
+                  "type": "string",
+                  "title": "Path to the certificate"
+                },
+                "certificate_key_path": {
+                  "type": "string",
+                  "title": "Path to the certificate private key"
+                }
+              },
+              "required": ["certificate_path", "certificate_key_path"]
+            },
+            {
+              "title": "Certificate from local filesystem",
+              "properties":  {
+                "certificate": {
+                  "type": "string",
+                  "format": "data-url",
+                  "title": "PEM formatted certificate",
+                  "description": "Certificate including the -----BEGIN CERTIFICATE----- and -----END CERTIFICATE-----"
+                },
+                "certificate_key": {
+                  "type": "string",
+                  "format": "data-url",
+                  "title": "PEM formatted certificate private key",
+                  "description": "Private key including the -----BEGIN * PRIVATE KEY----- and -----END * PRIVATE KEY -----"
+                }
+              },
+              "required": ["certificate", "certificate_key"]
+            }
+          ]
+        }
+      }
+    }
+  }
+}
