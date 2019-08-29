@@ -179,11 +179,19 @@ end
 function _M:call(context)
     if ngx.headers_sent then return nil, 'response sent already' end
 
-    local proxy_uri = http_proxy.find(self)
+    local proxy_uri
+
+    -- get_http_proxy is a property set by the http_proxy policy
+    if context.get_http_proxy then
+      proxy_uri = context.get_http_proxy(self.uri)
+    else
+      proxy_uri = http_proxy.find(self)
+    end
 
     if proxy_uri then
         ngx.log(ngx.DEBUG, 'using proxy: ', proxy_uri)
-        -- https requests will be terminated, http will be rewritten and sent to a proxy
+        -- https requests will be terminated, http will be rewritten and sent
+        -- to a proxy
         http_proxy.request(self, proxy_uri)
     else
         self:rewrite_request()
