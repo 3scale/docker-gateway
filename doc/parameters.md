@@ -353,7 +353,7 @@ You can choose to mount a different configuration than the provided by default b
 
 **Example:** `/tmp/jaeger/jaeger.json`
 
-### `OPENTRACING_HEADER_FORWARD`
+### `OPENTRACING_FORWARD_HEADER`
 
 **Default:** `uber-trace-id`
 

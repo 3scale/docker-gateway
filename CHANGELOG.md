@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - OAuth 2.0 MTLS policy [PR #1101](https://github.com/3scale/APIcast/pull/1101) [Issue #1003](https://github.com/3scale/APIcast/issues/1003)
 
 
+### Fixed
+
+- Fix issues when OPENTRACING_FORWARD_HEADER was set [PR #1109](https://github.com/3scale/APIcast/pull/1109), [THREESCALE-1660](https://issues.jboss.org/browse/THREESCALE-1660)
+
 ## [3.6.0-rc1] - 2019-07-04
 
 ### Added
