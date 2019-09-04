@@ -432,3 +432,16 @@ The metrics that will have extended information are:
 - total_response_time_seconds: labels service_id and service_system_name
 - upstream_response_time_seconds: labels service_id and service_system_name
 - upstream_status: labels service_id and service_system_name
+
+### `HTTP_KEEPALIVE_TIMEOUT`
+
+**Default:** 75
+**Value:** positive integers
+**Example:** "1"
+
+This parameter sets a timeout during which a keep-alive client connection will
+stay open on the server side. The zero value disables keep-alive client
+connections.
+
+By default Gateway does not enable it, and the keepalive timeout on nginx is set
+to [75 seconds](http://nginx.org/en/docs/http/ngx_http_core_module.html#keepalive_timeout)
