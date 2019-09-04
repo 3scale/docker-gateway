@@ -1313,3 +1313,48 @@ limit. The limit is set to 2. Only the third one should fail.
 [200, 200, 429]
 --- no_error_log
 [error]
+
+
+=== TEST 22: Window is set to 0 and default is 1.
+Return 429 code.
+--- http_config
+  include $TEST_NGINX_UPSTREAM_CONFIG;
+  lua_package_path "$TEST_NGINX_LUA_PATH";
+
+  init_by_lua_block {
+    require "resty.core"
+    ngx.shared.limiter:flush_all()
+    require('apicast.configuration_loader').mock({
+      services = {
+        {
+          id = 42,
+          proxy = {
+            policy_chain = {
+              {
+                name = "apicast.policy.rate_limit",
+                configuration = {
+                  fixed_window_limiters = {
+                    {
+                      key = {name = "test9", scope = "global"},
+                      count = 1,
+                      window = 0
+                    }
+                  },
+                  limits_exceeded_error = { status_code = 429 }
+                }
+              }
+            }
+          }
+        }
+      }
+    })
+  }
+  lua_shared_dict limiter 1m;
+
+--- config
+  include $TEST_NGINX_APICAST_CONFIG;
+
+--- pipelined_requests eval
+["GET /","GET /"]
+--- error_code eval
+[200, 429]

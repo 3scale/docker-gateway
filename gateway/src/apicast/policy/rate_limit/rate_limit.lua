@@ -34,6 +34,9 @@ local traffic_limiters = {
     return resty_limit_req.new(shdict_key, config.rate, config.burst)
   end,
   fixed_window = function(config)
+    if not config.window or config.window <= 0 then
+        config.window = 1
+    end
     return resty_limit_count.new(shdict_key, config.count, config.window)
   end
 }
