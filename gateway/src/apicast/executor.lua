@@ -44,7 +44,8 @@ local function store_original_request(context)
   -- is not a good method to check this. [1]
   -- [0] invalid phases: init_worker, init, timer and ssl_cer
   -- [1] https://github.com/openresty/lua-resty-core/blob/9937f5d83367e388da4fcc1d7de2141c9e38d7e2/lib/resty/core/request.lua#L96
-  if context.original_request then
+  --
+  if not context or context.original_request then
     return
   end
 
@@ -70,6 +71,9 @@ local function shared_build_context(executor)
     if not context then
         context = build_context(executor)
         ctx.context = context
+    end
+
+    if not ctx.original_request then
         store_original_request(ctx)
     end
 
