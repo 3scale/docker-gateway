@@ -7,6 +7,7 @@
 
 local setmetatable = setmetatable
 local Operation = require('apicast.conditions.operation')
+local TemplateString = require('apicast.template_string')
 
 local _M = {}
 
@@ -48,6 +49,14 @@ function _M.new_op_with_jwt_claim(jwt_claim_name, op, value, value_type)
   local eval_left_func = function(request)
     local jwt = request:get_validated_jwt()
     return (jwt and jwt[jwt_claim_name]) or nil
+  end
+
+  return new(eval_left_func, op, value, value_type)
+end
+
+function _M.new_op_with_liquid_templating(liquid_expression, op, value, value_type)
+  local eval_left_func = function()
+    return TemplateString.new(liquid_expression or "" , "liquid"):render(ngx.ctx)
   end
 
   return new(eval_left_func, op, value, value_type)

@@ -215,6 +215,27 @@ describe('RoutingOperation', function()
       end)
     end)
 
+
+    describe('when the operation involves a liquid expression', function()
+
+      before_each(function()
+        stub(ngx_variable, 'available_context', function() return {foo="bar"} end)
+      end)
+
+      it('evaluates true conditions correctly', function()
+        local operation = RoutingOperation.new_op_with_liquid_templating(
+          "{{foo}}", "==", "bar")
+        assert.is_true(operation:evaluate({}))
+      end)
+
+      it('evaluates false conditions correctly', function()
+        local operation = RoutingOperation.new_op_with_liquid_templating(
+          "{{foo}}", "==", "false")
+        assert.is_false(operation:evaluate({}))
+      end)
+
+    end)
+
     it('can evaluate the right operand as liquid', function()
       -- Stub the available context to avoid depending on ngx.var.*
       stub(ngx_variable, 'available_context', function(context) return context end)

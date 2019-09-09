@@ -340,6 +340,35 @@ the path is not `/accounts`:
     }
   }
 ```
+## Liquid templating on match
+
+It is possible to use liquid templating in the match section. This allows to
+define rules with dynamic information and provide a way to match with any
+request info.
+
+```json
+  {
+    "name": "routing",
+    "version": "builtin",
+    "configuration": {
+      "rules": [
+        {
+          "url": "http://example.com",
+          "condition": {
+            "operations": [
+              {
+                "match": "liquid",
+                "liquid_value": "{{original_request.path}}",
+                "op": "matches",
+                "value": "/bridge-1"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+```
 
 ## Liquid templating
 

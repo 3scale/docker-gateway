@@ -16,6 +16,7 @@ local function value_of_match(thing_to_be_matched, config_condition)
   return (thing_to_be_matched == 'header' and config_condition.header_name) or
     (thing_to_be_matched == 'query_arg' and config_condition.query_arg_name) or
     (thing_to_be_matched == 'jwt_claim' and config_condition.jwt_claim_name) or
+    (thing_to_be_matched == 'liquid' and config_condition.liquid_value) or
     nil
 end
 
@@ -34,6 +35,8 @@ local function init_operation(config_operation)
     return RoutingOperation.new_op_with_query_arg(match_val, op, value, value_type)
   elseif match == 'jwt_claim' then
     return RoutingOperation.new_op_with_jwt_claim(match_val, op, value, value_type)
+  elseif match == 'liquid' then
+    return RoutingOperation.new_op_with_liquid_templating(match_val, op, value, value_type)
   else
     error('Thing to be matched not supported: ' .. match)
   end

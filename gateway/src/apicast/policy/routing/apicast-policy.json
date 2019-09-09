@@ -31,7 +31,8 @@
               "path",
               "header",
               "query_arg",
-              "jwt_claim"
+              "jwt_claim",
+              "liquid"
             ]
           },
           "op": {
@@ -112,6 +113,21 @@
                 },
                 "required": [
                   "jwt_claim_name"
+                ]
+              },
+              {
+                "properties": {
+                  "match": {
+                    "enum": [
+                      "liquid"
+                    ]
+                  },
+                  "liquid_value" : {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "liquid_value"
                 ]
               },
               {
