@@ -181,6 +181,7 @@
         "type": "array",
         "items": {
           "type": "object",
+          "required": ["key", "count", "window"],
           "properties": {
             "key": {
               "$ref": "#/definitions/key"
@@ -196,7 +197,8 @@
             "window": {
               "type": "integer",
               "description": "The time window in seconds before the request count is reset",
-              "exclusiveMinimum": 0
+              "exclusiveMinimum": 0,
+              "default": 1
             }
           }
         }
