@@ -73,8 +73,8 @@ local function shared_build_context(executor)
         ctx.context = context
     end
 
-    if not ctx.original_request then
-        store_original_request(ctx)
+    if not context.original_request then
+        store_original_request(context)
     end
 
     return context
