@@ -25,29 +25,29 @@ local function new(evaluate_left_side_func, op, value, value_type)
 end
 
 function _M.new_op_with_path(op, value, value_type)
-  local eval_left_func = function(request) return request:get_uri() end
+  local eval_left_func = function(context) return context.request:get_uri() end
   return new(eval_left_func, op, value, value_type)
 end
 
 function _M.new_op_with_header(header_name, op, value, value_type)
-  local eval_left_func = function(request)
-    return request:get_header(header_name)
+  local eval_left_func = function(context)
+    return context.request:get_header(header_name)
   end
 
   return new(eval_left_func, op, value, value_type)
 end
 
 function _M.new_op_with_query_arg(query_arg_name, op, value, value_type)
-  local eval_left_func = function(request)
-    return request:get_uri_arg(query_arg_name)
+  local eval_left_func = function(context)
+    return context.request:get_uri_arg(query_arg_name)
   end
 
   return new(eval_left_func, op, value, value_type)
 end
 
 function _M.new_op_with_jwt_claim(jwt_claim_name, op, value, value_type)
-  local eval_left_func = function(request)
-    local jwt = request:get_validated_jwt()
+  local eval_left_func = function(context)
+    local jwt = context.request:get_validated_jwt()
     return (jwt and jwt[jwt_claim_name]) or nil
   end
 
@@ -55,15 +55,15 @@ function _M.new_op_with_jwt_claim(jwt_claim_name, op, value, value_type)
 end
 
 function _M.new_op_with_liquid_templating(liquid_expression, op, value, value_type)
-  local eval_left_func = function()
-    return TemplateString.new(liquid_expression or "" , "liquid"):render(ngx.ctx)
+  local eval_left_func = function(context)
+    return TemplateString.new(liquid_expression or "" , "liquid"):render(context)
   end
 
   return new(eval_left_func, op, value, value_type)
 end
 
 function _M:evaluate(context)
-  local left_operand_val = self.evaluate_left_side_func(context.request)
+  local left_operand_val = self.evaluate_left_side_func(context)
 
   local op = Operation.new(
     left_operand_val, 'plain', self.op, self.value, self.value_type
