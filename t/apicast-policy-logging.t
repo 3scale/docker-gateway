@@ -420,3 +420,44 @@ GET /
 [qr/^\{\"host\"\:\"echo\"\}/]
 --- no_error_log eval
 [qr/\[error/, qr/GET \/ HTTP\/1.1\" 200/]
+
+=== TEST 11: Original request information can be retrieved correctly
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "proxy": {
+        "policy_chain": [
+          {
+            "name": "apicast.policy.logging",
+            "configuration": {
+              "custom_logging": "Status::{{ status }} {{service.id}} {{host}} {{original_request.host}}",
+              "enable_json_logs": false
+            }
+          },
+          {
+            "name": "apicast.policy.upstream",
+            "configuration":
+              {
+                "rules": [ { "regex": "/", "url": "http://echo" } ]
+              }
+          }
+        ]
+      }
+    }
+  ]
+}
+--- upstream
+  location / {
+     content_by_lua_block {
+       ngx.say('yay, api backend');
+     }
+  }
+--- request
+GET /
+--- error_code: 200
+--- error_log eval
+[qr/^Status\:\:200 42 echo localhost/]
+--- no_error_log eval
+[qr/\[error/, qr/GET \/ HTTP\/1.1\" 200/]
