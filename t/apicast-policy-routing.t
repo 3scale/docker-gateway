@@ -1556,3 +1556,134 @@ yay, api backend
 --- error_code: 200
 --- no_error_log
 [error]
+
+
+=== TEST 24: replace path liquid expression
+This test validates that the replace path is working as desired and append
+something to the original path. Upstream location is using a regexp to make
+sure that the ngx.req.set_uri() is called and reset the uri in case of replace
+path
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "proxy": {
+        "policy_chain": [
+          {
+            "name": "apicast.policy.routing",
+            "configuration": {
+              "rules": [
+                {
+                  "url": "http://test:$TEST_NGINX_SERVER_PORT",
+                  "replace_path": "{{original_request.path }}-test",
+                  "condition": {
+                    "operations": [
+                      {
+                        "match": "liquid",
+                        "liquid_value": "{{ original_request.path }}",
+                        "op": "==",
+                        "value": "/bridge-1"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "url_rewriting",
+            "configuration": {
+              "commands": [
+                {
+                  "op": "sub",
+                  "regex": "^/bridge",
+                  "replace": "/"
+                }
+              ]
+            }
+          },
+          {
+            "name": "apicast.policy.echo"
+          }
+        ]
+      }
+    }
+  ]
+}
+--- upstream
+  location ~* /bridge-1-test$ {
+     content_by_lua_block {
+       ngx.say('yay, api backend');
+     }
+  }
+--- request
+GET /bridge-1
+--- response_body
+yay, api backend
+--- error_code: 200
+--- no_error_log
+[error]
+
+=== TEST 25: replace path liquid expression using replace filter
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "proxy": {
+        "policy_chain": [
+          {
+            "name": "apicast.policy.routing",
+            "configuration": {
+              "rules": [
+                {
+                  "url": "http://test:$TEST_NGINX_SERVER_PORT",
+                  "replace_path": "{{original_request.path | replace: 'bridge', 'foo' }}-test",
+                  "condition": {
+                    "operations": [
+                      {
+                        "match": "liquid",
+                        "liquid_value": "{{ original_request.path }}",
+                        "op": "==",
+                        "value": "/bridge-1"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "url_rewriting",
+            "configuration": {
+              "commands": [
+                {
+                  "op": "sub",
+                  "regex": "^/bridge",
+                  "replace": "/"
+                }
+              ]
+            }
+          },
+          {
+            "name": "apicast.policy.echo"
+          }
+        ]
+      }
+    }
+  ]
+}
+--- upstream
+  location ~* /foo-1-test$ {
+     content_by_lua_block {
+       ngx.say('yay, api backend');
+     }
+  }
+--- request
+GET /bridge-1
+--- response_body
+yay, api backend
+--- error_code: 200
+--- no_error_log
+[error]

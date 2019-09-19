@@ -4,8 +4,9 @@ local tab_insert = table.insert
 local tab_new = require('resty.core.base').new_tab
 local error = error
 
-local RoutingOperation = require('apicast.policy.routing.routing_operation')
 local Condition = require('apicast.conditions.condition')
+local RoutingOperation = require('apicast.policy.routing.routing_operation')
+local TemplateString = require 'apicast.template_string'
 local Upstream = require('apicast.upstream')
 
 local _M = {}
@@ -61,6 +62,10 @@ function _M.new_from_config_rule(config_rule)
 
   if upstream then
     self.url = config_rule.url
+    if config_rule.replace_path then
+        self.replace_path =  TemplateString.new(config_rule.replace_path, "liquid")
+    end
+
     self.host_header = config_rule.host_header
     self.condition = init_condition(config_rule.condition)
     return self

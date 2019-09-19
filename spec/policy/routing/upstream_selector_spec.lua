@@ -1,6 +1,9 @@
 local UpstreamSelector = require('apicast.policy.routing.upstream_selector')
 local Operation = require('apicast.conditions.operation')
 local Condition = require('apicast.conditions.condition')
+local TemplateString = require 'apicast.template_string'
+local ngx_variable = require 'apicast.policy.ngx_variable'
+local apicast_upstream = require 'apicast.upstream'
 
 describe('UpstreamSelector', function()
   local true_condition = Condition.new(
@@ -131,6 +134,61 @@ describe('UpstreamSelector', function()
 
           assert.is_nil(upstream.host)
         end)
+      end)
+    end)
+
+    describe('when a rule replace the path', function()
+
+      before_each(function()
+        stub(ngx_variable, 'available_context', function(context) return context end)
+        stub(ngx.req, 'set_uri', function(_) return true end)
+        stub(apicast_upstream, 'set_path', function(_) return true end)
+      end)
+
+      it('is not set', function()
+        local rule = {
+          url = 'http://example.com',
+          condition = true_condition,
+        }
+
+        local upstream_selector = UpstreamSelector.new()
+        upstream_selector:select({ rule }, {})
+
+        assert.spy(ngx.req.set_uri).was_not_called()
+      end)
+
+      it('is set with invalid liquid filter', function()
+        local rule = {
+          url = 'http://example.com',
+          condition = true_condition,
+          replace_path= TemplateString.new("", "liquid")
+        }
+
+        local upstream_selector = UpstreamSelector.new()
+        local upstream = upstream_selector:select({ rule }, {})
+
+        assert.spy(ngx.req.set_uri).was_called()
+        assert.spy(ngx.req.set_uri).was.called_with("/")
+
+        assert.spy(apicast_upstream.set_path).was_called()
+        assert.spy(apicast_upstream.set_path).was.called_with(upstream, "")
+      end)
+
+      it('is correctly set', function()
+        local rule = {
+          url = 'http://example.com',
+          condition = true_condition,
+          replace_path= TemplateString.new("{{foo}}", "liquid")
+        }
+
+        local upstream_selector = UpstreamSelector.new()
+        local upstream = upstream_selector:select({ rule }, {foo="bar"})
+
+        assert.spy(ngx.req.set_uri).was_called()
+        assert.spy(ngx.req.set_uri).was.called_with("/")
+
+        assert.spy(apicast_upstream.set_path).was_called()
+        assert.spy(apicast_upstream.set_path).was.called_with(upstream, "bar")
       end)
     end)
   end)
