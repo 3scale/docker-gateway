@@ -32,6 +32,9 @@
       "rules": {
         "type": "array",
         "items": {
+          "required": [
+            "resource"
+          ],
           "properties": {
             "combine_op": {
               "type": "string",
@@ -67,6 +70,7 @@
               "$ref": "#/definitions/value_type"
             },
             "operations": {
+              "description": "Operations to perform the condition",
               "type": "array",
               "items": {
                 "required": [
@@ -99,7 +103,7 @@
                     "type": "string"
                   },
                   "value_type": {
-                    "description": "How to evaluate 'jwt_claim' value",
+                    "description": "How to evaluate 'value' field",
                     "$ref": "#/definitions/value_type"
                   }
                 }
