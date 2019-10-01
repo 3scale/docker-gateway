@@ -11,6 +11,7 @@ local Policy = require('apicast.policy')
 local linked_list = require('apicast.linked_list')
 local prometheus = require('apicast.prometheus')
 local uuid = require('resty.jit-uuid')
+local url_helper = require('resty.url_helper')
 
 local setmetatable = setmetatable
 local ipairs = ipairs
@@ -50,10 +51,12 @@ local function store_original_request(context)
   end
 
   pcall(function()
+    local path, query = url_helper.split_path(ngx.var.request_uri)
     context.original_request = linked_list.readonly({
       headers = ngx.req.get_headers(),
       host = ngx.var.host,
-      path = ngx.var.request_uri,
+      path = path,
+      query = query,
       uri = ngx.var.uri,
       server_addr = ngx.var.server_addr,
     })
