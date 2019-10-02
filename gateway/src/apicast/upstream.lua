@@ -117,6 +117,20 @@ function _M:set_path(path)
     self.uri.path, self.uri.query = url_helper.split_path(path)
 end
 
+function _M:append_path(path)
+    local tmp_path, tmp_query = url_helper.split_path(path)
+    if not self.uri.path then
+      self.uri.path = "/"
+    end
+    self.uri.path = resty_url.join(self.uri.path, tmp_path)
+
+    -- If query is already present, do not need to add more.
+    if tmp_query and tmp_query ~= "" then
+        return
+    end
+    self.uri.query = tmp_query
+end
+
 --- Rewrite request Host header to what is provided in the argument or in the URL.
 function _M:rewrite_request()
     local uri = self.uri

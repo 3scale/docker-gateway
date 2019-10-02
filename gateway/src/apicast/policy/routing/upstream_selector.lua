@@ -33,7 +33,7 @@ function _M.select(_, rules, context)
         upstream:use_host_header(rule.host_header)
       end
       if rule.replace_path then
-        upstream:set_path(rule.replace_path:render(context))
+        upstream:append_path(rule.replace_path:render(context))
         -- Set uri as nil if not will be appended to the upstream
         ngx.req.set_uri("/")
       end
