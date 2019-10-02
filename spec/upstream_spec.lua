@@ -66,6 +66,22 @@ describe('Upstream', function()
         end)
     end)
 
+
+    describe(':append_path', function()
+        it('return valid path when is not set', function()
+            local up = Upstream.new('http://host:8090')
+            up:append_path("/test")
+            assert.same(up.uri.path, "/test")
+        end)
+
+        it('leading slash is removed', function()
+            local up = Upstream.new('http://host:8090/')
+            up:append_path("/test/")
+            assert.same(up.uri.path, "/test/")
+        end)
+
+    end)
+
     local function stub_ngx_request()
         ngx.var = { }
 
