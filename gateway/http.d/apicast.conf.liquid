@@ -63,7 +63,7 @@ server {
 
   {% if https_port -%}
   listen {{ https_port }} ssl;
-
+  ssl_protocols TLSv1.2 TLSv1.3;
   {%- assign https_certificate = env.APICAST_HTTPS_CERTIFICATE -%}
   ssl_certificate {% if https_certificate -%}
     {{  https_certificate }}
