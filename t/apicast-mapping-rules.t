@@ -280,3 +280,46 @@ GET /abc/def?user_key=uk
 --- response_body
 yay, api backend
 --- error_code: 200
+
+=== TEST 6: request uri with special chars
+Call with special chars and validate that are correctly matched.
+--- http_config
+  include $TEST_NGINX_UPSTREAM_CONFIG;
+  lua_package_path "$TEST_NGINX_LUA_PATH";
+  init_by_lua_block {
+    require('apicast.configuration_loader').mock({
+      services = {
+        {
+          id = 42,
+          backend_version = 1,
+          backend_authentication_type = 'service_token',
+          backend_authentication_value = 'token-value',
+          proxy = {
+            api_backend = "http://127.0.0.1:$TEST_NGINX_SERVER_PORT/api-backend/",
+            proxy_rules = {
+              { id = 1, http_method = "GET",
+                pattern = "/foo%20/bar/",
+                metric_system_name = "weeee", delta = 1,
+              }
+            }
+          }
+        }
+      }
+    })
+  }
+  lua_shared_dict api_keys 10m;
+--- config
+  include $TEST_NGINX_APICAST_CONFIG;
+
+  location /transactions/authrep.xml {
+    content_by_lua_block { ngx.exit(200) }
+  }
+
+  location /api-backend/ {
+     echo 'yay, api backend';
+  }
+--- request
+GET /foo%20/bar/?user_key=foo
+--- response_body
+yay, api backend
+--- error_code: 200
