@@ -20,7 +20,7 @@ __DATA__
           proxy = {
             api_backend = 'http://127.0.0.1:$TEST_NGINX_SERVER_PORT/api/',
             proxy_rules = {
-              { pattern = '/', http_method = 'GET', metric_system_name = 'bar' }
+              { pattern = '/', http_method = 'GET', metric_system_name = 'bar', delta = 1}
             }
           }
         },
@@ -76,14 +76,14 @@ env APICAST_RESPONSE_CODES=1;
           proxy = {
             api_backend = 'http://127.0.0.1:$TEST_NGINX_SERVER_PORT/api/',
             proxy_rules = {
-              { pattern = '/', http_method = 'GET', metric_system_name = 'bar' }
+              { pattern = '/', http_method = 'GET', metric_system_name = 'bar', delta = 1}
             }
           }
         },
       }
     })
 
-    ngx.shared.api_keys:set('42:somekey:usage%5Bbar%5D=0', 200)
+    ngx.shared.api_keys:set('42:somekey:usage%5Bbar%5D=1', 200)
   }
   lua_shared_dict api_keys 1m;
 --- config
@@ -131,14 +131,14 @@ env APICAST_REPORTING_THREADS=4;
           proxy = {
             api_backend = 'http://127.0.0.1:$TEST_NGINX_SERVER_PORT/api/',
             proxy_rules = {
-              { pattern = '/', http_method = 'GET', metric_system_name = 'bar' }
+              { pattern = '/', http_method = 'GET', metric_system_name = 'bar', delta = 1}
             }
           }
         },
       }
     })
 
-    ngx.shared.api_keys:set('42:somekey:usage%5Bbar%5D=0', 200)
+    ngx.shared.api_keys:set('42:somekey:usage%5Bbar%5D=1', 200)
   }
   lua_shared_dict api_keys 1m;
 --- config

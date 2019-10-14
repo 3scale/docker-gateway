@@ -1794,3 +1794,295 @@ yay, api backend
 --- error_code: 200
 --- no_error_log
 [error]
+
+
+=== TEST 28: routing with owner_id is reporting only in the matched mapping rules.
+--- backend
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+      local args = ngx.req.get_uri_args()
+      require('luassert').same(args["usage[hits]"], "1")
+      require('luassert').same(args["usage[test]"], nil)
+    }
+  }
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "backend_version": 1,
+      "backend_authentication_type": "service_token",
+      "backend_authentication_value": "token-value",
+      "proxy": {
+        "policy_chain": [
+          {
+            "name": "apicast.policy.routing",
+            "configuration": {
+              "rules": [
+                {
+                  "url": "http://test:$TEST_NGINX_SERVER_PORT/second/",
+                  "owner_id": 4,
+                  "condition": {
+                    "operations": [
+                      {
+                        "match": "path",
+                        "op": "matches",
+                        "value": "/foo/bar"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "url": "http://test:$TEST_NGINX_SERVER_PORT/one/",
+                  "owner_id": 3,
+                  "condition": {
+                    "operations": [
+                      {
+                        "match": "path",
+                        "op": "matches",
+                        "value": "/foo"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "apicast.policy.apicast"
+          }
+        ],
+        "proxy_rules": [
+          {
+            "pattern": "/foo/bar",
+            "http_method": "GET",
+            "metric_system_name": "hits",
+            "delta": 1,
+            "owner_id": 4,
+            "owner_type": "BackendApi"
+          },
+          {
+            "pattern": "/foo",
+            "http_method": "GET",
+            "metric_system_name": "test",
+            "delta": 1,
+            "owner_id": 3,
+            "owner_type": "BackendApi"
+          }
+        ]
+      }
+    }
+  ]
+}
+--- upstream
+  location ~* /second/foo/bar {
+    content_by_lua_block {
+      ngx.say('yay, api backend');
+    }
+  }
+--- request
+GET /foo/bar?user_key=foo
+--- response_body
+yay, api backend
+--- error_code: 200
+--- no_error_log
+[error]
+
+
+=== TEST 29: routing with owner_id without owner_type is reporting in ALL matched mapping rules.
+--- backend
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+      local args = ngx.req.get_uri_args()
+      require('luassert').same(args["usage[hits]"], "1")
+      require('luassert').same(args["usage[test]"], "2")
+    }
+  }
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "backend_version": 1,
+      "backend_authentication_type": "service_token",
+      "backend_authentication_value": "token-value",
+      "proxy": {
+        "policy_chain": [
+          {
+            "name": "apicast.policy.routing",
+            "configuration": {
+              "rules": [
+                {
+                  "url": "http://test:$TEST_NGINX_SERVER_PORT/second/",
+                  "owner_id": 4,
+                  "condition": {
+                    "operations": [
+                      {
+                        "match": "path",
+                        "op": "matches",
+                        "value": "/foo/bar"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "url": "http://test:$TEST_NGINX_SERVER_PORT/one/",
+                  "owner_id": 3,
+                  "condition": {
+                    "operations": [
+                      {
+                        "match": "path",
+                        "op": "matches",
+                        "value": "/foo"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "apicast.policy.apicast"
+          }
+        ],
+        "proxy_rules": [
+          {
+            "pattern": "/foo/bar",
+            "http_method": "GET",
+            "metric_system_name": "hits",
+            "delta": 1,
+            "owner_id": 4
+          },
+          {
+            "pattern": "/foo",
+            "http_method": "GET",
+            "metric_system_name": "test",
+            "delta": 1,
+            "owner_id": 3
+          },
+          {
+            "pattern": "/foo/b",
+            "http_method": "GET",
+            "metric_system_name": "test",
+            "delta": 1,
+            "owner_id": 3
+          }
+        ]
+      }
+    }
+  ]
+}
+--- upstream
+  location ~* /second/foo/bar {
+    content_by_lua_block {
+      ngx.say('yay, api backend');
+    }
+  }
+--- request
+GET /foo/bar?user_key=foo
+--- response_body
+yay, api backend
+--- error_code: 200
+--- no_error_log
+[error]
+
+
+=== TEST 30: routing with mixed owner_id and mapping rules without owner_type 
+--- backend
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+      local args = ngx.req.get_uri_args()
+      require('luassert').same(args["usage[hits]"], "1")
+      require('luassert').same(args["usage[test]"], nil)
+      require('luassert').same(args["usage[superlimit]"], "1")
+    }
+  }
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "backend_version": 1,
+      "backend_authentication_type": "service_token",
+      "backend_authentication_value": "token-value",
+      "proxy": {
+        "policy_chain": [
+          {
+            "name": "apicast.policy.routing",
+            "configuration": {
+              "rules": [
+                {
+                  "url": "http://test:$TEST_NGINX_SERVER_PORT/second/",
+                  "owner_id": 4,
+                  "condition": {
+                    "operations": [
+                      {
+                        "match": "path",
+                        "op": "matches",
+                        "value": "/foo/bar"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "url": "http://test:$TEST_NGINX_SERVER_PORT/one/",
+                  "owner_id": 3,
+                  "condition": {
+                    "operations": [
+                      {
+                        "match": "path",
+                        "op": "matches",
+                        "value": "/foo"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "apicast.policy.apicast"
+          }
+        ],
+        "proxy_rules": [
+          {
+            "pattern": "/foo/bar",
+            "http_method": "GET",
+            "metric_system_name": "hits",
+            "delta": 1,
+            "owner_id": 4,
+            "owner_type": "BackendApi"
+          },
+          {
+            "pattern": "/foo",
+            "http_method": "GET",
+            "metric_system_name": "test",
+            "delta": 1,
+            "owner_id": 3,
+            "owner_type": "BackendApi"
+          },
+          {
+            "pattern": "/foo/b",
+            "http_method": "GET",
+            "metric_system_name": "superlimit",
+            "delta": 1
+          }
+        ]
+      }
+    }
+  ]
+}
+--- upstream
+  location ~* /second/foo/bar {
+    content_by_lua_block {
+      ngx.say('yay, api backend');
+    }
+  }
+--- request
+GET /foo/bar?user_key=foo
+--- response_body
+yay, api backend
+--- error_code: 200
+--- no_error_log
+[error]
+

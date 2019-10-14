@@ -88,7 +88,7 @@ GET /t?user_key=fake
           "endpoint": "http://127.0.0.1:$Test::Nginx::Util::ServerPortForClient"
         },
         "proxy_rules": [
-          { "pattern": "/t", "http_method": "GET", "metric_system_name": "test" }
+          { "pattern": "/t", "http_method": "GET", "metric_system_name": "test","delta": 1 }
         ]
       }
     }]
@@ -167,7 +167,7 @@ GET /t?user_key=fake
           "endpoint": "http://127.0.0.1:$Test::Nginx::Util::ServerPortForClient"
         },
         "proxy_rules": [
-          { "pattern": "/t", "http_method": "GET", "metric_system_name": "test" }
+          { "pattern": "/t", "http_method": "GET", "metric_system_name": "test", "delta": 1}
         ]
       }
     }]

@@ -3,6 +3,7 @@ local tab_insert = table.insert
 local tab_new = require('resty.core.base').new_tab
 
 local balancer = require('apicast.balancer')
+local mapping_rules_matcher = require('apicast.mapping_rules_matcher')
 local UpstreamSelector = require('upstream_selector')
 local Request = require('request')
 local Rule = require('rule')
@@ -36,19 +37,42 @@ function _M.new(config)
   return self
 end
 
-function _M:content(context)
+function _M:access(context)
+  -- All route definition needs to happen in the access phase to make sure that
+  -- the mapping rule with the owner_id happens before the APIcast policy and
+  -- metrics in APIcast rule can be updated correctly.
+  --
+  -- This can also make sense to have in the rewrite phase, but on that phase
+  -- headers are not available to read so some matcher will not work correctly.
+  --
   -- This should be moved to the place where the context is started, so other
   -- policies can use it.
   context.request = context.request or Request.new()
 
   -- Once request is in the context, we should move this to wherever the jwt is
   -- validated.
-  context.request:set_validated_jwt(context.jwt)
+  context.request:set_validated_jwt(context.jwt or {})
 
-  local upstream = self.upstream_selector:select(self.rules, context)
+  context.route_upstream = self.upstream_selector:select(self.rules, context)
 
-  if upstream then
-    upstream:call(context)
+  -- this function substract the usage that does not match with the owner_id by
+  -- the matched_rules
+  context.route_upstream_usage_cleanup = function(self, usage, matched_rules)
+    if not self.route_upstream then
+      return
+    end
+
+    local usage_diff = mapping_rules_matcher.clean_usage_by_owner_id(
+      matched_rules , self.route_upstream:has_owner_id())
+    usage:merge(usage_diff)
+  end
+
+end
+
+
+function _M:content(context)
+  if context.route_upstream then
+    context.route_upstream:call(context)
   else
     return nil, 'no upstream'
   end

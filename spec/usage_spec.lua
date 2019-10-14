@@ -65,6 +65,59 @@ describe('usage', function()
         assert.same({ a = 1 }, a_usage.deltas)
       end)
     end)
+
+    describe("when the given usage is negative", function()
+
+      local usage = Usage.new()
+
+      before_each(function()
+        usage = Usage.new()
+        usage:add("a", 3)
+      end)
+
+      it("keeps metrics if are positive", function()
+        local a_usage = Usage.new()
+        a_usage:add("a", -2)
+
+        usage:merge(a_usage)
+
+        assert.same({ a = 1 }, usage.deltas)
+        assert.same({ "a" }, usage.metrics)
+      end)
+
+      it("Delete metric if value is 0", function()
+        local a_usage = Usage.new()
+        a_usage:add("a", -3)
+
+        usage:merge(a_usage)
+
+        assert.same({  }, usage.deltas)
+        assert.same({ }, usage.metrics)
+      end)
+
+      it("Delete metric if value is equal or bellow 0", function()
+        local a_usage = Usage.new()
+        a_usage:add("a", -4)
+
+        usage:merge(a_usage)
+
+        assert.same({  }, usage.deltas)
+        assert.same({ }, usage.metrics)
+      end)
+
+      it("keep metrics value if one is bellow 0", function()
+        usage:add("b", 10)
+
+        local a_usage = Usage.new()
+        a_usage:add("a", -4)
+
+        usage:merge(a_usage)
+
+        assert.same({ b = 10 }, usage.deltas)
+        assert.same({ "b" }, usage.metrics)
+      end)
+
+    end)
   end)
 
   describe('.metrics', function()

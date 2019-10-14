@@ -86,7 +86,8 @@ echo '
           {
             "pattern": "/",
             "http_method": "GET",
-            "metric_system_name": "test"
+            "metric_system_name": "test",
+            "delta": 1
           }
         ]
       }
@@ -143,7 +144,7 @@ echo '
               "endpoint": "http://test:$TEST_NGINX_SERVER_PORT"
             },
             "proxy_rules": [
-              { "pattern": "/", "http_method": "GET", "metric_system_name": "test" }
+              { "pattern": "/", "http_method": "GET", "metric_system_name": "test", "delta": 1}
             ]
           }
         }
@@ -170,7 +171,7 @@ echo '
               "endpoint": "http://test:$TEST_NGINX_SERVER_PORT"
             },
             "proxy_rules": [
-              { "pattern": "/", "http_method": "GET", "metric_system_name": "test" }
+              { "pattern": "/", "http_method": "GET", "metric_system_name": "test", "delta": 1}
             ]
           }
         }

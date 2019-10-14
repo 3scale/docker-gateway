@@ -187,4 +187,12 @@ function _M:call(context)
     return exec(self)
 end
 
+function _M:set_owner_id(owner_id)
+  self.owner_id = owner_id
+end
+
+function _M:has_owner_id()
+  return self.owner_id
+end
+
 return _M

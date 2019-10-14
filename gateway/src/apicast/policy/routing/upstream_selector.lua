@@ -32,6 +32,11 @@ function _M.select(_, rules, context)
       if rule.host_header and rule.host_header ~= '' then
         upstream:use_host_header(rule.host_header)
       end
+
+      if rule.owner_id then
+        upstream:set_owner_id(rule.owner_id)
+      end
+
       if rule.replace_path then
         upstream:append_path(rule.replace_path:render(context))
         -- Set uri as nil if not will be appended to the upstream

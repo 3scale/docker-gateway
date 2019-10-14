@@ -273,6 +273,7 @@ function _M:rewrite(service, context)
   context.usage:merge(usage)
 
   ctx.usage = context.usage
+  ctx.matched_rules = matched_rules
   ctx.credentials = credentials
 
   var.cached_key = concat(cached_key, ':')
@@ -302,8 +303,15 @@ end
 
 function _M:access(service, usage, credentials, ttl)
   local ctx = ngx.ctx
+  local final_usage = usage or ctx.usage
 
-  return self:authorize(service, usage or ctx.usage, credentials or ctx.credentials, ttl or ctx.ttl)
+  -- If routing policy changes the upstream and it only belongs to a specified
+  -- owner, we need to filter out the usage for APIs that are not used at all.
+  if ctx.context.route_upstream_usage_cleanup then
+    ctx.context:route_upstream_usage_cleanup(final_usage, ctx.matched_rules)
+  end
+  return self:authorize(service, final_usage, credentials or ctx.credentials, ttl or ctx.ttl)
+
 end
 
 local function response_codes_data(status)

@@ -200,6 +200,13 @@ end
 function _M:access(context)
   local backend = backend_client:new(context.service, http_ng_resty)
   local usage = context.usage
+
+  -- If routing policy changes the upstream and it only belongs to a specified
+  -- owner, we need to filter out the usage for APIs that are not used at all.
+  if context.route_upstream_usage_cleanup then
+    context:route_upstream_usage_cleanup(usage, ngx.ctx.matched_rules)
+  end
+
   local service = context.service
   local service_id = service.id
   local credentials = context.credentials

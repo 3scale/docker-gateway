@@ -68,6 +68,7 @@ function _M.new_from_config_rule(config_rule)
 
     self.host_header = config_rule.host_header
     self.condition = init_condition(config_rule.condition)
+    self.owner_id = tonumber(config_rule.owner_id)
     return self
   else
     return nil, 'failed to initialize upstream from url: ',

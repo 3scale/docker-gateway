@@ -17,12 +17,13 @@ describe('Routing policy', function()
 
       it('calls call() on the upstream passing the context as param', function()
         local routing = RoutingPolicy.new()
-        routing.upstream_selector = upstream_selector
 
+        routing.upstream_selector = upstream_selector
+        routing:access(context)
         routing:content(context)
 
         assert.stub(upstream_selector.select).was_called_with(
-          upstream_selector, routing.rules, context
+          upstream_selector, routing.rules, {request=request}
         )
 
         assert.stub(upstream_that_matches.call).was_called_with(
@@ -41,12 +42,9 @@ describe('Routing policy', function()
       it('returns nil and the msg "no upstream"', function()
         local routing = RoutingPolicy.new()
         routing.upstream_selector = upstream_selector
-
+        routing:access(context)
         local res, err = routing:content(context)
 
-        assert.stub(upstream_selector.select).was_called_with(
-          upstream_selector, routing.rules, context
-        )
         assert.is_nil(res)
         assert.equals('no upstream', err)
       end)

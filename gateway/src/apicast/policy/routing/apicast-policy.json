@@ -158,6 +158,10 @@
               "type": "string",
               "description": "Liquid filter to modify the request path to the matched Upstream URL. When no specified, keep the original path"
             },
+            "owner_id": {
+              "type": "integer",
+              "description": "Value to only increment hits on the mapping rules owner by the same id. "
+            },
             "host_header": {
               "description": "Host for the Host header. When not specified, defaults to the host of the URL.",
               "type": "string"

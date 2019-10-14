@@ -52,4 +52,21 @@ function _M.matches(method, uri, args, rules)
   return false
 end
 
+function _M.clean_usage_by_owner_id(rules, owner_id)
+  local usage = Usage.new()
+  if not owner_id then
+      return usage
+  end
+
+  for _, rule in ipairs(rules) do
+    -- Checking that the rule has owner_id, if it does not have owner_id means
+    -- that does not belongs to a backendAPI.
+    if rule.owner_id and owner_id ~= rule.owner_id then
+      usage:add(rule.system_name, 0 - (rule.delta or 0))
+    end
+  end
+
+  return usage
+end
+
 return _M
