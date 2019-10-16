@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - OAuth 2.0 MTLS policy [PR #1101](https://github.com/3scale/APIcast/pull/1101) [Issue #1003](https://github.com/3scale/APIcast/issues/1003)
 - Add an option to enable keepalive_timeout on gateway [THREESCALE-2886](https://issues.jboss.org/browse/THREESCALE-2886) [PR #1106](https://github.com/3scale/APIcast/pull/1106)
 - Added a new replace path option in routing policy [THREESCALE-3512](https://issues.jboss.org/browse/THREESCALE-3512) [PR #1119](https://github.com/3scale/APIcast/pull/1119) [PR #1121](https://github.com/3scale/APIcast/pull/1121) [PR #1122](https://github.com/3scale/APIcast/pull/1122)
+- Added usage metrics on logging policy [PR #1126](https://github.com/3scale/APIcast/pull/1126), [THREESCALE-1234](https://issues.jboss.org/browse/THREESCALE-1234)
+
 
 ### Fixed
 

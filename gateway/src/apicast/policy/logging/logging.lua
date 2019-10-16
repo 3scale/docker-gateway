@@ -76,6 +76,7 @@ local function get_request_context(context)
     headers=ngx.resp.get_headers(),
   }
 
+  ctx.usage = context.usage
   ctx.service = context.service or {}
   ctx.original_request = context.original_request
   return LinkedList.readonly(ctx, ngx.var)
