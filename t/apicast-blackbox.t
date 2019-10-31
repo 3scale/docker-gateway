@@ -170,3 +170,36 @@ GET /bar?user_key=value
 path: /foo/bar
 --- no_error_log
 [error]
+
+=== TEST 5: api backend  is not defined and return 404
+The request url is correct in the mapping rules but no api_backend is defined
+  and no routing policy matches.
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "backend_version":  1,
+      "proxy": {
+        "proxy_rules": [
+          { "pattern": "/", "http_method": "GET", "metric_system_name": "hits", "delta": 2 }
+        ]
+      }
+    }
+  ]
+}
+--- backend
+location /transactions/authrep.xml {
+    echo 'ok';
+}
+--- upstream
+location / {
+    echo 'path: $uri';
+}
+--- request
+GET /?user_key=value
+--- error_code: 404
+--- error_log
+could not find upstream for service: 42
+--- no_error_log
+[error]

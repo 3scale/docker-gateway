@@ -1,4 +1,5 @@
 local balancer = require('apicast.balancer')
+local errors = require('apicast.errors')
 
 local math = math
 local setmetatable = setmetatable
@@ -104,7 +105,7 @@ end
 function _M:content(context)
   if not context[self].upstream then
     ngx.log(ngx.WARN, "Upstream server not found for this request")
-    return
+    return errors.upstream_not_found(context.service)
   end
 
   local upstream = assert(context[self].upstream, 'missing upstream')

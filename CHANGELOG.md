@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- Return 404 back if the upstream is not defined [THREESCALE-3775](https://issues.jboss.org/browse/THREESCALE-3775) [PR #1129](https://github.com/3scale/APIcast/pull/1129)
+
+## [Unreleased]
+
+### Added
+
 - Introduce possibility of specifying policy order restrictions in their schemas. APIcast now shows a warning when those restrictions are not respected [#1088](https://github.com/3scale/APIcast/pull/1088), [THREESCALE-2896](https://issues.jboss.org/browse/THREESCALE-2896)
 - Added new parameters to logging policy to allow custom access log [PR #1089](https://github.com/3scale/APIcast/pull/1089), [THREESCALE-1234](https://issues.jboss.org/browse/THREESCALE-1234)[THREESCALE-2876](https://issues.jboss.org/browse/THREESCALE-2876), [PR #1116] (https://github.com/3scale/APIcast/pull/1116)
 - Added http_proxy policy to use an HTTP proxy in api_backed calls. [THREESCALE-2696](https://issues.jboss.org/browse/THREESCALE-2696), [PR #1080](https://github.com/3scale/APIcast/pull/1080)
