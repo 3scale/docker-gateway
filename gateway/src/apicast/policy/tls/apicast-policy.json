@@ -1,7 +1,7 @@
 {
   "$schema": "http://apicast.io/policy-v1/schema#manifest#",
-  "name": "tls",
-  "summary": "Configure TLS certificates",
+  "name": "TLS Termination",
+  "summary": "Configure TLS termination certificates",
   "description": [
       "Configure APIcast to serve TLS certificates for HTTPS connections."
   ],
