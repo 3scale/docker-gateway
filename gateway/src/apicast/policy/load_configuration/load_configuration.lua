@@ -33,12 +33,13 @@ function _M:rewrite(context)
     context.configuration = configuration_loader.rewrite(self.configuration, context.host)
 end
 
-function _M.ssl_certificate(_, context)
+function _M:ssl_certificate(context)
     if not context.host then
         local server_name, err = ssl.server_name()
 
         if server_name then
             context.host = server_name
+            context.configuration = configuration_loader.rewrite(self.configuration, context.host)
         elseif err then
             ngx.log(ngx.DEBUG, 'could not get TLS SNI server name: ', err)
         end

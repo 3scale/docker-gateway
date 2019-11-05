@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
 
+- Fix issues when TLS is enabled in Lazy mode [#1135](https://github.com/3scale/APIcast/pull/1135), [THREESCALE-3713](https://issues.jboss.org/browse/THREESCALE-3713)
+
 ### Added
 
 - Return 404 back if the upstream is not defined [THREESCALE-3775](https://issues.jboss.org/browse/THREESCALE-3775) [PR #1129](https://github.com/3scale/APIcast/pull/1129)
