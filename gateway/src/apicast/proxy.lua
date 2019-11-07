@@ -187,7 +187,6 @@ function _M.get_upstream(service)
   if not service then
     return errors.service_not_found()
   end
-
   local upstream, err = Upstream.new(service.api_backend)
 
   if not upstream then

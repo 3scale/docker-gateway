@@ -15,6 +15,7 @@ local url_helper = require('resty.url_helper')
 
 local http_proxy = require('apicast.http_proxy')
 local format = string.format
+local cjson = require('cjson')
 
 local _M = {
 
@@ -34,6 +35,10 @@ local mt = {
 --- @treturn nil|string error when upstream can't be initialized
 --- @static
 function _M.new(url)
+    if not url or url == cjson.null then
+        return nil, 'Upstream cannot be null'
+    end
+
     local uri, err = url_helper.parse_url(url)
     if err then
         return nil, 'invalid upstream'
