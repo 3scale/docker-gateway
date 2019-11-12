@@ -140,4 +140,32 @@ describe('usage', function()
           (metrics[1] == 'some_metric' and metrics[2] == 'hits'))
     end)
   end)
+
+  describe(".format", function()
+    it("returns valid response with data", function()
+      local usage = Usage.new()
+      usage:add('hits', 2)
+      usage:add('some_metric', 1)
+      local result = {
+        ["usage[hits]"] = 2,
+        ["usage[some_metric]"] = 1,
+      }
+      assert.are.same(usage:format(), result)
+    end)
+
+    it("returns empty if no metrics added", function()
+      local usage = Usage.new()
+      local result = {}
+      assert.are.same(usage:format(), result)
+    end)
+
+    it("returns 0 values correctly", function()
+      local usage = Usage.new()
+      usage:add('hits', 0)
+      local result = {
+        ["usage[hits]"] = 0,
+      }
+      assert.are.same(usage:format(), result)
+    end)
+  end)
 end)
