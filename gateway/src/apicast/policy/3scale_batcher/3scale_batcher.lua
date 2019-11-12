@@ -12,8 +12,6 @@ local TimerTask = require('resty.concurrent.timer_task')
 
 local metrics = require('apicast.policy.3scale_batcher.metrics')
 
-local ipairs = ipairs
-
 local default_auths_ttl = 10
 local default_batch_reports_seconds = 10
 
@@ -57,23 +55,6 @@ function _M.new(config)
   self.backend_downtime_cache = ngx.shared.api_keys
 
   return self
-end
-
--- TODO: More policies are using this method. Move it to backend_client to
--- avoid duplicating code.
--- Converts a usage to the format expected by the 3scale backend client.
-local function format_usage(usage)
-  local res = {}
-
-  local usage_metrics = usage.metrics
-  local usage_deltas = usage.deltas
-
-  for _, metric in ipairs(usage_metrics) do
-    local delta = usage_deltas[metric]
-    res['usage[' .. metric .. ']'] = delta
-  end
-
-  return res
 end
 
 local function set_flag_to_avoid_auths_in_apicast(context)
@@ -221,7 +202,7 @@ function _M:access(context)
   if cached_auth then
     handle_cached_auth(self, cached_auth, service, transaction)
   else
-    local formatted_usage = format_usage(usage)
+    local formatted_usage = usage:format()
     local backend_res = backend:authorize(formatted_usage, credentials)
     local backend_status = backend_res.status
     local cache_handler = context.cache_handler -- Set by Caching policy

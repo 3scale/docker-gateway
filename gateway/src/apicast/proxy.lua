@@ -91,21 +91,6 @@ local function output_debug_headers(service, usage, credentials)
   end
 end
 
--- Converts a usage to the format expected by the 3scale backend client.
-local function format_usage(usage)
-  local res = {}
-
-  local usage_metrics = usage.metrics
-  local usage_deltas = usage.deltas
-
-  for _, metric in ipairs(usage_metrics) do
-    local delta = usage_deltas[metric]
-    res['usage[' .. metric .. ']'] = delta
-  end
-
-  return res
-end
-
 local function matched_patterns(matched_rules)
   local patterns = {}
 
@@ -123,7 +108,7 @@ end
 function _M:authorize(service, usage, credentials, ttl)
   if not usage or not credentials then return nil, 'missing usage or credentials' end
 
-  local formatted_usage = format_usage(usage)
+  local formatted_usage = usage:format()
 
   local encoded_usage = encode_args(formatted_usage)
   if encoded_usage == '' then
@@ -347,7 +332,7 @@ function _M:post_action(context)
   local service = ngx.ctx.service or self.configuration:find_by_id(service_id)
 
   local credentials = context.credentials
-  local formatted_usage = format_usage(context.usage)
+  local formatted_usage = context.usage:format()
 
   reporting_executor:post(post_action, self, cached_key, service, credentials, formatted_usage, ngx.var.status)
 end

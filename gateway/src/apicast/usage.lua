@@ -85,4 +85,20 @@ function _M:merge(another_usage)
   end
 end
 
+
+-- Converts a usage to the format expected by the 3scale backend client.
+function _M:format()
+  local res = {}
+
+  local usage_metrics = self.metrics
+  local usage_deltas = self.deltas
+
+  for _, metric in ipairs(usage_metrics) do
+    local delta = usage_deltas[metric]
+    res['usage[' .. metric .. ']'] = delta
+  end
+
+  return res
+end
+
 return _M
