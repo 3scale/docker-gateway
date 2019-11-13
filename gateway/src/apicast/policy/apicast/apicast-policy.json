@@ -1,5 +1,5 @@
 {
-  "$schema": "http://apicast.io/policy-v1/schema#manifest#",
+  "$schema": "http://apicast.io/policy-v1.1/schema#manifest#",
   "name": "3scale APIcast",
   "summary": "Main functionality of APIcast to work with the 3scale API manager.",
   "description":

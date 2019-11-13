@@ -14,7 +14,7 @@ local TemplateString = require 'apicast.template_string'
 local default_value_type = 'plain'
 
 local policy = require('apicast.policy')
-local _M = policy.new('Headers policy')
+local _M = policy.new('Headers policy', 'builtin')
 
 local new = _M.new
 

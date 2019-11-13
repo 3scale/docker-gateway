@@ -58,7 +58,7 @@ describe('resty backend', function()
       local response = backend:send(req)
 
       assert.truthy(response)
-      assert.match('unable to get local issuer certificate', response.error)
+      assert.match('self signed certificate in certificate chain', response.error)
       assert.equal(req, response.request)
       assert.falsy(response.ok)
     end)

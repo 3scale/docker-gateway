@@ -3,7 +3,7 @@
 -- Also can interrupt the execution and skip the current phase or
 -- the whole processing of the request.
 
-local _M  = require('apicast.policy').new('Echo Policy')
+local _M  = require('apicast.policy').new('Echo Policy', 'builtin')
 local cjson = require('cjson')
 
 local tonumber = tonumber

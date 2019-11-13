@@ -4,8 +4,9 @@ local tab_insert = table.insert
 local tab_new = require('resty.core.base').new_tab
 local error = error
 
-local RoutingOperation = require('apicast.policy.routing.routing_operation')
 local Condition = require('apicast.conditions.condition')
+local RoutingOperation = require('apicast.policy.routing.routing_operation')
+local TemplateString = require 'apicast.template_string'
 local Upstream = require('apicast.upstream')
 
 local _M = {}
@@ -16,6 +17,7 @@ local function value_of_match(thing_to_be_matched, config_condition)
   return (thing_to_be_matched == 'header' and config_condition.header_name) or
     (thing_to_be_matched == 'query_arg' and config_condition.query_arg_name) or
     (thing_to_be_matched == 'jwt_claim' and config_condition.jwt_claim_name) or
+    (thing_to_be_matched == 'liquid' and config_condition.liquid_value) or
     nil
 end
 
@@ -34,6 +36,8 @@ local function init_operation(config_operation)
     return RoutingOperation.new_op_with_query_arg(match_val, op, value, value_type)
   elseif match == 'jwt_claim' then
     return RoutingOperation.new_op_with_jwt_claim(match_val, op, value, value_type)
+  elseif match == 'liquid' then
+    return RoutingOperation.new_op_with_liquid_templating(match_val, op, value, value_type)
   else
     error('Thing to be matched not supported: ' .. match)
   end
@@ -58,8 +62,13 @@ function _M.new_from_config_rule(config_rule)
 
   if upstream then
     self.url = config_rule.url
+    if config_rule.replace_path then
+        self.replace_path =  TemplateString.new(config_rule.replace_path, "liquid")
+    end
+
     self.host_header = config_rule.host_header
     self.condition = init_condition(config_rule.condition)
+    self.owner_id = tonumber(config_rule.owner_id)
     return self
   else
     return nil, 'failed to initialize upstream from url: ',

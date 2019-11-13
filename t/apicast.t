@@ -155,7 +155,7 @@ status code (403).
           proxy = {
             api_backend = "http://127.0.0.1:$TEST_NGINX_SERVER_PORT/api-backend/",
             proxy_rules = {
-              { pattern = '/', http_method = 'GET', metric_system_name = 'hits' }
+              { pattern = '/', http_method = 'GET', metric_system_name = 'hits', delta = 1}
             }
           }
         }
@@ -194,7 +194,7 @@ The message is configurable and default status is 403.
             api_backend = "http://127.0.0.1:$TEST_NGINX_SERVER_PORT/api-backend/",
             error_status_auth_failed = 402,
             proxy_rules = {
-              { pattern = '/', http_method = 'GET', metric_system_name = 'hits' }
+              { pattern = '/', http_method = 'GET', metric_system_name = 'hits', delta = 1}
             }
           }
         }
@@ -408,7 +408,7 @@ X-3scale-usage: usage%5Bbar%5D=3
           proxy = {
             api_backend = 'https://127.0.0.1:$TEST_NGINX_RANDOM_PORT/api/',
             proxy_rules = {
-              { pattern = '/', http_method = 'GET', metric_system_name = 'hits' }
+              { pattern = '/', http_method = 'GET', metric_system_name = 'hits', delta = 1}
             }
           }
         }
@@ -644,7 +644,7 @@ status code (429).
           proxy = {
             api_backend = "http://127.0.0.1:$TEST_NGINX_SERVER_PORT/api-backend/",
             proxy_rules = {
-              { pattern = '/', http_method = 'GET', metric_system_name = 'hits' }
+              { pattern = '/', http_method = 'GET', metric_system_name = 'hits', delta = 1}
             }
           }
         }
@@ -691,7 +691,7 @@ Limits exceeded
             api_backend = "http://127.0.0.1:$TEST_NGINX_SERVER_PORT/api-backend/",
             error_status_limits_exceeded = 402,
             proxy_rules = {
-              { pattern = '/', http_method = 'GET', metric_system_name = 'hits' }
+              { pattern = '/', http_method = 'GET', metric_system_name = 'hits', delta = 1}
             }
           }
         }
@@ -787,7 +787,7 @@ credentials missing!
           proxy = {
             api_backend = "http://127.0.0.1:$TEST_NGINX_SERVER_PORT/api-backend/",
             proxy_rules = {
-              { pattern = '/', http_method = 'GET', metric_system_name = 'hits' }
+              { pattern = '/', http_method = 'GET', metric_system_name = 'hits', delta = 1}
             }
           }
         }
@@ -835,7 +835,7 @@ This test checks that APIcast does not call authrep.
           proxy = {
             api_backend = "http://127.0.0.1:$TEST_NGINX_SERVER_PORT/api-backend/",
             proxy_rules = {
-              { pattern = '/', http_method = 'GET', metric_system_name = 'hits' }
+              { pattern = '/', http_method = 'GET', metric_system_name = 'hits', delta = 1}
             },
             policy_chain = {
               {
@@ -884,7 +884,7 @@ This test checks that APIcast does not call authrep.
           proxy = {
             api_backend = "http://127.0.0.1:$TEST_NGINX_SERVER_PORT/api-backend/",
             proxy_rules = {
-              { pattern = '/', http_method = 'GET', metric_system_name = 'hits' }
+              { pattern = '/', http_method = 'GET', metric_system_name = 'hits', delta = 1}
             },
             policy_chain = {
               {
@@ -933,7 +933,7 @@ GET /?user_key=value
           proxy = {
             api_backend = "http://127.0.0.1:$TEST_NGINX_SERVER_PORT/api-backend/",
             proxy_rules = {
-              { pattern = '/', http_method = 'GET', metric_system_name = 'hits' }
+              { pattern = '/', http_method = 'GET', metric_system_name = 'hits', delta = 1}
             }
           }
         }

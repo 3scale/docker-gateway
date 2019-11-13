@@ -117,6 +117,7 @@ _M.default_config = {
     opentracing_config = env_value_ref('OPENTRACING_CONFIG'),
     opentracing_forward_header = env_value_ref('OPENTRACING_FORWARD_HEADER'),
     upstream_retry_cases = env_value_ref('APICAST_UPSTREAM_RETRY_CASES'),
+    http_keepalive_timeout = env_value_ref('HTTP_KEEPALIVE_TIMEOUT'),
     policy_chain = require('apicast.policy_chain').default(),
     nameservers = parse_nameservers(),
     worker_processes = cpus() or 'auto',

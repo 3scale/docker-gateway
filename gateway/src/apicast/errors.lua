@@ -53,4 +53,13 @@ function _M.service_not_found(host)
   return exit()
 end
 
+
+function _M.upstream_not_found(service)
+  ngx.status = 404
+  ngx.print('')
+  ngx.log(ngx.WARN, 'could not find upstream for service: ', service.id)
+  return exit()
+end
+
+
 return _M

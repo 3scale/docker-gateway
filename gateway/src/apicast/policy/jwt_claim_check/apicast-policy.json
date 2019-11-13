@@ -1,5 +1,5 @@
 {
-  "$schema": "http://apicast.io/policy-v1/schema#manifest#",
+  "$schema": "http://apicast.io/policy-v1.1/schema#manifest#",
   "name": "JWT Claim Check",
   "summary": "Allow or deny traffic based on a JWT claim",
   "description": [
@@ -32,6 +32,9 @@
       "rules": {
         "type": "array",
         "items": {
+          "required": [
+            "resource"
+          ],
           "properties": {
             "combine_op": {
               "type": "string",
@@ -67,6 +70,7 @@
               "$ref": "#/definitions/value_type"
             },
             "operations": {
+              "description": "Operations to perform the condition",
               "type": "array",
               "items": {
                 "required": [
@@ -99,7 +103,7 @@
                     "type": "string"
                   },
                   "value_type": {
-                    "description": "How to evaluate 'jwt_claim' value",
+                    "description": "How to evaluate 'value' field",
                     "$ref": "#/definitions/value_type"
                   }
                 }

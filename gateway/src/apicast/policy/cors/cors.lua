@@ -14,7 +14,7 @@
 -- 'example.com' too.
 
 local policy = require('apicast.policy')
-local _M = policy.new('CORS Policy')
+local _M = policy.new('CORS Policy', 'builtin')
 
 local new = _M.new
 

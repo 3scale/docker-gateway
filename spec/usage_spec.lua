@@ -65,6 +65,59 @@ describe('usage', function()
         assert.same({ a = 1 }, a_usage.deltas)
       end)
     end)
+
+    describe("when the given usage is negative", function()
+
+      local usage = Usage.new()
+
+      before_each(function()
+        usage = Usage.new()
+        usage:add("a", 3)
+      end)
+
+      it("keeps metrics if are positive", function()
+        local a_usage = Usage.new()
+        a_usage:add("a", -2)
+
+        usage:merge(a_usage)
+
+        assert.same({ a = 1 }, usage.deltas)
+        assert.same({ "a" }, usage.metrics)
+      end)
+
+      it("Delete metric if value is 0", function()
+        local a_usage = Usage.new()
+        a_usage:add("a", -3)
+
+        usage:merge(a_usage)
+
+        assert.same({  }, usage.deltas)
+        assert.same({ }, usage.metrics)
+      end)
+
+      it("Delete metric if value is equal or bellow 0", function()
+        local a_usage = Usage.new()
+        a_usage:add("a", -4)
+
+        usage:merge(a_usage)
+
+        assert.same({  }, usage.deltas)
+        assert.same({ }, usage.metrics)
+      end)
+
+      it("keep metrics value if one is bellow 0", function()
+        usage:add("b", 10)
+
+        local a_usage = Usage.new()
+        a_usage:add("a", -4)
+
+        usage:merge(a_usage)
+
+        assert.same({ b = 10 }, usage.deltas)
+        assert.same({ "b" }, usage.metrics)
+      end)
+
+    end)
   end)
 
   describe('.metrics', function()
@@ -85,6 +138,34 @@ describe('usage', function()
       -- The method does not guarantee any order in the result
       assert.is_true((metrics[1] == 'hits' and metrics[2] == 'some_metric') or
           (metrics[1] == 'some_metric' and metrics[2] == 'hits'))
+    end)
+  end)
+
+  describe(".format", function()
+    it("returns valid response with data", function()
+      local usage = Usage.new()
+      usage:add('hits', 2)
+      usage:add('some_metric', 1)
+      local result = {
+        ["usage[hits]"] = 2,
+        ["usage[some_metric]"] = 1,
+      }
+      assert.are.same(usage:format(), result)
+    end)
+
+    it("returns empty if no metrics added", function()
+      local usage = Usage.new()
+      local result = {}
+      assert.are.same(usage:format(), result)
+    end)
+
+    it("returns 0 values correctly", function()
+      local usage = Usage.new()
+      usage:add('hits', 0)
+      local result = {
+        ["usage[hits]"] = 0,
+      }
+      assert.are.same(usage:format(), result)
     end)
   end)
 end)

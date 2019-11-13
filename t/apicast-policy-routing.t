@@ -1439,3 +1439,689 @@ yay, api backend
 --- error_code: 200
 --- no_error_log
 [error]
+
+=== TEST 22: test with liquid expression
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "proxy": {
+        "policy_chain": [
+          {
+            "name": "apicast.policy.routing",
+            "configuration": {
+              "rules": [
+                {
+                  "url": "http://test:$TEST_NGINX_SERVER_PORT",
+                  "condition": {
+                    "operations": [
+                      {
+                        "match": "liquid",
+                        "liquid_value": "{{headers.foo}}",
+                        "op": "==",
+                        "value": "fooValue"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "apicast.policy.echo"
+          }
+        ]
+      }
+    }
+  ]
+}
+--- upstream
+  location / {
+     content_by_lua_block {
+       ngx.say('yay, api backend');
+     }
+  }
+--- request
+GET /
+--- more_headers
+foo: fooValue
+--- response_body
+yay, api backend
+--- error_code: 200
+--- no_error_log
+[error]
+
+=== TEST 23: test with original request values expression
+This is to validate the issue #1088, where a url_rewriting change the path in
+the rewrite phase and user does not have a way to route the policy. This is to
+validate that a user scenario is working correctly. 
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "proxy": {
+        "policy_chain": [
+          {
+            "name": "apicast.policy.routing",
+            "configuration": {
+              "rules": [
+                {
+                  "url": "http://test:$TEST_NGINX_SERVER_PORT",
+                  "condition": {
+                    "operations": [
+                      {
+                        "match": "liquid",
+                        "liquid_value": "{{ original_request.path }}",
+                        "op": "==",
+                        "value": "/bridge-1"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "url_rewriting",
+            "configuration": {
+              "commands": [
+                {
+                  "op": "sub",
+                  "regex": "^/bridge",
+                  "replace": "/"
+                }
+              ]
+            }
+          },
+          {
+            "name": "apicast.policy.echo"
+          }
+        ]
+      }
+    }
+  ]
+}
+--- upstream
+  location / {
+     content_by_lua_block {
+       ngx.say('yay, api backend');
+     }
+  }
+--- request
+GET /bridge-1
+--- response_body
+yay, api backend
+--- error_code: 200
+--- no_error_log
+[error]
+
+
+=== TEST 24: replace path liquid expression
+This test validates that the replace path is working as desired and append
+something to the original path. Upstream location is using a regexp to make
+sure that the ngx.req.set_uri() is called and reset the uri in case of replace
+path
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "proxy": {
+        "policy_chain": [
+          {
+            "name": "apicast.policy.routing",
+            "configuration": {
+              "rules": [
+                {
+                  "url": "http://test:$TEST_NGINX_SERVER_PORT",
+                  "replace_path": "{{original_request.path }}-test",
+                  "condition": {
+                    "operations": [
+                      {
+                        "match": "liquid",
+                        "liquid_value": "{{ original_request.path }}",
+                        "op": "==",
+                        "value": "/bridge-1"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "url_rewriting",
+            "configuration": {
+              "commands": [
+                {
+                  "op": "sub",
+                  "regex": "^/bridge",
+                  "replace": "/"
+                }
+              ]
+            }
+          },
+          {
+            "name": "apicast.policy.echo"
+          }
+        ]
+      }
+    }
+  ]
+}
+--- upstream
+  location ~* /bridge-1-test$ {
+     content_by_lua_block {
+       ngx.say('yay, api backend');
+     }
+  }
+--- request
+GET /bridge-1
+--- response_body
+yay, api backend
+--- error_code: 200
+--- no_error_log
+[error]
+
+=== TEST 25: replace path liquid expression using replace filter
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "proxy": {
+        "policy_chain": [
+          {
+            "name": "apicast.policy.routing",
+            "configuration": {
+              "rules": [
+                {
+                  "url": "http://test:$TEST_NGINX_SERVER_PORT",
+                  "replace_path": "{{original_request.path | replace: 'bridge', 'foo' }}-test",
+                  "condition": {
+                    "operations": [
+                      {
+                        "match": "liquid",
+                        "liquid_value": "{{ original_request.path }}",
+                        "op": "==",
+                        "value": "/bridge-1"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "url_rewriting",
+            "configuration": {
+              "commands": [
+                {
+                  "op": "sub",
+                  "regex": "^/bridge",
+                  "replace": "/"
+                }
+              ]
+            }
+          },
+          {
+            "name": "apicast.policy.echo"
+          }
+        ]
+      }
+    }
+  ]
+}
+--- upstream
+  location ~* /foo-1-test$ {
+     content_by_lua_block {
+       ngx.say('yay, api backend');
+     }
+  }
+--- request
+GET /bridge-1
+--- response_body
+yay, api backend
+--- error_code: 200
+--- no_error_log
+[error]
+
+
+=== TEST 26: replace path keep query arg to upstream server.
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "proxy": {
+        "policy_chain": [
+          {
+            "name": "apicast.policy.routing",
+            "configuration": {
+              "rules": [
+                {
+                  "url": "http://test:$TEST_NGINX_SERVER_PORT",
+                  "replace_path": "{{original_request.path }}-test",
+                  "condition": {
+                    "operations": [
+                      {
+                        "match": "liquid",
+                        "liquid_value": "{{ original_request.path }}",
+                        "op": "matches",
+                        "value": "bridge"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "apicast.policy.echo"
+          }
+        ]
+      }
+    }
+  ]
+}
+--- upstream
+  location ~* /bridge-1-test$ {
+    content_by_lua_block {
+      local args = ngx.req.get_uri_args()
+      require('luassert').equals('foo', args["one"])
+      ngx.say('yay, api backend');
+    }
+  }
+--- request
+GET /bridge-1?one=foo
+--- response_body
+yay, api backend
+--- error_code: 200
+--- no_error_log
+[error]
+
+=== TEST 27: replace path does not overwrite url base path.
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "proxy": {
+        "policy_chain": [
+          {
+            "name": "apicast.policy.routing",
+            "configuration": {
+              "rules": [
+                {
+                  "url": "http://test:$TEST_NGINX_SERVER_PORT/basePath/",
+                  "replace_path": "{{original_request.path }}-test",
+                  "condition": {
+                    "operations": [
+                      {
+                        "match": "liquid",
+                        "liquid_value": "{{ original_request.path }}",
+                        "op": "matches",
+                        "value": "bridge"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "apicast.policy.echo"
+          }
+        ]
+      }
+    }
+  ]
+}
+--- upstream
+  location ~* /basePath/bridge-1-test$ {
+    content_by_lua_block {
+      local args = ngx.req.get_uri_args()
+      require('luassert').equals('foo', args["one"])
+      ngx.say('yay, api backend');
+    }
+  }
+--- request
+GET /bridge-1?one=foo
+--- response_body
+yay, api backend
+--- error_code: 200
+--- no_error_log
+[error]
+
+
+=== TEST 28: routing with owner_id is reporting only in the matched mapping rules.
+--- backend
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+      local args = ngx.req.get_uri_args()
+      require('luassert').same(args["usage[hits]"], "1")
+      require('luassert').same(args["usage[test]"], nil)
+    }
+  }
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "backend_version": 1,
+      "backend_authentication_type": "service_token",
+      "backend_authentication_value": "token-value",
+      "proxy": {
+        "policy_chain": [
+          {
+            "name": "apicast.policy.routing",
+            "configuration": {
+              "rules": [
+                {
+                  "url": "http://test:$TEST_NGINX_SERVER_PORT/second/",
+                  "owner_id": 4,
+                  "condition": {
+                    "operations": [
+                      {
+                        "match": "path",
+                        "op": "matches",
+                        "value": "/foo/bar"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "url": "http://test:$TEST_NGINX_SERVER_PORT/one/",
+                  "owner_id": 3,
+                  "condition": {
+                    "operations": [
+                      {
+                        "match": "path",
+                        "op": "matches",
+                        "value": "/foo"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "apicast.policy.apicast"
+          }
+        ],
+        "proxy_rules": [
+          {
+            "pattern": "/foo/bar",
+            "http_method": "GET",
+            "metric_system_name": "hits",
+            "delta": 1,
+            "owner_id": 4,
+            "owner_type": "BackendApi"
+          },
+          {
+            "pattern": "/foo",
+            "http_method": "GET",
+            "metric_system_name": "test",
+            "delta": 1,
+            "owner_id": 3,
+            "owner_type": "BackendApi"
+          }
+        ]
+      }
+    }
+  ]
+}
+--- upstream
+  location ~* /second/foo/bar {
+    content_by_lua_block {
+      ngx.say('yay, api backend');
+    }
+  }
+--- request
+GET /foo/bar?user_key=foo
+--- response_body
+yay, api backend
+--- error_code: 200
+--- no_error_log
+[error]
+
+
+=== TEST 29: routing with owner_id without owner_type is reporting in ALL matched mapping rules.
+--- backend
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+      local args = ngx.req.get_uri_args()
+      require('luassert').same(args["usage[hits]"], "1")
+      require('luassert').same(args["usage[test]"], "2")
+    }
+  }
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "backend_version": 1,
+      "backend_authentication_type": "service_token",
+      "backend_authentication_value": "token-value",
+      "proxy": {
+        "policy_chain": [
+          {
+            "name": "apicast.policy.routing",
+            "configuration": {
+              "rules": [
+                {
+                  "url": "http://test:$TEST_NGINX_SERVER_PORT/second/",
+                  "owner_id": 4,
+                  "condition": {
+                    "operations": [
+                      {
+                        "match": "path",
+                        "op": "matches",
+                        "value": "/foo/bar"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "url": "http://test:$TEST_NGINX_SERVER_PORT/one/",
+                  "owner_id": 3,
+                  "condition": {
+                    "operations": [
+                      {
+                        "match": "path",
+                        "op": "matches",
+                        "value": "/foo"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "apicast.policy.apicast"
+          }
+        ],
+        "proxy_rules": [
+          {
+            "pattern": "/foo/bar",
+            "http_method": "GET",
+            "metric_system_name": "hits",
+            "delta": 1,
+            "owner_id": 4
+          },
+          {
+            "pattern": "/foo",
+            "http_method": "GET",
+            "metric_system_name": "test",
+            "delta": 1,
+            "owner_id": 3
+          },
+          {
+            "pattern": "/foo/b",
+            "http_method": "GET",
+            "metric_system_name": "test",
+            "delta": 1,
+            "owner_id": 3
+          }
+        ]
+      }
+    }
+  ]
+}
+--- upstream
+  location ~* /second/foo/bar {
+    content_by_lua_block {
+      ngx.say('yay, api backend');
+    }
+  }
+--- request
+GET /foo/bar?user_key=foo
+--- response_body
+yay, api backend
+--- error_code: 200
+--- no_error_log
+[error]
+
+
+=== TEST 30: routing with mixed owner_id and mapping rules without owner_type 
+--- backend
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+      local args = ngx.req.get_uri_args()
+      require('luassert').same(args["usage[hits]"], "1")
+      require('luassert').same(args["usage[test]"], nil)
+      require('luassert').same(args["usage[superlimit]"], "1")
+    }
+  }
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "backend_version": 1,
+      "backend_authentication_type": "service_token",
+      "backend_authentication_value": "token-value",
+      "proxy": {
+        "policy_chain": [
+          {
+            "name": "apicast.policy.routing",
+            "configuration": {
+              "rules": [
+                {
+                  "url": "http://test:$TEST_NGINX_SERVER_PORT/second/",
+                  "owner_id": 4,
+                  "condition": {
+                    "operations": [
+                      {
+                        "match": "path",
+                        "op": "matches",
+                        "value": "/foo/bar"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "url": "http://test:$TEST_NGINX_SERVER_PORT/one/",
+                  "owner_id": 3,
+                  "condition": {
+                    "operations": [
+                      {
+                        "match": "path",
+                        "op": "matches",
+                        "value": "/foo"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "apicast.policy.apicast"
+          }
+        ],
+        "proxy_rules": [
+          {
+            "pattern": "/foo/bar",
+            "http_method": "GET",
+            "metric_system_name": "hits",
+            "delta": 1,
+            "owner_id": 4,
+            "owner_type": "BackendApi"
+          },
+          {
+            "pattern": "/foo",
+            "http_method": "GET",
+            "metric_system_name": "test",
+            "delta": 1,
+            "owner_id": 3,
+            "owner_type": "BackendApi"
+          },
+          {
+            "pattern": "/foo/b",
+            "http_method": "GET",
+            "metric_system_name": "superlimit",
+            "delta": 1
+          }
+        ]
+      }
+    }
+  ]
+}
+--- upstream
+  location ~* /second/foo/bar {
+    content_by_lua_block {
+      ngx.say('yay, api backend');
+    }
+  }
+--- request
+GET /foo/bar?user_key=foo
+--- response_body
+yay, api backend
+--- error_code: 200
+--- no_error_log
+[error]
+
+=== TEST 31: No match in routing policy return 404 back
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "backend_version":  1,
+      "proxy": {
+        "proxy_rules": [
+          { "pattern": "/", "http_method": "GET", "metric_system_name": "hits", "delta": 2 }
+        ]
+      },
+        "policy_chain": [
+          {
+            "name": "apicast.policy.routing",
+            "configuration": {
+              "rules": [ ]
+            }
+          },
+          {"name": "apicast.policy.apicast"}
+        ]
+    }
+  ]
+}
+--- backend
+location /transactions/authrep.xml {
+    echo 'ok';
+}
+--- upstream
+location / {
+    echo 'path: $uri';
+}
+--- request
+GET /?user_key=value
+--- error_code: 404
+--- error_log
+could not find upstream for service: 42
+--- no_error_log
+[error]

@@ -1,5 +1,5 @@
 {
-  "$id": "http://apicast.io/policy-v1/schema#manifest",
+  "$id": "http://apicast.io/policy-v1.1/schema#manifest",
   "type": "object",
   "$schema": "http://json-schema.org/draft-07/schema#",
   "definitions": {
@@ -56,6 +56,52 @@
         "Extract authentication credentials from the HTTP Authorization header and pass them to 3scale backend.",
         [ "Redirect request to different upstream: ", " - based on path", "- set different Host header"]
       ]
+    },
+    "order": {
+      "$id": "/properties/order",
+      "type": "object",
+      "title": "Order restrictions of the policy",
+      "description": "Specifies before or after which policies the policy should be placed in the chain.",
+      "properties": {
+        "before": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "version": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name",
+              "version"
+            ]
+          },
+          "description": "The policy should be placed before these ones in the chain."
+        },
+        "after": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "version": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "name",
+              "version"
+            ]
+          },
+          "description": "The policy should be placed after these ones in the chain."
+        }
+      }
     },
     "version": {
       "$ref": "#/definitions/version"

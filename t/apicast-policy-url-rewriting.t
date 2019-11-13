@@ -681,3 +681,55 @@ yay, api backend
 --- error_code: 200
 --- no_error_log
 [error]
+
+=== TEST 13: url rewriting policy placed before the apicast with special chars
+The url rewriting policy is placed before the apicast one in the policy chain,
+this means that the request will be rewritten before matching the mapping rules
+and it'll use special character to make sure that the encode works correctly
+--- backend
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+      ngx.exit(200)
+    }
+  }
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "backend_version":  1,
+      "backend_authentication_type": "service_token",
+      "backend_authentication_value": "token-value",
+      "proxy": {
+        "api_backend": "http://test:$TEST_NGINX_SERVER_PORT/",
+        "proxy_rules": [
+          { "pattern": "/new%20/foo/", "http_method": "GET", "metric_system_name": "hits", "delta": 2 }
+        ],
+        "policy_chain": [
+          {
+            "name": "apicast.policy.url_rewriting",
+            "configuration": {
+              "commands": [
+                { "op": "sub", "regex": "original", "replace": "new /foo/" }
+              ]
+            }
+          },
+          { "name": "apicast.policy.apicast" }
+        ]
+      }
+    }
+  ]
+}
+--- upstream
+  location /new {
+    content_by_lua_block {
+      ngx.say('yay, api backend');
+    }
+  }
+--- request
+GET /original?user_key=value
+--- response_body
+yay, api backend
+--- error_code: 200
+--- no_error_log
+[error]

@@ -108,7 +108,9 @@ local function find_proxy_url(request)
     local uri = parse_request_uri(request)
     if not uri then return end
 
-    return _M.find(uri)
+    -- request can have a local proxy defined and env variables have lower
+    -- priority, if the proxy is defined in the request that will be used.
+    return request.proxy_uri or _M.find(uri)
 end
 
 local function connect(request)

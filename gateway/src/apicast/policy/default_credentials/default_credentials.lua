@@ -3,7 +3,7 @@
 local tostring = tostring
 
 local policy = require('apicast.policy')
-local _M = policy.new('Default credentials policy')
+local _M = policy.new('Default credentials policy', 'builtin')
 
 local new = _M.new
 

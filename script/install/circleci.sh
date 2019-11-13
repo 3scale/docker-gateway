@@ -20,7 +20,7 @@ apt update
 
 echo manual > /etc/init/openresty.override
 
-export OPENRESTY_VERSION="1.13.6.2-1~trusty1"
+export OPENRESTY_VERSION="1.15.8.1-1~trusty1"
 
 apt install -y cpanminus liblocal-lib-perl libev-dev luarocks python-pip systemtap libyaml-dev
 apt install -y openresty=$OPENRESTY_VERSION openresty-debug=$OPENRESTY_VERSION openresty-opm=$OPENRESTY_VERSION openresty-resty=$OPENRESTY_VERSION openresty-debug-dbgsym=$OPENRESTY_VERSION openresty-openssl-debug-dbgsym openresty-pcre-dbgsym openresty-zlib-dbgsym

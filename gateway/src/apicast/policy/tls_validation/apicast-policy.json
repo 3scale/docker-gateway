@@ -1,5 +1,5 @@
 {
-  "$schema": "http://apicast.io/policy-v1/schema#manifest#",
+  "$schema": "http://apicast.io/policy-v1.1/schema#manifest#",
   "name": "TLS Client Certificate Validation",
   "summary": "Validate certificates provided by the client during TLS handshake (HTTPS).",
   "description": [

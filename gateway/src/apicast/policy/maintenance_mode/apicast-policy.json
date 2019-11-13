@@ -1,0 +1,29 @@
+{
+  "$schema": "http://apicast.io/policy-v1.1/schema#manifest#",
+  "name": "Maintenance Mode",
+  "summary": "Rejects incoming requests. Useful for maintenance periods.",
+  "description": ["A policy which allows you reject incoming requests with a specified status code and message.",
+    "It's useful for maintenance periods or to temporarily block an API."
+  ],
+  "version": "builtin",
+  "configuration": {
+    "type": "object",
+    "properties": {
+      "status": {
+        "type": "integer",
+        "description": "HTTP status code to return",
+        "default": 503
+      },
+      "message": {
+        "type": "string",
+        "description": "HTTP response to return",
+        "default": "Service Unavailable - Maintenance"
+      },
+      "message_content_type": {
+        "type": "string",
+        "description": "Content-Type header for the response",
+        "default": "text/plain; charset=utf-8"
+      }
+    }
+  }
+}

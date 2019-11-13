@@ -1,5 +1,5 @@
 {
-  "$schema": "http://apicast.io/policy-v1/schema#manifest#",
+  "$schema": "http://apicast.io/policy-v1.1/schema#manifest#",
   "name": "Routing",
   "summary": "Allows to modify the upstream URL of the request.",
   "description": [
@@ -10,6 +10,14 @@
     "placed before it in the policy chain."
   ],
   "version": "builtin",
+  "order": {
+    "before": [
+      {
+        "name": "apicast",
+        "version": "builtin"
+      }
+    ]
+  },
   "configuration": {
     "type": "object",
     "definitions": {
@@ -23,7 +31,8 @@
               "path",
               "header",
               "query_arg",
-              "jwt_claim"
+              "jwt_claim",
+              "liquid"
             ]
           },
           "op": {
@@ -110,6 +119,21 @@
                 "properties": {
                   "match": {
                     "enum": [
+                      "liquid"
+                    ]
+                  },
+                  "liquid_value" : {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "liquid_value"
+                ]
+              },
+              {
+                "properties": {
+                  "match": {
+                    "enum": [
                       "path"
                     ]
                   }
@@ -129,6 +153,14 @@
           "properties": {
             "url": {
               "type": "string"
+            },
+            "replace_path": {
+              "type": "string",
+              "description": "Liquid filter to modify the request path to the matched Upstream URL. When no specified, keep the original path"
+            },
+            "owner_id": {
+              "type": "integer",
+              "description": "Value to only increment hits on the mapping rules owner by the same id. "
             },
             "host_header": {
               "description": "Host for the Host header. When not specified, defaults to the host of the URL.",

@@ -13,6 +13,7 @@ local backend_cache_handler = require('apicast.backend.cache_handler')
 local Usage = require('apicast.usage')
 local errors = require('apicast.errors')
 local Upstream = require('apicast.upstream')
+local escape = require("resty.http.uri_escape")
 
 local assert = assert
 local type = type
@@ -90,21 +91,6 @@ local function output_debug_headers(service, usage, credentials)
   end
 end
 
--- Converts a usage to the format expected by the 3scale backend client.
-local function format_usage(usage)
-  local res = {}
-
-  local usage_metrics = usage.metrics
-  local usage_deltas = usage.deltas
-
-  for _, metric in ipairs(usage_metrics) do
-    local delta = usage_deltas[metric]
-    res['usage[' .. metric .. ']'] = delta
-  end
-
-  return res
-end
-
 local function matched_patterns(matched_rules)
   local patterns = {}
 
@@ -122,7 +108,7 @@ end
 function _M:authorize(service, usage, credentials, ttl)
   if not usage or not credentials then return nil, 'missing usage or credentials' end
 
-  local formatted_usage = format_usage(usage)
+  local formatted_usage = usage:format()
 
   local encoded_usage = encode_args(formatted_usage)
   if encoded_usage == '' then
@@ -186,7 +172,6 @@ function _M.get_upstream(service)
   if not service then
     return errors.service_not_found()
   end
-
   local upstream, err = Upstream.new(service.api_backend)
 
   if not upstream then
@@ -242,7 +227,12 @@ function _M:rewrite(service, context)
     return errors.no_credentials(service)
   end
 
-  local usage, matched_rules = service:get_usage(ngx.req.get_method(), ngx.var.uri)
+  -- URI need to be escaped to be able to match values with special characters
+  -- (like spaces), request_uri is the original one, but rewrite_uri can modify
+  -- the value and mapping rule will not match.
+  -- Example:  if URI is `/foo /bar` it will be translated to `/foo%20/bar`
+  local target_uri = escape.escape_uri(ngx.var.uri)
+  local usage, matched_rules = service:get_usage(ngx.req.get_method(), target_uri)
   local cached_key = { service.id }
 
   -- remove integer keys for serialization
@@ -267,6 +257,7 @@ function _M:rewrite(service, context)
   context.usage:merge(usage)
 
   ctx.usage = context.usage
+  ctx.matched_rules = matched_rules
   ctx.credentials = credentials
 
   var.cached_key = concat(cached_key, ':')
@@ -296,8 +287,15 @@ end
 
 function _M:access(service, usage, credentials, ttl)
   local ctx = ngx.ctx
+  local final_usage = usage or ctx.usage
 
-  return self:authorize(service, usage or ctx.usage, credentials or ctx.credentials, ttl or ctx.ttl)
+  -- If routing policy changes the upstream and it only belongs to a specified
+  -- owner, we need to filter out the usage for APIs that are not used at all.
+  if ctx.context.route_upstream_usage_cleanup then
+    ctx.context:route_upstream_usage_cleanup(final_usage, ctx.matched_rules)
+  end
+  return self:authorize(service, final_usage, credentials or ctx.credentials, ttl or ctx.ttl)
+
 end
 
 local function response_codes_data(status)
@@ -334,7 +332,7 @@ function _M:post_action(context)
   local service = ngx.ctx.service or self.configuration:find_by_id(service_id)
 
   local credentials = context.credentials
-  local formatted_usage = format_usage(context.usage)
+  local formatted_usage = context.usage:format()
 
   reporting_executor:post(post_action, self, cached_key, service, credentials, formatted_usage, ngx.var.status)
 end

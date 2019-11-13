@@ -11,6 +11,7 @@ local Policy = require('apicast.policy')
 local linked_list = require('apicast.linked_list')
 local prometheus = require('apicast.prometheus')
 local uuid = require('resty.jit-uuid')
+local url_helper = require('resty.url_helper')
 
 local setmetatable = setmetatable
 local ipairs = ipairs
@@ -37,6 +38,31 @@ local function build_context(executor)
     return linked_list.readwrite({}, config)
 end
 
+local function store_original_request(context)
+  -- There are a few phases[0] that req and var are not set and API is
+  -- disabled. The reason to call this using a pcall function is to avoid to
+  -- define the phases manually that are error prone. Also in openresty there
+  -- is not a good method to check this. [1]
+  -- [0] invalid phases: init_worker, init, timer and ssl_cer
+  -- [1] https://github.com/openresty/lua-resty-core/blob/9937f5d83367e388da4fcc1d7de2141c9e38d7e2/lib/resty/core/request.lua#L96
+  --
+  if not context or context.original_request then
+    return
+  end
+
+  pcall(function()
+    local path, query = url_helper.split_path(ngx.var.request_uri)
+    context.original_request = linked_list.readonly({
+      headers = ngx.req.get_headers(),
+      host = ngx.var.host,
+      path = path,
+      query = query,
+      uri = ngx.var.uri,
+      server_addr = ngx.var.server_addr,
+    })
+  end)
+end
+
 local function shared_build_context(executor)
     local ok, ctx = pcall(function() return ngx.ctx end)
     if not ok then
@@ -47,8 +73,11 @@ local function shared_build_context(executor)
 
     if not context then
         context = build_context(executor)
-
         ctx.context = context
+    end
+
+    if not context.original_request then
+        store_original_request(context)
     end
 
     return context

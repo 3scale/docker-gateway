@@ -365,7 +365,7 @@ GET /t
             credentials_location = "query",
             api_backend = "http://127.0.0.1:$TEST_NGINX_SERVER_PORT/api-backend/",
             proxy_rules = {
-              { pattern = '/', http_method = 'GET', metric_system_name = 'hits' }
+              { pattern = '/', http_method = 'GET', metric_system_name = 'hits', delta=1}
             }
           }
         }
@@ -444,7 +444,7 @@ Location: http://example.com/redirect\?code=\w+&state=12345
             credentials_location = "headers",
             api_backend = "http://127.0.0.1:$TEST_NGINX_SERVER_PORT/api-backend/",
             proxy_rules = {
-              { pattern = '/', http_method = 'GET', metric_system_name = 'hits' }
+              { pattern = '/', http_method = 'GET', metric_system_name = 'hits', delta = 1 }
             }
           }
         }
@@ -489,7 +489,7 @@ yay, upstream
             error_auth_missing = 'credentials missing!',
             error_status_auth_missing = 401,
             proxy_rules = {
-              { pattern = '/', http_method = 'GET', metric_system_name = 'hits' }
+              { pattern = '/', http_method = 'GET', metric_system_name = 'hits', delta = 1 }
             }
           }
         }
@@ -522,7 +522,7 @@ credentials missing!
             error_auth_missing = 'credentials missing!',
             error_status_auth_missing = 401,
             proxy_rules = {
-              { pattern = '/', http_method = 'GET', metric_system_name = 'hits' }
+              { pattern = '/', http_method = 'GET', metric_system_name = 'hits', delta = 1}
             }
           }
         }
@@ -916,7 +916,7 @@ body is necessary.
             credentials_location = "query",
             api_backend = "http://127.0.0.1:$TEST_NGINX_SERVER_PORT/api-backend/",
             proxy_rules = {
-              { pattern = '/', http_method = 'GET', metric_system_name = 'hits' }
+              { pattern = '/', http_method = 'GET', metric_system_name = 'hits', delta = 1 }
             }
           }
         }

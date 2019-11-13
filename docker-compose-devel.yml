@@ -16,6 +16,7 @@ services:
     tty: true
     init: true
     environment:
+      EDITOR: vi
       TEST_NGINX_REDIS_HOST: redis
       TEST_NGINX_BINARY: openresty
       PROJECT_PATH: /home/centos

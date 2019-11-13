@@ -332,8 +332,10 @@ workflows:
           requires:
             - build-lua
             - build-perl
-      - profile:
-          <<: *build-tags
-          requires:
-            - build-lua
-            - build-perl
+## Commented until we figure out why on many runs there are only a few requests
+## using luaJIT traces: https://github.com/3scale/APIcast/issues/1096
+#      - profile:
+#          <<: *build-tags
+#          requires:
+#            - build-lua
+#            - build-perl
