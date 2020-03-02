@@ -1,0 +1,36 @@
+{
+  "$schema": "http://apicast.io/policy-v1.1/schema#manifest#",
+  "name": "Upstream Load Balancing",
+  "summary": "Allows to specify multiple upstreams and enables round robin load balancing on them.",
+  "description":
+  ["It accepts a list of hosts that will replace the Private Base URL. ",
+    "The Private Base URL should be in this policy's configuration if that host is to be included in the load balancing."],
+  "version": "builtin",
+  "order": {
+    "before": [
+      {
+        "name": "apicast",
+        "version": "builtin"
+      }
+    ]
+  },
+  "configuration": {
+    "type": "object",
+    "properties": {
+      "rules": {
+        "description": "List of URLs",
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "url": {
+              "description": "New URL",
+              "type": "string"
+            }
+          },
+          "required": ["url"]
+        }
+      }
+    }
+  }
+}
