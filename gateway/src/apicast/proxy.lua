@@ -109,14 +109,14 @@ function _M:authorize(service, usage, credentials, ttl)
   if not usage or not credentials then return nil, 'missing usage or credentials' end
 
   local formatted_usage = usage:format()
-
+  local encoded_credentials = encode_args(credentials)
   local encoded_usage = encode_args(formatted_usage)
+
+  output_debug_headers(service, encoded_usage, encoded_credentials)
+  
   if encoded_usage == '' then
     return errors.no_match(service)
   end
-  local encoded_credentials = encode_args(credentials)
-
-  output_debug_headers(service, encoded_usage, encoded_credentials)
 
   -- NYI: return to lower frame
   local cached_key = ngx.var.cached_key .. ":" .. encoded_usage
