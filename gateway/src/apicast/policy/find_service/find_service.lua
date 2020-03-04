@@ -39,9 +39,12 @@ end
 local function find_service(policy, context)
   context.service = context.service or policy.find_service(context.configuration, context.host)
 
-  if not context.service then
+  if context.service then
+    ngx.log(ngx.DEBUG, "Using service id=", context.service.id)
+  else
     ngx.log(ngx.DEBUG, 'Could not find a service for the request')
   end
+
 end
 
 _M.rewrite = find_service

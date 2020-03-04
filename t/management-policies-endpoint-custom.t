@@ -15,7 +15,7 @@ env_to_apicast(
 
 # Converts what's in the 'expected_json' block and the body to JSON and
 # compares them. Raises and error when they do not match.
-require("t/policies.pl");
+require("policies.pl");
 
 run_tests();
 

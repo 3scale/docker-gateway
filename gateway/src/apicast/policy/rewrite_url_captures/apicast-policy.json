@@ -1,6 +1,6 @@
 {
   "$schema": "http://apicast.io/policy-v1.1/schema#manifest#",
-  "name": "URL rewriting with captures",
+  "name": "URL Rewriting with Captures",
   "summary": "Captures arguments in a URL and rewrites the URL using them.",
   "description":
     ["Captures arguments in a URL and rewrites the URL using these arguments. ",

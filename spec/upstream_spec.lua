@@ -248,6 +248,17 @@ describe('Upstream', function()
 
                 assert.equal('http://upstream', ngx.var.proxy_pass)
             end)
+
+            it('works with websocket url', function()
+                local upstream = Upstream.new('ws://example.com')
+                upstream:call({})
+                assert.equal('http://upstream', ngx.var.proxy_pass)
+
+                upstream = Upstream.new('wss://example.com')
+                upstream:call({})
+                assert.equal('https://upstream', ngx.var.proxy_pass)
+            end)
+
         end)
     end)
 
@@ -296,9 +307,58 @@ describe('Upstream', function()
             local host = 'http://another_host'
 
             upstream:use_host_header(host)
-
             upstream:rewrite_request()
             assert.spy(ngx.req.set_header).was_called_with('Host', host)
+        end)
+    end)
+
+    describe(".set_host_header", function()
+
+        before_each(stub_ngx_request)
+
+        it('self.host is defined', function()
+            local host = "test.com"
+            local upstream = Upstream.new('http://example.com')
+            upstream:use_host_header(host)
+
+            local tmp_host, err = upstream:set_host_header()
+
+            assert.equal(tmp_host, host)
+            assert.falsy(err)
+            assert.spy(ngx.req.set_header).was_called_with('Host', host)
+        end)
+
+        it('self.uri is not defined', function()
+            local host = "test.com"
+            local upstream = Upstream.new('http://example.com')
+            upstream.uri = nil
+
+            local tmp_host, err = upstream:set_host_header()
+
+            assert.falsy(tmp_host, host)
+            assert.equal(err, "Upstream URI not initialized")
+        end)
+
+        it('self.uri is defined in a not default port', function()
+            local expected_host = "example.com:10000"
+            local upstream = Upstream.new('http://example.com:10000')
+
+            local tmp_host, err = upstream:set_host_header()
+
+            assert.equal(tmp_host, expected_host)
+            assert.falsy(err)
+            assert.spy(ngx.req.set_header).was_called_with('Host', expected_host)
+        end)
+
+        it('self.uri is defined in a default port', function()
+            local expected_host = "example.com"
+            local upstream = Upstream.new('http://example.com')
+
+            local tmp_host, err = upstream:set_host_header()
+
+            assert.equal(tmp_host, expected_host)
+            assert.falsy(err)
+            assert.spy(ngx.req.set_header).was_called_with('Host', expected_host)
         end)
     end)
 end)

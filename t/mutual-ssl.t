@@ -53,8 +53,8 @@ __DATA__
 --- request
 GET /?user_key=uk
 --- response_body
-ssl_client_s_dn: O=Internet Widgits Pty Ltd,ST=Some-State,C=AU
-ssl_client_i_dn: O=Internet Widgits Pty Ltd,ST=Some-State,C=AU
+ssl_client_s_dn: CN=localhost,OU=APIcast,O=3scale
+ssl_client_i_dn: CN=localhost,OU=APIcast,O=3scale
 --- error_code: 200
 --- no_error_log
 [error]

@@ -22,6 +22,12 @@ local _M = policy.new('Caching policy', 'builtin')
 
 local new = _M.new
 
+--- On connect issues, the status returned is 0, so need to validate that the
+--status is greater than 0 and less than 500
+local function is_valid_status(status)
+    return status and status > 0 and status < 500
+end
+
 local function strict_handler(cache, cached_key, response, ttl)
   if response.status == 200 then
     ngx.log(ngx.INFO, 'apicast cache write key: ', cached_key, ', ttl: ', ttl)
@@ -36,7 +42,7 @@ end
 local function resilient_handler(cache, cached_key, response, ttl)
   local status = response.status
 
-  if status and status < 500 then
+  if is_valid_status(status) then
     ngx.log(ngx.INFO, 'apicast cache write key: ', cached_key,
                       ' status: ', status, ', ttl: ', ttl)
 
@@ -57,7 +63,7 @@ end
 local function allow_handler(cache, cached_key, response, ttl)
   local status = response.status
 
-  if status and status < 500 then
+  if is_valid_status(status) then
     ngx.log(ngx.INFO, 'apicast cache write key: ', cached_key,
                       ' status: ', status, ', ttl: ', ttl)
 

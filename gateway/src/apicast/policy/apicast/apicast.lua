@@ -60,7 +60,11 @@ function _M:rewrite(context)
 
   local err
   context[self] = context[self] or {}
-  context[self].upstream, err = p.get_upstream(service)
+  context[self].upstream, err = p.get_upstream(service, context)
+  context.get_upstream = function()
+    return context[self].upstream
+  end
+
   if err then
     ngx.log(ngx.WARN, "upstream api for the service:", service.id, " is invalid, error:", err)
   end

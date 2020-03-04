@@ -15,6 +15,8 @@ luarocks {
     group 'development' {
         module {'ldoc'},
         module {'lua-resty-repl'},
+        module {'fifo'},
+        module {'http'}
     }
 }
 

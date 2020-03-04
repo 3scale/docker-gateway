@@ -15,6 +15,55 @@ describe('OIDC Discovery', function()
         end)
     end)
 
+    describe("Issuer cache information", function()
+
+      local issuer_url = "https://idp.example.com/"
+      local issuer_config_url = issuer_url .. ".well-known/openid-configuration"
+
+      it('Stored the info in the cache', function()
+
+        test_backend
+                .expect{ url =  issuer_config_url }
+                .respond_with{ status = 200, headers = { content_type = 'application/json' }, body = '{}' }
+
+        spy.on(discovery, "save_issuer_in_cache")
+        discovery:call(issuer_url, 10)
+        assert.spy(discovery.save_issuer_in_cache).was_called()
+      end)
+
+      it('Stored the info for 0 seconds', function()
+
+        test_backend
+                .expect{ url =  issuer_config_url }
+                .respond_with{ status = 200, headers = { content_type = 'application/json' }, body = '{}' }
+
+        spy.on(discovery, "save_issuer_in_cache")
+        discovery:call(issuer_url, 0)
+        assert.spy(discovery.save_issuer_in_cache).was_called()
+
+        discovery:call(issuer_url, 0)
+        assert.spy(discovery.save_issuer_in_cache).was_called()
+      end)
+
+      it('use the cache info if is in place', function()
+
+        test_backend
+                .expect{ url =  issuer_config_url }
+                .respond_with{ status = 200, headers = { content_type = 'application/json' }, body = '{}' }
+
+        spy.on(discovery, "save_issuer_in_cache")
+        local result = discovery:call(issuer_url, 10)
+        assert.spy(discovery.save_issuer_in_cache).was_called()
+
+        spy.on(discovery, "issuer_in_cache")
+        discovery:call(issuer_url, 10)
+
+        assert.spy(discovery.issuer_in_cache).was_called()
+        assert.spy(discovery.issuer_in_cache).returned_with(result)
+
+      end)
+    end)
+
     describe(':openid_configuration(endpoint)', function()
         it('loads configuration from the discovery endpoint', function()
             test_backend

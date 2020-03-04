@@ -140,7 +140,8 @@ function _M.request(upstream, proxy_uri)
 
     if uri.scheme == 'http' then -- rewrite the request to use http_proxy
         local err
-        upstream:use_host_header(uri.host) -- to keep correct Host header in case we need to resolve it to IP
+        local host = upstream:set_host_header()
+        upstream:use_host_header(host)
         upstream.servers, err = resolve_servers(proxy_uri)
         if err then
           ngx.log(ngx.WARN, "HTTP proxy is set, but no servers have been resolved, err: ", err)

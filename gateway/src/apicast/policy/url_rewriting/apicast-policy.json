@@ -1,6 +1,6 @@
 {
   "$schema": "http://apicast.io/policy-v1.1/schema#manifest#",
-  "name": "URL rewriting",
+  "name": "URL Rewriting",
   "summary": "Allows to modify the path of a request.",
   "description":
     ["This policy allows to modify the path of a request. ",

@@ -1,7 +1,7 @@
 local random = require('resty.random')
 local ts = require('apicast.threescale_utils')
 local backend_client = require('apicast.backend_client')
-local http_ng_ngx = require('resty.http_ng.backend.ngx')
+local http_ng_resty = require('resty.http_ng.backend.resty')
 
 -- returns a unique string for the client_id. it will be short lived
 local function nonce(client_id)
@@ -84,7 +84,7 @@ end
 
 -- Check valid params ( client_id / secret / redirect_url, whichever are sent) against 3scale
 local function check_credentials(service, params)
-  local backend = assert(backend_client:new(service, http_ng_ngx), 'missing backend')
+  local backend = assert(backend_client:new(service, http_ng_resty), 'missing backend')
   local res = backend:authorize({  app_id = params.client_id, redirect_uri = params.redirect_uri })
 
   ngx.log(ngx.INFO, "[oauth] Checking client credentials, status: ", res.status, " body: ", res.body)

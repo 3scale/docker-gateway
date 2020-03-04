@@ -1,6 +1,6 @@
 {
   "$schema": "http://apicast.io/policy-v1.1/schema#manifest#",
-  "name": "Liquid context debug",
+  "name": "Liquid Context Debug",
   "summary": "Inspects the available liquid context.",
   "description": [
     "This is a policy intended only for debugging purposes. This policy ",

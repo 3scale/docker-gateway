@@ -1,6 +1,6 @@
 {
   "$schema": "http://apicast.io/policy-v1.1/schema#manifest#",
-  "name": "IP check",
+  "name": "IP Check",
   "summary": "Accepts or denies a request based on the IP.",
   "description": [
     "Accepts or denies requests according to a whitelist or a blacklist of ",

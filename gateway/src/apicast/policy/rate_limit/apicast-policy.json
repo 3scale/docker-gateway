@@ -1,6 +1,6 @@
 {
   "$schema": "http://apicast.io/policy-v1.1/schema#manifest#",
-  "name": "Edge limiting",
+  "name": "Edge Limiting",
   "summary": "Adds rate limit.",
   "description": ["This policy adds rate limit."],
   "version": "builtin",

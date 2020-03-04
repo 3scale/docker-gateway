@@ -20,14 +20,17 @@ local configuration = require 'apicast.configuration'
 local oidc_discovery = require('resty.oidc.discovery')
 
 local _M = {
-  _VERSION = '0.1'
+  _VERSION = '0.1',
+  _TYPE = "remote_v2"
 }
+
 local mt = {
   __index = _M
 }
 
 function _M.new(url, options)
   local endpoint = url or resty_env.get('THREESCALE_PORTAL_ENDPOINT')
+  local ttl = tonumber(resty_env.value('APICAST_CONFIGURATION_CACHE') or 0)
   local opts = options or {}
 
   local http_client = http_ng.new{
@@ -37,13 +40,15 @@ function _M.new(url, options)
       ssl = { verify = resty_env.enabled('OPENSSL_VERIFY') }
     }
   }
-
   local path = resty_url.split(endpoint or '')
+
   return setmetatable({
     endpoint = endpoint,
     path = path and path[6],
     options = opts,
-    http_client = http_client
+    http_client = http_client,
+    oidc = oidc_discovery.new_with_http_client(http_client),
+    ttl = ttl
   }, mt)
 end
 
@@ -330,7 +335,7 @@ function _M:services()
 end
 
 function _M:oidc_issuer_configuration(service)
-  return oidc_discovery.call(self, service.oidc.issuer_endpoint)
+  return self.oidc:call(service.oidc.issuer_endpoint, self.ttl)
 end
 
 function _M:config(service, environment, version)

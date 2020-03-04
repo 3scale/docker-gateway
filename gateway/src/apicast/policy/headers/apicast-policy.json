@@ -1,6 +1,6 @@
 {
   "$schema": "http://apicast.io/policy-v1.1/schema#manifest#",
-  "name": "Header modification",
+  "name": "Header Modification",
   "summary": "Allows to include custom headers.",
   "description":
     ["This policy allows to include custom headers that will be sent to the ",

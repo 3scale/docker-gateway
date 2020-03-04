@@ -1,4 +1,5 @@
 local mapping_rules_matcher = require 'apicast.mapping_rules_matcher'
+local escape = require("resty.http.uri_escape")
 
 local _M = {}
 
@@ -6,7 +7,7 @@ function _M.find_service(config_store, host)
   local found
   local services = config_store:find_by_host(host)
   local method = ngx.req.get_method()
-  local uri = ngx.var.uri
+  local uri = escape.escape_uri(ngx.var.uri)
 
   for s=1, #services do
     local service = services[s]

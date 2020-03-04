@@ -1,0 +1,14 @@
+{
+  "$schema": "http://apicast.io/policy-v1.1/schema#manifest#",
+  "name": "Websocket",
+  "summary": "Allows websocket connection pass through.",
+  "description": [
+    "A policy which allows Websocket traffic for the service"
+  ],
+  "version": "builtin",
+  "configuration": {
+    "type": "object",
+    "properties": {
+    }
+  }
+}

@@ -1,6 +1,6 @@
 {
   "$schema": "http://apicast.io/policy-v1.1/schema#manifest#",
-  "name": "3scale auth caching",
+  "name": "3scale Auth Caching",
   "summary": "Controls how to cache authorizations returned by the 3scale backend.",
   "description":
     ["Configures a cache for the authentication calls against the 3scale ",

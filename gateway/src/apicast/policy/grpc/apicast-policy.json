@@ -1,0 +1,12 @@
+{
+  "$schema": "http://apicast.io/policy-v1.1/schema#manifest#",
+  "name": "HTTP2 Endpoint",
+  "summary": "Main functionality to enable HTTP2 endpoint reply.",
+  "description":
+    ["To enable full HTTP2 traffic from the user to the final endpoint "],
+  "version": "builtin",
+  "configuration": {
+    "type": "object",
+    "properties": { }
+  }
+}

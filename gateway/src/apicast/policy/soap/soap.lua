@@ -17,6 +17,7 @@ local MappingRule = require('apicast.mapping_rule')
 local Usage = require('apicast.usage')
 local mapping_rules_matcher = require('apicast.mapping_rules_matcher')
 local MimeType = require('resty.mime')
+local resty_url = require 'resty.url'
 
 local policy = require('apicast.policy')
 
@@ -89,6 +90,13 @@ end
 -- @tparam table context Shared context between policies
 function _M:rewrite(context)
   local soap_action_uri = extract_soap_uri()
+
+  -- If the soap_action_uri is a complete url, the mapping rule is only the
+  -- path, so parse to send only the path.
+  local url, err = resty_url.parse(soap_action_uri)
+  if not err then
+    soap_action_uri = url.path
+  end
 
   if soap_action_uri then
     local soap_usage = usage_from_matching_rules(

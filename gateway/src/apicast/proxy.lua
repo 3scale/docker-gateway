@@ -166,16 +166,19 @@ function _M.set_service(service)
   return service
 end
 
-function _M.get_upstream(service)
+function _M.get_upstream(service, context)
   service = service or ngx.ctx.service
 
   if not service then
     return errors.service_not_found()
   end
   local upstream, err = Upstream.new(service.api_backend)
-
   if not upstream then
     return nil, err
+  end
+
+  if context and context.upstream_location_name then
+    upstream.location_name = context.upstream_location_name
   end
 
   upstream:use_host_header(service.hostname_rewrite)

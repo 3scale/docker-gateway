@@ -1,6 +1,6 @@
 {
   "$schema": "http://apicast.io/policy-v1.1/schema#manifest#",
-  "name": "Upstream connection",
+  "name": "Upstream Connection",
   "summary": "Allows to configure several options for the connections to the upstream",
   "description": "Allows to configure several options for the connections to the upstream",
   "version": "builtin",

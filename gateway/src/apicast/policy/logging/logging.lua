@@ -56,7 +56,7 @@ function _M:load_condition(config)
 
   ngx.log(ngx.DEBUG, 'Enabling extended log with conditions')
   local operations = {}
-  for _, operation in ipairs(config.condition.operations) do
+  for _, operation in ipairs(config.condition.operations or {}) do
     table.insert( operations,
       Operation.new(
         operation.match, operation.match_type,
@@ -79,6 +79,7 @@ local function get_request_context(context)
   ctx.usage = context.usage
   ctx.service = context.service or {}
   ctx.original_request = context.original_request
+  ctx.jwt = context.jwt or {}
   return LinkedList.readonly(ctx, ngx.var)
 end
 

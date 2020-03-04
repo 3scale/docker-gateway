@@ -1,7 +1,7 @@
 use lib 't';
 use Test::APIcast::Blackbox 'no_plan';
 
-require("t/http_proxy.pl");
+require("http_proxy.pl");
 
 repeat_each(3);
 
@@ -159,8 +159,8 @@ proxy request: CONNECT 127.0.0.1:$TEST_NGINX_RANDOM_PORT
   }
 --- request
 GET /?user_key=value
---- response_body
-yay, api backend: test
+--- response_body_like
+yay, api backend: test:.*
 --- error_code: 200
 --- error_log env
 proxy request: GET http://127.0.0.1:$TEST_NGINX_SERVER_PORT/transactions/authrep.xml?service_token=token-value&service_id=42&usage%5Bhits%5D=2&user_key=value HTTP/1.1
@@ -282,8 +282,8 @@ location /apicast {
   proxy_set_header Host localhost;
   proxy_pass http://$server_addr:$apicast_port;
 }
---- response_body
-yay, api backend: test
+--- response_body_like
+yay, api backend: test:.*
 --- error_code: 200
 --- error_log env
 proxy request: GET http://127.0.0.1:$TEST_NGINX_SERVER_PORT/transactions/authrep.xml?service_token=token-value&service_id=42&usage%5Bhits%5D=2&user_key=value HTTP/1.1
@@ -398,11 +398,13 @@ apicast cache write key: 42:value:usage%5Bhits%5D=2, ttl: nil, context: ngx.time
 --- upstream
   location /test {
      echo 'yay, api backend: $http_host, uri: $uri, is_args: $is_args, args: $args';
+     # echo 'yay, api backend: $http_host, uri:';
   }
 --- request
 GET /test?user_key=value
---- response_body
-yay, api backend: test, uri: /test, is_args: ?, args: user_key=value
+
+--- response_body_like eval
+qw/yay, api backend: test:ooo\d+, uri: \/test, is_args: \?, args: user_key=value/
 --- error_code: 200
 --- error_log env
 proxy request: GET http://127.0.0.1:$TEST_NGINX_SERVER_PORT/test?user_key=value HTTP/1.1

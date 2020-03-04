@@ -1,7 +1,7 @@
 use lib 't';
 use Test::APIcast::Blackbox 'no_plan';
 
-require("t/http_proxy.pl");
+require("http_proxy.pl");
 
 repeat_each(3);
 
@@ -47,7 +47,13 @@ __DATA__
   }
 --- upstream
   location / {
-     echo 'yay, api backend';
+    access_by_lua_block {
+      local host = ngx.req.get_headers()["Host"]
+      local result = string.match(host, "^test:")
+      local assert = require('luassert')
+      assert.equals(result, "test:")
+      ngx.say("yay, api backend")
+    }
   }
 --- request
 GET /?user_key=value
@@ -95,7 +101,13 @@ using proxy: $TEST_NGINX_HTTP_PROXY
   }
 --- upstream
   location / {
-     echo 'yay, api backend';
+    access_by_lua_block {
+      local host = ngx.req.get_headers()["Host"]
+      local result = string.match(host, "^test:")
+      local assert = require('luassert')
+      assert.equals(result, "test:")
+      ngx.say("yay, api backend")
+    }
   }
 --- request
 GET /?user_key=value
@@ -150,10 +162,14 @@ location /test {
     echo_end;
 
     access_by_lua_block {
-       assert = require('luassert')
-       assert.equal('https', ngx.var.scheme)
-       assert.equal('$TEST_NGINX_RANDOM_PORT', ngx.var.server_port)
-       assert.equal('test', ngx.var.ssl_server_name)
+      assert = require('luassert')
+      assert.equal('https', ngx.var.scheme)
+      assert.equal('$TEST_NGINX_RANDOM_PORT', ngx.var.server_port)
+      assert.equal('test', ngx.var.ssl_server_name)
+
+      local host = ngx.req.get_headers()["Host"]
+      local result = string.match(host, "^test:")
+      assert.equals(result, "test:")
     }
 }
 --- request

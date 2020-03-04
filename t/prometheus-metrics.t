@@ -1,7 +1,7 @@
 use lib 't';
 use Test::APIcast::Blackbox 'no_plan';
 
-require("t/policies.pl");
+require("policies.pl");
 # The output varies between requests, so run only once
 repeat_each(1);
 

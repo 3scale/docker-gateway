@@ -3,7 +3,7 @@ local ts = require 'apicast.threescale_utils'
 local re = require 'ngx.re'
 local env = require 'resty.env'
 local backend_client = require('apicast.backend_client')
-local http_ng_ngx = require('resty.http_ng.backend.ngx')
+local http_ng_resty = require('resty.http_ng.backend.resty')
 local tonumber = tonumber
 
 local oauth_tokens_default_ttl = 604800 -- 7 days
@@ -64,7 +64,7 @@ end
 
 -- Check valid params ( client_id / secret / redirect_url, whichever are sent) against 3scale
 local function check_client_credentials(service, params)
-  local backend = assert(backend_client:new(service, http_ng_ngx), 'missing backend')
+  local backend = assert(backend_client:new(service, http_ng_resty), 'missing backend')
   local res = backend:authorize({ app_id = params.client_id, app_key = params.client_secret, redirect_uri = params.redirect_uri })
 
   ngx.log(ngx.INFO, "[oauth] Checking client credentials, status: ", res.status, " body: ", res.body)
@@ -97,7 +97,7 @@ end
 
 -- Stores the token in 3scale.
 local function store_token(service, params, token)
-  local backend = assert(backend_client:new(service, http_ng_ngx), 'missing backend')
+  local backend = assert(backend_client:new(service, http_ng_resty), 'missing backend')
   local res = assert(backend:store_oauth_token({ app_id = params.client_id, token = token.access_token, user_id = params.user_id, ttl = token.expires_in }))
 
   return { status = res.status , body = res.body or res.status }

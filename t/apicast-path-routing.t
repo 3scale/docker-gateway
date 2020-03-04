@@ -213,3 +213,84 @@ Host: one
 --- error_code: 404
 --- no_error_log
 [error]
+
+=== TEST 4: multi service configuration with path based routing and special chars (spaces)
+--- env eval
+('APICAST_PATH_ROUTING' => '1')
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "backend_version": 1,
+      "proxy": {
+        "api_backend": "http://test:$TEST_NGINX_SERVER_PORT/api-backend/foo/",
+        "hosts": [
+          "same"
+        ],
+        "backend_authentication_type": "service_token",
+        "backend_authentication_value": "service-one",
+        "proxy_rules": [
+          {
+            "pattern": "/one/{test}",
+            "http_method": "GET",
+            "metric_system_name": "one",
+            "delta": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": 21,
+      "backend_version": 2,
+      "proxy": {
+        "api_backend": "http://test:$TEST_NGINX_SERVER_PORT/api-backend/bar/",
+        "hosts": [
+          "same"
+        ],
+        "backend_authentication_type": "service_token",
+        "backend_authentication_value": "service-two",
+        "proxy_rules": [
+          {
+            "pattern": "/two/%20two",
+            "http_method": "GET",
+            "metric_system_name": "two",
+            "delta": 2
+          },
+          {
+            "pattern": "/two/%20two/test",
+            "http_method": "GET",
+            "metric_system_name": "two",
+            "delta": 2
+          }
+        ]
+      }
+    }
+  ]
+}
+--- backend
+  location /transactions/authrep.xml {
+    content_by_lua_block { ngx.exit(200) }
+  }
+--- upstream
+  location ~ /api-backend(/.+) {
+     echo 'yay, api backend: $1';
+  }
+--- request eval
+[
+  "GET /one/12%2012?user_key=one-key",
+  "GET /two/%20two?app_id=two-id&app_key=two-key",
+  "GET /two/%20two/test?app_id=two-id&app_key=two-key"
+]
+--- more_headers eval
+["Host: same", "Host: same", "Host: same"]
+--- response_body eval
+[
+  "yay, api backend: /foo/one/12 12\x{0a}",
+  "yay, api backend: /bar/two/ two\x{0a}",
+  "yay, api backend: /bar/two/ two/test\x{0a}"
+]
+--- error_code eval
+[200, 200, 200]
+--- no_error_log
+[error]

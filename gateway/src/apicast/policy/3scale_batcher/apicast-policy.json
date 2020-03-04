@@ -1,6 +1,6 @@
 {
   "$schema": "http://apicast.io/policy-v1.1/schema#manifest#",
-  "name": "3scale batcher",
+  "name": "3scale Batcher",
   "summary": "Caches auths from 3scale backend and batches reports.",
   "description":
     ["This policy caches authorizations from the 3scale backend ",

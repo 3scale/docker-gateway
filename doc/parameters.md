@@ -26,6 +26,8 @@ Specifies the period (in seconds) that the configuration will be stored in the c
 - a positive number ( > 0 ): specifies the interval in seconds between configuration reload. For example, when APIcast is started with `APICAST_CONFIGURATION_CACHE=300` and `APICAST_CONFIGURATION_CACHE=boot`, it will load the configuration on boot, and will reload it every 5 minutes (300 seconds).
 - a negative number ( < 0 ): disables reloading. The cache entries will never be removed from the cache once stored, and the configuration will never be reloaded.
 
+This parameter is also used to store OpenID discovery configuration in the local cache, as the same behavior as described above.
+
 ### `APICAST_CONFIGURATION_LOADER`
 
 **Values:** boot | lazy  
@@ -210,7 +212,7 @@ before the client is throttled by adding latency.
 **Default:** \<empty\> (_false_)
 
 When set to _true_, APIcast will log the response code of the response returned by the API backend in 3scale. In some plans this information can later be consulted from the 3scale admin portal.
-Find more information about the Response Codes feature on the [3scale support site](https://access.redhat.com/documentation/en-us/red_hat_3scale/2.saas/html/analytics/response-codes-tracking).
+Find more information about the Response Codes feature on the [3scale support site](https://access.redhat.com/documentation/en-us/red_hat_3scale/2-saas/html-single/admin_portal_guide/index#response-codes-tracking).
 
 ### `APICAST_SERVICES_FILTER_BY_URL`
 **Value:** a PCRE (Perl Compatible Regular Expression)

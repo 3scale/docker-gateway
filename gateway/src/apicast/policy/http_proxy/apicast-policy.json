@@ -1,6 +1,6 @@
 {
   "$schema": "http://apicast.io/policy-v1/schema#manifest#",
-  "name": "Proxy service",
+  "name": "Proxy Service",
   "summary": "Adds an HTTP proxy to the service.",
   "description": [
     "With this policy all the traffic for this service will be routed accross ",

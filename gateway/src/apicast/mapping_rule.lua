@@ -35,6 +35,11 @@ local function hash_to_array(hash)
 end
 
 local function regexpify(pattern)
+  -- some urls in APIAP uses double / that it's a valid url, but ngx.var.uri
+  -- eliminates the duplicates, so mapping rule needs to remove the duplicates
+  -- ones.
+  pattern = re_gsub(pattern,[[\/\/+]], '/', 'oj')
+
   pattern = re_gsub(pattern, [[\?.*]], '', 'oj')
   -- dollar sign is escaped by another $, see https://github.com/openresty/lua-nginx-module#ngxresub
   pattern = re_gsub(pattern, [[\{.+?\}]], [[([\w-.~%!$$&'()*+,;=@:]+)]], 'oj')

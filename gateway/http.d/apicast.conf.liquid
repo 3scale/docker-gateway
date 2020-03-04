@@ -62,7 +62,7 @@ server {
   {% endif %}
 
   {% if https_port -%}
-  listen {{ https_port }} ssl;
+  listen {{ https_port }} ssl http2;
   ssl_protocols TLSv1.2 TLSv1.3;
   {%- assign https_certificate = env.APICAST_HTTPS_CERTIFICATE -%}
   ssl_certificate {% if https_certificate -%}
@@ -100,6 +100,7 @@ server {
     {% include file %}
   {% endfor %}
   {% include "conf.d/apicast.conf" %}
+  {% include "conf.d/http2.conf" %}
 }
 
 {% if port.metrics %}

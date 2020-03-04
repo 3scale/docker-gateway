@@ -129,8 +129,13 @@ prove-docker: export IMAGE_NAME ?= apicast-test
 prove-docker: ## Test nginx inside docker
 	$(DOCKER_COMPOSE) run --rm -T prove | awk '/Result: NOTESTS/ { print "FAIL: NOTESTS"; print; exit 1 }; { print }'
 
+builder-image: PULL_POLICY ?= always
 builder-image: ## Build builder image
-	$(S2I) build . $(BUILDER_IMAGE) $(IMAGE_NAME) --context-dir=$(S2I_CONTEXT) --incremental $(S2I_OPTIONS)
+	$(S2I) build . $(BUILDER_IMAGE) $(IMAGE_NAME) \
+		--context-dir=$(S2I_CONTEXT) \
+		--pull-policy=$(PULL_POLICY) \
+		--runtime-pull-policy=$(PULL_POLICY) \
+		--incremental $(S2I_OPTIONS)
 
 runtime-image: PULL_POLICY ?= always
 runtime-image: IMAGE_NAME = apicast-runtime-image
@@ -217,7 +222,9 @@ $(S2I_CONTEXT)/Roverfile.lock : $(S2I_CONTEXT)/Roverfile $(S2I_CONTEXT)/apicast-
 	$(ROVER) lock --roverfile=$(S2I_CONTEXT)/Roverfile
 
 lua_modules: $(ROVER) $(S2I_CONTEXT)/Roverfile.lock
-	$(ROVER) install --roverfile=$(S2I_CONTEXT)/Roverfile > /dev/null
+	# This variable is to skip issues with openssl 1.1.1
+	# https://github.com/wahern/luaossl/issues/175
+	EXTRA_CFLAGS="-DHAVE_EVP_KDF_CTX=1" $(ROVER) install --roverfile=$(S2I_CONTEXT)/Roverfile
 
 lua_modules/bin/rover:
 	@LUAROCKS_CONFIG=$(S2I_CONTEXT)/config-5.1.lua luarocks install --server=http://luarocks.org/dev lua-rover --tree=lua_modules 1>&2

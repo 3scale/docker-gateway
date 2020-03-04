@@ -1,6 +1,6 @@
 {
   "$schema": "http://apicast.io/policy-v1.1/schema#manifest#",
-  "name": "RH-SSO/Keycloak role check",
+  "name": "RH-SSO/Keycloak Role Check",
   "summary": "Adds role check with Keycloak.",
   "description": [
     "This policy adds role check with Keycloak.\n",

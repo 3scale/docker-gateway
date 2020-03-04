@@ -112,7 +112,7 @@ location /transactions/authrep.xml {
     assert = require('luassert')
     assert.equal('https', ngx.var.scheme)
     assert.equal('$TEST_NGINX_RANDOM_PORT', ngx.var.server_port)
-    assert.equal('localhost', ngx.var.ssl_server_name)
+    assert.equal('test_backend', ngx.var.ssl_server_name)
   }
 
   content_by_lua_block {

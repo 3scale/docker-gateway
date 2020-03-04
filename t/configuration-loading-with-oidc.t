@@ -1,7 +1,6 @@
 use lib 't';
 use Test::APIcast::Blackbox 'no_plan';
 
-
 run_tests();
 
 __DATA__
@@ -220,3 +219,102 @@ GET /?user_key=uk
 --- error_code: 200
 --- response_body
 yay, api backend
+
+=== TEST 3: OIDC caching enabled when the same issuer is in place
+This test validates that if multiple services has the same issuer for the cache
+the configuration will be stored for the issuer and no duplicate request will
+happens.
+--- env eval
+(
+  'APICAST_CONFIGURATION_LOADER' => 'lazy',
+  'THREESCALE_PORTAL_ENDPOINT' => "http://test:$ENV{TEST_NGINX_SERVER_PORT}/config"
+)
+--- upstream env
+location = /config/production.json {
+echo '
+{
+  "proxy_configs": [
+    {
+      "proxy_config": {
+        "id": 1,
+        "content": {
+          "backend_version": "oidc",
+          "environment": "production",
+          "proxy": {
+            "oidc_issuer_endpoint": "http://test:$TEST_NGINX_SERVER_PORT/issuer/endpoint",
+            "backend": {
+              "endpoint": "http://test:$TEST_NGINX_SERVER_PORT"
+            },
+            "proxy_rules": [
+              { "pattern": "/", "http_method": "GET", "metric_system_name": "test", "delta": 1}
+            ]
+          }
+        }
+      }
+    },
+    {
+      "proxy_config": {
+        "id": 2,
+        "content": {
+          "backend_version": "oidc",
+          "environment": "production",
+          "proxy": {
+            "oidc_issuer_endpoint": "http://test:$TEST_NGINX_SERVER_PORT/issuer/endpoint",
+            "backend": {
+              "endpoint": "http://test:$TEST_NGINX_SERVER_PORT"
+            },
+            "proxy_rules": [
+              { "pattern": "/", "http_method": "GET", "metric_system_name": "test", "delta": 1}
+            ]
+          }
+        }
+      }
+    }
+  ]
+}
+';
+}
+
+location = /issuer/endpoint/.well-known/openid-configuration {
+  content_by_lua_block {
+    local base = "http://" .. ngx.var.host .. ':' .. ngx.var.server_port
+    ngx.header.content_type = 'application/json;charset=utf-8'
+    ngx.say(require('cjson').encode {
+        issuer = 'https://example.com/auth/realms/apicast',
+        id_token_signing_alg_values_supported = { 'RS256' },
+        jwks_uri = base .. '/jwks',
+    })
+  }
+}
+
+location = /jwks {
+  content_by_lua_block {
+    ngx.header.content_type = 'application/json;charset=utf-8'
+    ngx.say([[
+        { "keys": [
+            { "kty":"RSA","kid":"somekid",
+              "n":"sKXP3pwND3rkQ1gx9nMb4By7bmWnHYo2kAAsFD5xq0IDn26zv64tjmuNBHpI6BmkLPk8mIo0B1E8MkxdKZeozQ","e":"AQAB" }
+        ] }
+    ]])
+  }
+}
+
+location /transactions/authrep.xml {
+  content_by_lua_block {
+    ngx.exit(200)
+  }
+}
+
+location /api/ {
+  echo 'yay, api backend';
+}
+--- request
+GET /?user_key=uk
+--- error_code: 401
+--- error_log eval
+[
+    /stored in cache for 300 seconds/,
+    /retrieve OIDC configuration for issuer/,
+]
+--- no_error_log
+[error]

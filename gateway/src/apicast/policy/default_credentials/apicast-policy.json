@@ -1,6 +1,6 @@
 {
   "$schema": "http://apicast.io/policy-v1.1/schema#manifest#",
-  "name": "Anonymous access",
+  "name": "Anonymous Access",
   "summary": "Provides default credentials for unauthenticated requests.",
   "description":
     ["This policy allows service exposure without authentication. \n",

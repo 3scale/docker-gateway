@@ -23,16 +23,7 @@ local resty_env = require('resty.env')
 local backend_calls_metrics = require('apicast.metrics.3scale_backend_calls')
 
 local http_proxy = require('resty.http.proxy')
-local http_ng_ngx = require('resty.http_ng.backend.ngx')
 local http_ng_resty = require('resty.http_ng.backend.resty')
--- resty.http_ng.backend.ngx is using ngx.location.capture, which is available only
--- on rewrite, access and content phases. We need to use cosockets (http_ng default backend)
--- everywhere else (like timers).
-local http_ng_backend_phase = {
-  access = http_ng_ngx,
-  rewrite = http_ng_ngx,
-  content = http_ng_ngx,
-}
 
 local _M = {
   endpoint = resty_env.value("BACKEND_ENDPOINT_OVERRIDE")
@@ -47,7 +38,7 @@ local function detect_http_client(endpoint)
   if proxy then -- use default client
     return
   else
-    return http_ng_backend_phase[ngx.get_phase()]
+    return http_ng_resty
   end
 end
 

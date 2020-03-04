@@ -22,7 +22,7 @@ describe('OpenSSL BIO', function()
       assert.has_error(function () bio:write() end, 'expected string')
     end)
 
-    it('requires non empty string', function()
+    it('empty string return 0', function()
       local bio = _M.new()
       assert.same(bio:write(""), 0)
     end)

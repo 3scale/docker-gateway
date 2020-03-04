@@ -4,9 +4,9 @@ describe('SOAP policy', function()
   describe('.rewrite', function()
     local context -- Context shared between policies
 
-    local full_url = "http://www.example.com:80/path/to/myfile.html?" ..
-        "key1=value1&key2=value2#SomewhereInTheDocument"
-
+    local base_url = "http://www.example.com:80"
+    local base_path = "/path/to/myfile.html?key1=value1&key2=value2#SomewhereInTheDocument"
+    local full_url = base_url .. base_path
     -- Define a config with 3 rules. Their patterns have values that allow us
     -- to easily associate them with a SOAP action receive via SOAPAction
     -- header or via Content-Type. The third one is used to tests matching of
@@ -24,7 +24,7 @@ describe('SOAP policy', function()
           delta = 20
         },
         {
-          pattern = full_url,
+          pattern = base_path,
           metric_system_name = 'hits',
           delta = 30
         },

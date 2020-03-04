@@ -78,6 +78,11 @@ describe('Caching policy', function()
         cache_handler(cache, 'a_key', { status = 500 }, nil)
         assert.equals(200, cache:get('a_key'))
       end)
+
+      it('does not cached connect issues', function()
+        cache_handler(cache, 'a_key', { status = 0 }, nil)
+        assert.equals(nil, cache:get('a_key'))
+      end)
     end)
 
     describe('when configured as allow', function()
@@ -95,6 +100,11 @@ describe('Caching policy', function()
       it('caches denied requests', function()
         cache_handler(cache, 'a_key', { status = 403 }, nil)
         assert.equals(403, cache:get('a_key'))
+      end)
+
+      it('does not cached connect issues', function()
+        cache_handler(cache, 'a_key', { status = 0 }, nil)
+        assert.equals(200, cache:get('a_key'))
       end)
 
       describe('and backend returns 5XX', function()

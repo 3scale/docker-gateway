@@ -726,8 +726,8 @@ GET /t
           ngx.log(ngx.ERR, 'Backend did not receive the correct TTL.')
           ngx.exit(400)
         end
-
-        if ngx.var.http_content_type then
+        local headers = ngx.req.get_headers()
+        if headers["X-Foo"] then
           ngx.log(ngx.ERR, 'Invalid Content-Type: ', ngx.var.http_content_type)
           ngx.status = 400
           ngx.print('invalid content-type')
@@ -738,7 +738,7 @@ GET /t
 --- request
 GET /t
 --- more_headers
-Content-Type: application/json
+X-Foo: application/json
 --- error_code: 200
 --- response_body
 {"token_type":"bearer","expires_in":123,"access_token":"token"}

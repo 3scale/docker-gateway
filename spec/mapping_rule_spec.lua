@@ -120,6 +120,29 @@ describe('mapping_rule', function()
       assert.is_true(mapping_rule:matches('GET', '/foo/a:b/bar'))
       assert.is_true(mapping_rule:matches('GET', "/foo/a%b/bar"))
     end)
+
+    it('double slashes are transformed correctly to a simple one', function()
+        local test_cases = {
+            ["/foo//bar"] = "/foo/bar",
+            ["/foo///bar"] = "/foo/bar",
+            ["/foo/ /bar"] = "/foo/ /bar",
+            ["/foo/bar///"] = "/foo/bar/",
+            ["///foo///bar///"] = "/foo/bar/",
+        }
+
+        for key, value in pairs(test_cases) do
+          local mapping_rule = MappingRule.from_proxy_rule({
+            http_method = 'GET',
+            pattern = key,
+            querystring_parameters = { },
+            metric_system_name = 'hits',
+            delta = 1
+          })
+
+          assert.is_true(mapping_rule:matches('GET', value), "Invalid key:" .. key)
+        end
+
+    end)
   end)
 
   describe('.any_method', function()
