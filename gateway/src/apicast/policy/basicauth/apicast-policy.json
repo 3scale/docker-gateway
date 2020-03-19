@@ -1,0 +1,29 @@
+{
+  "$schema": "http://apicast.io/policy-v1.1/schema#manifest#",
+  "name": "Basic Auth Policy",
+  "summary": "Sets the Authentication header for basic auth",
+  "description":
+    ["Supply user and password, the policy will encode them in the Authorization header."],
+  "version": "builtin",
+  "configuration": {
+    "type": "object",
+    "properties": {
+        "credentials": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "description": "id for Authentication",
+              "type": "string"
+            },
+            "password": {
+              "description": "Password for authentication",
+              "type": "string"
+            }
+          },
+          "required": ["id", "password"]
+        }
+    }
+  }
+}
+
+
