@@ -34,11 +34,8 @@ end
 
 local function apply_auth_header(context, credentials, ...)
   local id = credentials["id"]
-  print("The ID is "..id)
   local password = credentials["password"]
-  print("The password is "..password)
   local basic_auth_token = enc(id..":"..password)
-  print("The encoded token is "..basic_auth_token)
   set_request_header("Authorization", "Basic "..basic_auth_token)
 end
 
