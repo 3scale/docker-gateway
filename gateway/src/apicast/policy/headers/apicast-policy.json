@@ -6,7 +6,8 @@
     ["This policy allows to include custom headers that will be sent to the ",
      "upstream as well as modify or delete the ones included in the original ",
      "request. Similarly, this policy also allows to add, modify, and delete ",
-     "the headers included in the response."],
+     "the headers included in the response. All Nginx variables can be used ",
+     "plus per service entries."],
   "version": "builtin",
   "configuration": {
     "type": "object",
