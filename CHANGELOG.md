@@ -1,7 +1,7 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](http://keepachangelog.com/) 
+The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
 
@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 - Added Rate-limit headers policy [THREESCALE-3795](https://issues.jboss.org/browse/THREESCALE-3795) [PR #1166](https://github.com/3scale/APIcast/pull/1166)
+
+- Added Nginx request_id variable to context [PR #1184](https://github.com/3scale/APIcast/pull/1184)
 
 ## [3.8.0] - 2020-03-24
 
@@ -209,7 +211,7 @@ Apart from the changes mentioned in this section, this version also includes the
 
 ## [3.4.0-rc2] - 2018-11-16
 
-### Fixed 
+### Fixed
 
 - Fix bug in the Default credentials policy. It was using the default credentials in some cases where it should not [PR #954](https://github.com/3scale/apicast/pull/954), [THREESCALE-1547](https://issues.jboss.org/browse/THREESCALE-1547)
 
@@ -301,7 +303,7 @@ expressed might change in future releases.
 - Default credentials policy [PR #741](https://github.com/3scale/apicast/pull/741), [THREESCALE-586](https://issues.jboss.org/browse/THREESCALE-586)
 - Configurable caching for the token introspection policy [PR #656](https://github.com/3scale/apicast/pull/656)
 - `APICAST_ACCESS_LOG_FILE` env to make the access log location configurable [PR #743](https://github.com/3scale/apicast/pull/743), [THREESCALE-1148](https://issues.jboss.org/browse/THREESCALE-1148)
-- ENV variables to make APIcast listen on HTTPS port [PR #622](https://github.com/3scale/apicast/pull/622) 
+- ENV variables to make APIcast listen on HTTPS port [PR #622](https://github.com/3scale/apicast/pull/622)
 - New `ssl_certificate` phase allows policies to provide certificate to terminate HTTPS connection [PR #622](https://github.com/3scale/apicast/pull/622)
 - Configurable `auth_type` for the token introspection policy [PR #755](https://github.com/3scale/apicast/pull/755)
 - `TimerTask` module to execute recurrent tasks that can be cancelled [PR #782](https://github.com/3scale/apicast/pull/782), [PR #784](https://github.com/3scale/apicast/pull/784), [PR #791](https://github.com/3scale/apicast/pull/791)
@@ -613,7 +615,7 @@ expressed might change in future releases.
 
 ### Changed
 
-- Bump OpenResty version to [1.11.2.3](https://github.com/3scale/s2i-openresty/releases/tag/1.11.2.3-1) [PR #359](https://github.com/3scale/apicast/pull/359) 
+- Bump OpenResty version to [1.11.2.3](https://github.com/3scale/s2i-openresty/releases/tag/1.11.2.3-1) [PR #359](https://github.com/3scale/apicast/pull/359)
 - Upgraded lua-resty-http and lua-resty-jwt [PR #361](https://github.com/3scale/apicast/pull/361)
 
 ### Added
