@@ -58,7 +58,7 @@ oc new-app -f https://raw.githubusercontent.com/3scale/apicast/master/openshift/
 
 Using yaml files is the common approach to configure 3scale APIcast on Openshift origin. Another approach is pulling a 3scale image on the local docker repository, then creating a new application in OKD from the Docker image by passing required parameters. For example, this latter approach was used to setup 3scale APIcast in OKD cluster on AWS.
 
-- Pull the 3scale image to your local docker repository.
+- Pull the 3scale image to the local docker repository:
 
 docker pull registry.access.redhat.com/3scale-amp20/apicast-gateway:1.0
 
