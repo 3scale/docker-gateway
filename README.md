@@ -68,7 +68,7 @@ In all cases, in order to setup 3scale you need to have 3scale account. Steps to
 
 oc create secret generic apicast-configuration-url-secret --from-literal=password=https://2040edXXXXXXXXX80d6@XXXXX-admin.3scale.net --type=kubernetes.io/basic-auth
 
-Using 'ACCESS_TOKEN' and 'ADMIN_PORTAL_DOMAIN', you can configure another environment variable 'THREESCALE_PORTAL_ENDPOINT'.
+. Using 'ACCESS_TOKEN' and 'ADMIN_PORTAL_DOMAIN', you can configure another environment variable 'THREESCALE_PORTAL_ENDPOINT':
 
 THREESCALE_PORTAL_ENDPOINT=https://ACCESS_TOKEN@ADMIN_PORTAL_DOMAIN
 
