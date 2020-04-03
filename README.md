@@ -72,7 +72,7 @@ oc create secret generic apicast-configuration-url-secret --from-literal=passwor
 
 THREESCALE_PORTAL_ENDPOINT=https://ACCESS_TOKEN@ADMIN_PORTAL_DOMAIN
 
-- In order to create application using local 3scale docker image, you need to pass environment variables
+- Pass the environment variables to create an application using a local 3scale Docker image:
 
 oc new-app --docker-image=registry.access.redhat.com/3scale-amp20/apicast-gateway:1.0  --param CONFIGURATION_URL_SECRET=apicast-configuration-url-secret -e THREESCALE_PORTAL_ENDPOINT=https://2040edXXXXXXXXX80d6@XXXXX-admin.3scale.net
 
