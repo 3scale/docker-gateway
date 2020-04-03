@@ -58,6 +58,9 @@ oc new-app -f https://raw.githubusercontent.com/3scale/apicast/master/openshift/
 
 Using yaml files is the common approach to configure 3scale APIcast on Openshift origin. Another approach is pulling a 3scale image on the local docker repository, then creating a new application in OKD from the Docker image by passing required parameters. For example, this latter approach was used to setup 3scale APIcast in OKD cluster on AWS.
 
+
+#### Prerequisites:
+
 - Pull the 3scale image to the local docker repository:
 
 ```shell
@@ -72,11 +75,9 @@ In all cases, in order to setup 3scale you need to have 3scale account. Steps to
 oc create secret generic apicast-configuration-url-secret --from-literal=password=https://2040edXXXXXXXXX80d6@XXXXX-admin.3scale.net --type=kubernetes.io/basic-auth
 ```
 
-Using 'ACCESS_TOKEN' and 'ADMIN_PORTAL_DOMAIN', you can configure another environment variable 'THREESCALE_PORTAL_ENDPOINT':
+- Using 'ACCESS_TOKEN' and 'ADMIN_PORTAL_DOMAIN', you can configure another environment variable 'THREESCALE_PORTAL_ENDPOINT':
 
-THREESCALE_PORTAL_ENDPOINT=https://ACCESS_TOKEN@ADMIN_PORTAL_DOMAIN
-
-- Pass the environment variables to create an application using a local 3scale Docker image:
+THREESCALE_PORTAL_ENDPOINT=https://ACCESS_TOKEN@ADMIN_PORTAL_DOMAIN,  pass the environment variables to create an application using a local 3scale Docker image:
 
 ```shell
 oc new-app --docker-image=registry.access.redhat.com/3scale-amp20/apicast-gateway:1.0  --param CONFIGURATION_URL_SECRET=apicast-configuration-url-secret -e THREESCALE_PORTAL_ENDPOINT=https://2040edXXXXXXXXX80d6@XXXXX-admin.3scale.net
