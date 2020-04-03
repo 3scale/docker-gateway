@@ -9,7 +9,6 @@ local ipairs = ipairs
 local type = type
 local insert = table.insert
 
-local LinkedList = require('apicast.linked_list')
 local TemplateString = require 'apicast.template_string'
 
 local default_value_type = 'plain'
@@ -18,23 +17,6 @@ local policy = require('apicast.policy')
 local _M = policy.new('Headers policy', 'builtin')
 
 local new = _M.new
-
-local function get_request_context(context)
-  local ctx = { }
-  ctx.req = {
-    headers=ngx.req.get_headers(),
-  }
-
-  ctx.resp = {
-    headers=ngx.resp.get_headers(),
-  }
-
-  ctx.usage = context.usage
-  ctx.service = context.service or {}
-  ctx.original_request = context.original_request
-  ctx.jwt = context.jwt or {}
-  return LinkedList.readonly(ctx, ngx.var)
-end
 
 local function new_header_value(current_value, value_to_add)
   if not value_to_add then return current_value end
@@ -106,9 +88,7 @@ local command_functions = {
 local function run_commands(context, commands, header_type, ...)
   for _, command in ipairs(commands) do
     local command_func = command_functions[header_type][command.op]
-
-    local extended_context = get_request_context(context or {})
-    local value = command.template_string:render(extended_context)
+    local value = command.template_string:render(context)
 
     command_func(command.header, value, ...)
   end
