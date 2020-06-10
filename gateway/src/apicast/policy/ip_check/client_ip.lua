@@ -33,10 +33,15 @@ local function ip_from_x_forwarded_for_header()
   return uri.host
 end
 
+local function ip_from_proxy_protocol_addr_variable()
+  return ngx.var.proxy_protocol_addr
+end
+
 local get_ip_func = {
   last_caller = last_caller_ip,
   ["X-Real-IP"] = ip_from_x_real_ip_header,
-  ["X-Forwarded-For"] = ip_from_x_forwarded_for_header
+  ["X-Forwarded-For"] = ip_from_x_forwarded_for_header,
+  ["proxy_protocol_addr"] = ip_from_proxy_protocol_addr_variable
 }
 
 function _M.get_from(sources)

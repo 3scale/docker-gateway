@@ -56,6 +56,10 @@
               "title": "Get the IP from the X-Real-IP header"
             },
             {
+              "enum": ["proxy_protocol_addr"],
+              "title": "Get the IP from the proxy_protocol_addr variable"
+            },
+            {
               "enum": ["last_caller"],
               "title": "Use the IP of the last caller"
             }

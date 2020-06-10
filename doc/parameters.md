@@ -424,6 +424,22 @@ Defines a HTTP proxy to be used for connecting to HTTPS services. Authentication
 
 Defines a comma-separated list of hostnames and domain names for which the requests should not be proxied. Setting to a single `*` character, which matches all hosts, effectively disables the proxy.
 
+### `APICAST_HTTP_PROXY_PROTOCOL`
+
+**Default:** false
+**Values:** boolean  
+**Example:** "true"
+
+Enables Proxy Protocol for the HTTP listener.
+
+### `APICAST_HTTPS_PROXY_PROTOCOL`
+
+**Default:** false
+**Values:** boolean  
+**Example:** "true"
+
+Enables Proxy Protocol for the HTTPS listener.
+
 ### `APICAST_EXTENDED_METRICS`
 
 **Default:** false

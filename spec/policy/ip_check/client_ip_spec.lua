@@ -117,6 +117,16 @@ describe('ClientIP', function()
       end)
     end)
 
+    describe('when the source is the proxy_protocol_addr variable', function()
+      it('returns the IP in ngx.var.proxy_protocol_addr', function()
+        ngx.var = { proxy_protocol_addr = '1.2.3.4' }
+
+        local ip = client_ip.get_from({ 'proxy_protocol_addr' })
+
+        assert.equals('1.2.3.4', ip)
+      end)
+    end)
+
     describe('when no source is given', function()
       it('returns nil', function()
         local ip = client_ip.get_from({})

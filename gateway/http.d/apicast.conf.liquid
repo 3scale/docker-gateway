@@ -56,13 +56,23 @@ server {
 
   {%- assign http_port = port.apicast | default: 8080 %}
   {%- assign https_port = env.APICAST_HTTPS_PORT %}
+  {%- assign http_proxy_protocol = env.APICAST_HTTP_PROXY_PROTOCOL %}
+  {%- assign https_proxy_protocol = env.APICAST_HTTPS_PROXY_PROTOCOL %}
 
   {% if http_port != https_port -%}
-    listen {{ http_port }};
+    {% if http_proxy_protocol %}
+      listen {{ http_port }} proxy_protocol;
+    {% else %}
+      listen {{ http_port }};
+    {% endif %}
   {% endif %}
 
   {% if https_port -%}
-  listen {{ https_port }} ssl http2;
+    {% if https_proxy_protocol %}
+      listen {{ https_port }} ssl http2 proxy_protocol;
+    {% else %}
+      listen {{ https_port }} ssl http2;
+    {% endif %}
   ssl_protocols TLSv1.2 TLSv1.3;
   {%- assign https_certificate = env.APICAST_HTTPS_CERTIFICATE -%}
   ssl_certificate {% if https_certificate -%}
