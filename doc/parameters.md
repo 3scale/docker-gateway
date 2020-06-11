@@ -430,7 +430,7 @@ Defines a comma-separated list of hostnames and domain names for which the reque
 **Values:** boolean  
 **Example:** "true"
 
-Enables Proxy Protocol for the HTTP listener.
+This parameter enables the Proxy Protocol for the HTTP listener.
 
 ### `APICAST_HTTPS_PROXY_PROTOCOL`
 
