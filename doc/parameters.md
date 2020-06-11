@@ -438,7 +438,7 @@ This parameter enables the Proxy Protocol for the HTTP listener.
 **Values:** boolean  
 **Example:** "true"
 
-Enables Proxy Protocol for the HTTPS listener.
+This parameter enables the Proxy Protocol for the HTTPS listener.
 
 ### `APICAST_EXTENDED_METRICS`
 
