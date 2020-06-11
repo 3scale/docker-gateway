@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Added Nginx request_id variable to context [PR #1184](https://github.com/3scale/APIcast/pull/1184)
 - Added HTTP verb on url_rewriten [PR #1187](https://github.com/3scale/APIcast/pull/1187)  [THREESCALE-5259](https://issues.jboss.org/browse/THREESCALE-5259)
 - Added custom_metrics policy [PR #1188](https://github.com/3scale/APIcast/pull/1188) [THREESCALE-5098](https://issues.jboss.org/browse/THREESCALE-5098)
+- Support Proxy Protocol [PR #1195](https://github.com/3scale/APIcast/pull/1195)
 
 ## [3.8.0] - 2020-03-24
 
