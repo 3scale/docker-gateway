@@ -20,7 +20,7 @@ local reset_header = "RateLimit-Reset"
 
 function _M.new(config)
   local self = new(config)
-  self.cache = usage_cache.new(1000, "rate_limit_headers")
+  self.cache = usage_cache.new("rate_limit_headers")
   return self
 end
 

@@ -2,6 +2,8 @@ use lib 't';
 use Test::APIcast::Blackbox 'no_plan';
 use File::Path 'rmtree';
 
+require("policies.pl");
+
 # This is to make sure tha cache is cleaned after all and before each request
 sub clean_cache {
   rmtree([ "/tmp/cache/" ]);
@@ -31,6 +33,7 @@ __DATA__
     {
       "id": 42,
       "proxy": {
+        "hosts": ["one"],
         "policy_chain": [
           {
             "name": "apicast.policy.content_caching",
@@ -73,13 +76,22 @@ __DATA__
      }
   }
 --- request eval
-["GET /foo", "GET /foo"]
---- response_body eval
-["yay, api backend\n", "yay, api backend\n"]
+["GET /foo", "GET /foo", "GET /foo", "GET /metrics"]
+--- more_headers eval
+["Host: one", "Host: one", "Host: one", "Host: metrics"]
+--- expected_response_body_like_multiple eval
+[
+"yay, api backend\n",
+"yay, api backend\n",
+"yay, api backend\n",
+[
+    qr/content_caching\{status="HIT"\} 2/,
+    qr/content_caching\{status="MISS"\} 1/,
+]]
 --- error_code eval
-[200, 200]
+[200, 200, 200, 200]
 --- response_headers eval
-["X-Cache-Status: MISS", "X-Cache-Status: HIT"]
+["X-Cache-Status: MISS", "X-Cache-Status: HIT", "X-Cache-Status: HIT", "X-Cache-Status: "]
 --- no_error_log
 [error]
 

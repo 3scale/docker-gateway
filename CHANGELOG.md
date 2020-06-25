@@ -18,11 +18,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Added
 
 - Added upstream Mutual TLS policy [THREESCALE-672](https://issues.jboss.org/browse/THREESCALE-672) [PR #1182](https://github.com/3scale/APIcast/pull/1182)
-- Added Rate-limit headers policy [THREESCALE-3795](https://issues.jboss.org/browse/THREESCALE-3795) [PR #1166](https://github.com/3scale/APIcast/pull/1166)
+- Added Rate-limit headers policy [THREESCALE-3795](https://issues.jboss.org/browse/THREESCALE-3795) [PR #1166](https://github.com/3scale/APIcast/pull/1166) [PR #1197](https://github.com/3scale/APIcast/pull/1197)
 - Added Content-caching policy [THREESCALE-2894](https://issues.jboss.org/browse/THREESCALE-2894) [PR #1182](https://github.com/3scale/APIcast/pull/1182)
 - Added Nginx request_id variable to context [PR #1184](https://github.com/3scale/APIcast/pull/1184)
-- Added HTTP verb on url_rewriten [PR #1187](https://github.com/3scale/APIcast/pull/1187)  [THREESCALE-5259](https://issues.jboss.org/browse/THREESCALE-5259)
+- Added HTTP verb on url_rewriten [PR #1187](https://github.com/3scale/APIcast/pull/1187)  [THREESCALE-5259](https://issues.jboss.org/browse/THREESCALE-5259) [PR #1202](https://github.com/3scale/APIcast/pull/1202)
 - Added custom_metrics policy [PR #1188](https://github.com/3scale/APIcast/pull/1188) [THREESCALE-5098](https://issues.jboss.org/browse/THREESCALE-5098)
+- New apicast_status Prometheus metric [THREESCALE-5417](https://issues.jboss.org/browse/THREESCALE-5417) [PR #1200](https://github.com/3scale/APIcast/pull/1200)
+- New content_caching Prometheus metric [THREESCALE-5439](https://issues.jboss.org/browse/THREESCALE-5439) [PR #1203](https://github.com/3scale/APIcast/pull/1203)
+
+- Added Camel policy [PR #1193](https://github.com/3scale/APIcast/pull/1193) [THREESCALE-4867](https://issues.jboss.org/browse/THREESCALE-4867)
 - Support Proxy Protocol [PR #1195](https://github.com/3scale/APIcast/pull/1195)
 
 ## [3.8.0] - 2020-03-24

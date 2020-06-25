@@ -16,6 +16,7 @@
   "configuration": {
     "definitions": {
       "methods": {
+        "description": "Array of HTTP methods this rule must be applied to. If left blank it will be applied to all HTTP methods",
         "$id": "#/definitions/methods",
         "type": "array",
         "items": {
@@ -80,11 +81,15 @@
               "type": "string",
               "oneOf": [
                 {
-                  "enum": ["sub"],
+                  "enum": [
+                    "sub"
+                  ],
                   "title": "Substitute the first match of the regex applied."
                 },
                 {
-                  "enum": ["gsub"],
+                  "enum": [
+                    "gsub"
+                  ],
                   "title": "Substitute all the matches of the regex applied."
                 }
               ]
@@ -106,11 +111,14 @@
               "type": "boolean"
             },
             "methods": {
-              "description": "Array of HTTP methods this rule must be applied to. If left blank it will be applied to all HTTP methods",
-              "ref": "#/definitions/methods"
+              "$ref": "#/definitions/methods"
             }
           },
-          "required": ["op", "regex", "replace"]
+          "required": [
+            "op",
+            "regex",
+            "replace"
+          ]
         }
       },
       "query_args_commands": {
@@ -124,19 +132,27 @@
               "type": "string",
               "oneOf": [
                 {
-                  "enum": ["add"],
+                  "enum": [
+                    "add"
+                  ],
                   "title": "Add a value to an existing argument"
                 },
                 {
-                  "enum": ["set"],
+                  "enum": [
+                    "set"
+                  ],
                   "title": "Create the arg when not set, replace its value when set"
                 },
                 {
-                  "enum": ["push"],
+                  "enum": [
+                    "push"
+                  ],
                   "title": "Create the arg when not set, add the value when set"
                 },
                 {
-                  "enum": ["delete"],
+                  "enum": [
+                    "delete"
+                  ],
                   "title": "Delete an arg"
                 }
               ]
@@ -154,23 +170,30 @@
               "type": "string",
               "oneOf": [
                 {
-                  "enum": ["plain"],
+                  "enum": [
+                    "plain"
+                  ],
                   "title": "Evaluate 'value' as plain text."
                 },
                 {
-                  "enum": ["liquid"],
+                  "enum": [
+                    "liquid"
+                  ],
                   "title": "Evaluate 'value' as liquid."
                 }
               ],
               "default": "plain"
+            },
+            "methods": {
+              "description": "Array of HTTP methods this rule must be applied to. If left blank it will be applied to all HTTP methods",
+              "$ref": "#/definitions/methods"
             }
           },
-          "methods": {
-            "description": "Array of HTTP methods this rule must be applied to. If left blank it will be applied to all HTTP methods",
-            "ref": "#/definitions/methods"
-          }
-        },
-        "required": ["op", "arg", "value"]
+          "required": [
+            "op",
+            "arg"
+          ]
+        }
       }
     }
   }

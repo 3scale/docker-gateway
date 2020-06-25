@@ -60,6 +60,9 @@ our $expect_json = sub ($) {
 
     my $expected_json = $block->expected_json;
 
+    if (!$expected_json) {
+      return
+    }
     my $got = from_json($body);
     my $expected = from_json($expected_json);
 
@@ -92,7 +95,6 @@ add_response_body_check(sub {
     if (!$block->expected_response_body_like_multiple) {
         return "";
     }
-
     my @asserts = @{$block->{expected_response_body_like_multiple}};
     my $assertValues = ${asserts}[0][$req_idx];
     if (ref(${assertValues}) eq 'ARRAY') {

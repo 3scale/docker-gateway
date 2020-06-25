@@ -8,7 +8,7 @@ describe("Cache key", function()
   end)
 
   it("New works as expected", function()
-    local c = cache.new(100, "namespace")
+    local c = cache.new("namespace")
     assert.Same(c.namespace, "namespace")
     assert.is_not(c.cache, nil)
 
@@ -16,7 +16,7 @@ describe("Cache key", function()
   end)
 
   it("Decrement when no usage was before in there", function()
-    local c = cache.new(100, "namespace")
+    local c = cache.new("namespace")
     local entry = c:decrement_usage_metric(nil):dump_data()
     assert.Same(entry.limit, "0")
     assert.Same(entry.remaining, "0")
@@ -27,7 +27,7 @@ describe("Cache key", function()
   end)
 
   it("Decrement works as expected", function()
-    local c = cache.new(100, "namespace")
+    local c = cache.new("namespace")
     c:reset_or_create_usage_metric(usage, 10, 10, 10)
 
     local entry = c:decrement_usage_metric(usage):dump_data()
@@ -43,7 +43,7 @@ describe("Cache key", function()
     usage:add("j", 5)
     usage:add("b", 2)
 
-    local c = cache.new(100, "namespace")
+    local c = cache.new("namespace")
     c:reset_or_create_usage_metric(usage, 10, 10, 10)
 
     local entry = c:decrement_usage_metric(usage):dump_data()

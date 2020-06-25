@@ -84,7 +84,7 @@ local function current_path(uri)
     return format('%s%s%s', uri.path or ngx.var.uri, ngx.var.is_args, ngx.var.query_string or '')
 end
 
-local function forward_https_request(proxy_uri, uri)
+local function forward_https_request(proxy_uri, uri, skip_https_connect)
     -- This is needed to call ngx.req.get_body_data() below.
     ngx.req.read_body()
 
@@ -121,7 +121,7 @@ local function forward_https_request(proxy_uri, uri)
         end
     end
 
-    local httpc, err = http_proxy.new(request)
+    local httpc, err = http_proxy.new(request, skip_https_connect)
 
     if not httpc then
         ngx.log(ngx.ERR, 'could not connect to proxy: ',  proxy_uri, ' err: ', err)
@@ -172,7 +172,7 @@ function _M.request(upstream, proxy_uri)
         return
     elseif uri.scheme == 'https' then
         upstream:rewrite_request()
-        forward_https_request(proxy_uri, uri)
+        forward_https_request(proxy_uri, uri, upstream.skip_https_connect)
         return ngx.exit(ngx.OK) -- terminate phase
     else
         ngx.log(ngx.ERR, 'could not connect to proxy: ',  proxy_uri, ' err: ', 'invalid request scheme')

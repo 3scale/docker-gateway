@@ -194,6 +194,9 @@ function _M:set_host_header()
     return host, nil
 end
 
+function _M:set_skip_https_connect_on_proxy()
+  self.skip_https_connect = true
+end
 --- Execute the upstream.
 --- @tparam table context any table (policy context, ngx.ctx) to store the upstream for later use by balancer
 function _M:call(context)

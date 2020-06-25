@@ -6,6 +6,11 @@ local tab_new = require('resty.core.base').new_tab
 
 local Rule = require("rule")
 
+local prometheus = require('apicast.prometheus')
+local metrics_updater = require('apicast.metrics.updater')
+
+local content_cache_metric = prometheus('counter', "content_caching", "Content caching status", {"status"})
+
 local new = _M.new
 
 function _M.new(config)
@@ -45,6 +50,9 @@ function _M:header_filter(context)
   if ngx.var.cache_request ~= "" then
     return
   end
+
+  metrics_updater.inc(content_cache_metric, ngx.var.upstream_cache_status)
+  ngx.log(ngx.INFO, "Request content caching status: ", ngx.var.upstream_cache_status)
 
   if context[self] and context[self].header then
     ngx.header[context[self].header] = ngx.var.upstream_cache_status
