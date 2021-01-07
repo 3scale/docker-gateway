@@ -17,7 +17,7 @@ describe('CORS policy', function()
         }
       end)
 
-      it('exists with status code 204', function()
+      it('exits with status code 204', function()
         local cors = CORSPolicy.new()
         cors:rewrite()
         assert.spy(ngx_exit_spy).was_called_with(204)
@@ -55,6 +55,7 @@ describe('CORS policy', function()
           allow_headers = { 'Content-Type' },
           allow_methods = { 'GET', 'POST' },
           allow_origin = '*',
+          max_age = 200;
           allow_credentials = true
         }
         local cors = CORSPolicy.new(policy_config)
@@ -69,6 +70,8 @@ describe('CORS policy', function()
                       ngx.header['Access-Control-Allow-Origin'])
         assert.equals(policy_config.allow_credentials,
                       ngx.header['Access-Control-Allow-Credentials'])
+        assert.equals(policy_config.max_age,
+                      ngx.header['Access-Control-Max-Age'])
       end)
     end)
 
@@ -99,6 +102,8 @@ describe('CORS policy', function()
                     ngx.header['Access-Control-Allow-Methods'])
         assert.equals(req_http_origin,
                       ngx.header['Access-Control-Allow-Origin'])
+        assert.equals(600,
+                      ngx.header['Access-Control-Max-Age'])
         assert.is_true(ngx.header['Access-Control-Allow-Credentials'])
       end)
     end)
