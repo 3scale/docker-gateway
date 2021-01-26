@@ -2,13 +2,46 @@
   "$schema": "http://apicast.io/policy-v1.1/schema#manifest#",
   "name": "Maintenance Mode",
   "summary": "Rejects incoming requests. Useful for maintenance periods.",
-  "description": ["A policy which allows you reject incoming requests with a specified status code and message.",
-    "It's useful for maintenance periods or to temporarily block an API."
+  "description": ["A policy which allows you to reject incoming requests with a specified status code and message. ",
+    "It's useful for maintenance periods or to temporarily block an API. \n",
+    "It allows to select a list of Upstream URLs for which to enable the maintenance mode."
   ],
   "version": "builtin",
   "configuration": {
+    "definitions": {
+      "value_type": {
+        "type": "string",
+        "oneOf": [
+          {
+            "enum": [
+              "plain"
+            ],
+            "title": "Evaluate as plain text."
+          },
+          {
+            "enum": [
+              "liquid"
+            ],
+            "title": "Evaluate as liquid."
+          }
+        ]
+      }
+    },
     "type": "object",
     "properties": {
+      "upstreams": {
+        "description": "List of Upstream URLs for which to apply maintenance mode",
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "url": {
+              "description": "Upstream URL",
+              "type": "string"
+            }
+          }
+        }
+      },
       "status": {
         "type": "integer",
         "description": "HTTP status code to return",
@@ -23,6 +56,59 @@
         "type": "string",
         "description": "Content-Type header for the response",
         "default": "text/plain; charset=utf-8"
+      },
+      "condition": {
+        "type": "object",
+        "properties": {
+          "operations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "op": {
+                  "description": "Match operation to compare match field with the provided value",
+                  "type": "string",
+                  "enum": [
+                    "==",
+                    "!=",
+                    "matches"
+                  ]
+                },
+                "match": {
+                  "description": "String to get request information to match",
+                  "type": "string"
+                },
+                "match_type": {
+                  "description": "How to evaluate 'match' value",
+                  "$ref": "#/definitions/value_type"
+                },
+                "value": {
+                  "description": "Value to compare the retrieved match",
+                  "type": "string"
+                },
+                "value_type": {
+                  "description": "How to evaluate 'value' field",
+                  "$ref": "#/definitions/value_type"
+                }
+              },
+              "required": [
+                "op",
+                "match",
+                "match_type",
+                "value",
+                "value_type"
+              ]
+            }
+          },
+          "combine_op": {
+            "type": "string",
+            "enum": [
+              "and",
+              "or"
+            ],
+            "default": "and"
+          }
+        }
       }
     }
   }

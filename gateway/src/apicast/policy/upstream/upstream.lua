@@ -58,6 +58,10 @@ function _M:rewrite(context)
   end
 end
 
+function _M:access(context)
+  context.route_upstream = context[self] or context.route_upstream
+end
+
 function _M:content(context)
   local upstream = context[self]
 

@@ -40,7 +40,7 @@ Testing 3 things:
     }
   }
 --- request
-GET /
+GET /?user_key=value
 --- response_body 
 Service Unavailable - Maintenance
 --- error_code: 503
@@ -91,7 +91,7 @@ Testing 3 things:
     }
   }
 --- request
-GET /
+GET /?user_key=value
 --- response_body 
 Be back soon
 --- error_code: 501
@@ -99,8 +99,6 @@ Be back soon
 [error]
 
 === TEST 3: Maintenance policy works when placed after the APIcast policy
-In this test we need to send the app credentials, because APIcast will check
-that they are there before the maintenance policy runs.
 --- configuration
 {
   "services": [
@@ -122,6 +120,12 @@ that they are there before the maintenance policy runs.
     }
   ]
 }
+--- backend
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+      ngx.exit(200)
+    }
+  }
 --- upstream
   location / {
     content_by_lua_block {
@@ -130,7 +134,7 @@ that they are there before the maintenance policy runs.
     }
   }
 --- request
-GET /?user_key=uk
+GET /?user_key=value
 --- response_body
 Service Unavailable - Maintenance
 --- error_code: 503
@@ -173,7 +177,7 @@ Service Unavailable - Maintenance
     }
   }
 --- request
-GET /
+GET /?user_key=value
 --- response_body
 { "msg": "Be back soon" }
 --- response_headers
@@ -181,3 +185,206 @@ Content-Type: application/json
 --- error_code: 503
 --- no_error_log
 [error]
+
+
+=== TEST 5: Maintenance mode applies with routing policy + upstream filtering and matching upstream
+
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "backend_version":  1,
+      "backend_authentication_type": "service_token",
+      "backend_authentication_value": "token-value",
+      "proxy": {
+        "policy_chain": [
+          {
+            "name": "apicast.policy.routing",
+            "configuration": {
+              "rules": [
+                {
+                    "url": "http://test:$TEST_NGINX_SERVER_PORT/b1",
+                    "condition": {
+                        "operations": [
+                            {
+                                "match": "path",
+                                "op": "matches",
+                                "value": "^(/backend1/.*|/backend1/?)"
+                            }
+                        ]
+                    },
+                    "replace_path": "{{uri | remove_first: '/backend1'}}"
+                }
+              ]
+            }
+          },
+          { 
+            "name": "apicast.policy.maintenance_mode",
+            "configuration": {
+              "upstreams": [
+                {
+                  "url": "http://test:$TEST_NGINX_SERVER_PORT/b1"
+                }
+              ]
+            }
+          },
+          { "name": "apicast.policy.apicast" }
+        ],
+        "api_backend": "http://test:$TEST_NGINX_SERVER_PORT/b0",
+        "proxy_rules": [
+          { "pattern": "/", "http_method": "GET", "metric_system_name": "hits", "delta": 2 }
+        ]
+      }
+    }
+  ]
+}
+--- upstream
+  location /b1 {
+    content_by_lua_block {
+      local assert = require('luassert')
+      assert.is_true(false)
+    }
+  }
+
+--- request
+GET /backend1?user_key=value
+--- response_body 
+Service Unavailable - Maintenance
+--- error_code: 503
+--- no_error_log
+[error]
+
+
+=== TEST 6: Maintenance mode doesn't apply with routing policy + upstream filtering and non matching upstream
+
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "backend_version":  1,
+      "backend_authentication_type": "service_token",
+      "backend_authentication_value": "token-value",
+      "proxy": {
+        "policy_chain": [
+          {
+            "name": "apicast.policy.routing",
+            "configuration": {
+              "rules": [
+                {
+                  "url": "http://test:$TEST_NGINX_SERVER_PORT/b2",
+                  "condition": {
+                      "operations": [
+                          {
+                              "match": "path",
+                              "op": "matches",
+                              "value": "^(/backend2/.*|/backend2/?)"
+                          }
+                      ]
+                  },
+                  "replace_path": "{{uri | remove_first: '/backend2'}}"
+                }
+              ]
+            }
+          },
+          { 
+            "name": "apicast.policy.maintenance_mode",
+            "configuration": {
+              "upstreams": [
+                {
+                  "url": "http://test:$TEST_NGINX_SERVER_PORT/b1"
+                }
+              ]
+            }
+          },
+          { "name": "apicast.policy.apicast" }
+        ],
+        "api_backend": "http://test:$TEST_NGINX_SERVER_PORT/b0",
+        "proxy_rules": [
+          { "pattern": "/", "http_method": "GET", "metric_system_name": "hits", "delta": 2 }
+        ]
+      }
+    }
+  ]
+}
+--- backend
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+      ngx.exit(200)
+    }
+  }
+--- upstream
+  location /b2 {
+     echo 'yay, api backend: $http_host';
+  }
+--- request
+GET /backend2?user_key=value
+--- response_body env
+yay, api backend: test:$TEST_NGINX_SERVER_PORT
+--- error_code: 200
+--- no_error_log
+[error]
+
+
+=== TEST 7: Maintenance mode works with upstream policy + upstream filtering
+
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "backend_version":  1,
+      "backend_authentication_type": "service_token",
+      "backend_authentication_value": "token-value",
+      "proxy": {
+        "policy_chain": [
+          { 
+            "name": "apicast.policy.upstream",
+            "configuration":
+              {
+                "rules": [ { "regex": "/backend1", "url": "http://test:$TEST_NGINX_SERVER_PORT/b1" } ]
+              }
+          },
+          { 
+            "name": "apicast.policy.maintenance_mode",
+            "configuration": {
+              "upstreams": [
+                {
+                  "url": "http://test:$TEST_NGINX_SERVER_PORT/b1"
+                }
+              ]
+            }
+          },
+          { "name": "apicast.policy.apicast" }
+        ],
+        "api_backend": "http://test:$TEST_NGINX_SERVER_PORT/b2",
+        "proxy_rules": [
+          { "pattern": "/", "http_method": "GET", "metric_system_name": "hits", "delta": 2 }
+        ]
+      }
+    }
+  ]
+}
+--- backend
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+      ngx.exit(200)
+    }
+  }
+--- upstream
+  location /b1 {
+    content_by_lua_block {
+      local assert = require('luassert')
+      assert.is_true(false)
+    }
+  }
+--- request
+GET /backend1?user_key=value
+--- response_body 
+Service Unavailable - Maintenance
+--- error_code: 503
+--- no_error_log
+[error]
+
+
