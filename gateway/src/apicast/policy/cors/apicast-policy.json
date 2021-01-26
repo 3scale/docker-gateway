@@ -52,6 +52,10 @@
       "allow_credentials": {
         "description": "Whether the request can be made using credentials",
         "type": "boolean"
+      },
+      "max_age": {
+        "description": "The ttl of the preflight response (default: 600)",
+        "type": "integer"
       }
     }
   }

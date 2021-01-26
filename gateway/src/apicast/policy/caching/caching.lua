@@ -73,7 +73,8 @@ local function allow_handler(cache, cached_key, response, ttl)
   end
 end
 
-local function disabled_cache_handler()
+local function disabled_cache_handler(cache, cached_key)
+  cache:delete(cached_key)
   ngx.log(ngx.DEBUG, 'Caching is disabled. Skipping cache handler.')
 end
 

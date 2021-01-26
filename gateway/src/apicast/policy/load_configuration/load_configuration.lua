@@ -14,10 +14,16 @@ function _M.new(...)
     return policy
 end
 
-function _M:export()
-    return {
-        configuration = self.configuration
-    }
+function _M:export(context)
+  return  {
+    get_uri = function(self)
+      if self.route_upstream then
+        return self.route_upstream.uri.path or "/"
+      end
+      return ngx.var.uri
+    end,
+    configuration = self.configuration
+  }
 end
 
 function _M.init()

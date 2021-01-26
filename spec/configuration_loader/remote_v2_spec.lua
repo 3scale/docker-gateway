@@ -398,6 +398,124 @@ UwIDAQAB
         assert.same(proxy_config_response.content, cjson.decode(config).services[1])
       end)
     end)
+
+    describe("When using APICAST_SERVICES_FILTER_BY_URL", function()
+      before_each(function()
+        test_backend.expect{ url = 'http://example.com/admin/api/services.json' }.
+          respond_with{ status = 200, body = cjson.encode({ services = {
+              { service = { id = 1 }},
+              { service = { id = 2 }}
+            }})
+          }
+
+        test_backend.expect{ url = 'http://example.com/admin/api/services/1/proxy/configs/staging/latest.json' }.
+          respond_with{ status = 200, body = cjson.encode(
+            {
+              proxy_config = {
+                version = 13,
+                environment = 'staging',
+                content = {
+                  id = 1,
+                  backend_version = 1,
+                  proxy = {
+                    hosts = {"one.com", "first.dev"}
+                  }
+                }
+              }
+            }
+          )}
+
+        test_backend.expect{ url = 'http://example.com/admin/api/services/2/proxy/configs/staging/latest.json' }.
+          respond_with{ status = 200, body = cjson.encode(
+            {
+              proxy_config = {
+                version = 42,
+                environment = 'staging',
+                content = {
+                  id = 2,
+                  backend_version = 1,
+                  proxy = {
+                    hosts = {"two.com", "second.dev"}
+                  }
+                }
+              }
+            }
+          )}
+      end)
+
+      it("Filter it out correctly", function()
+        env.set('APICAST_SERVICES_FILTER_BY_URL','one.*')
+
+        local config = assert(loader:call('staging'))
+
+        assert.truthy(config)
+        assert.equals('string', type(config))
+
+        local res_services = cjson.decode(config).services
+        assert.equals(1, #res_services)
+        assert.equals(1, res_services[1].id)
+      end)
+
+      it("Filter it out correctly by prod host", function()
+        env.set('APICAST_SERVICES_FILTER_BY_URL','*dev')
+
+        local config = assert(loader:call('staging'))
+
+        assert.truthy(config)
+        assert.equals('string', type(config))
+
+        local res_services = cjson.decode(config).services
+        assert.equals(2, #res_services)
+        assert.equals(1, res_services[1].id)
+        assert.equals(2, res_services[2].id)
+      end)
+
+      it("Filter it out correctly multiple", function()
+
+        env.set('APICAST_SERVICES_FILTER_BY_URL','*.com')
+
+        local config = assert(loader:call('staging'))
+
+        assert.truthy(config)
+        assert.equals('string', type(config))
+
+        local res_services = cjson.decode(config).services
+        assert.equals(2, #res_services)
+        assert.equals(1, res_services[1].id)
+        assert.equals(2, res_services[2].id)
+      end)
+
+      it("NIL return all services", function()
+
+        env.set('APICAST_SERVICES_FILTER_BY_URL','')
+
+        local config = assert(loader:call('staging'))
+
+        assert.truthy(config)
+        assert.equals('string', type(config))
+
+        local res_services = cjson.decode(config).services
+        assert.equals(2, #res_services)
+        assert.equals(1, res_services[1].id)
+        assert.equals(2, res_services[2].id)
+      end)
+
+      it("invalid regexp return all", function()
+        env.set('APICAST_SERVICES_FILTER_BY_URL','[')
+
+        local config = assert(loader:call('staging'))
+
+        assert.truthy(config)
+        assert.equals('string', type(config))
+
+        local res_services = cjson.decode(config).services
+        assert.equals(2, #res_services)
+        assert.equals(1, res_services[1].id)
+        assert.equals(2, res_services[2].id)
+      end)
+
+    end)
+
   end)
 
   describe(':oidc_issuer_configuration', function()

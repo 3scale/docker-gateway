@@ -120,6 +120,9 @@ local function error(service, rejection_reason)
 end
 
 local function update_downtime_cache(cache, transaction, backend_status, cache_handler)
+  if not cache_handler then
+    return
+  end
   local key = keys_helper.key_for_cached_auth(transaction)
   cache_handler(cache, key, { status = backend_status })
 end
@@ -180,7 +183,17 @@ end
 -- calls to backend.
 function _M:access(context)
   local backend = backend_client:new(context.service, http_ng_resty)
-  local usage = context.usage
+  local usage = context.usage or {}
+  local service = context.service
+  local service_id = service.id
+  local credentials = context.credentials
+
+ -- Checking that at least one mapping rule match, if not raise no mapping rule
+ -- match error
+  local encoded_usage = usage:encoded_format()
+  if encoded_usage == '' then
+    return errors.no_match(service)
+  end
 
   -- If routing policy changes the upstream and it only belongs to a specified
   -- owner, we need to filter out the usage for APIs that are not used at all.
@@ -188,9 +201,6 @@ function _M:access(context)
     context:route_upstream_usage_cleanup(usage, ngx.ctx.matched_rules)
   end
 
-  local service = context.service
-  local service_id = service.id
-  local credentials = context.credentials
   local transaction = Transaction.new(service_id, credentials, usage)
 
   ensure_timer_task_created(self, service_id, backend)
@@ -199,13 +209,18 @@ function _M:access(context)
   local auth_is_cached = (cached_auth and true) or false
   metrics.update_cache_counters(auth_is_cached)
 
+
   if cached_auth then
     handle_cached_auth(self, cached_auth, service, transaction)
   else
     local formatted_usage = usage:format()
     local backend_res = backend:authorize(formatted_usage, credentials)
+    context:publish_backend_auth(backend_res)
     local backend_status = backend_res.status
     local cache_handler = context.cache_handler -- Set by Caching policy
+    -- this is needed, because in allow mode, the status maybe is always 200, so
+    -- Request need to go to the Upstream API
+    update_downtime_cache(self.backend_downtime_cache, transaction, backend_status, cache_handler)
 
     if backend_status == 200 then
       handle_backend_ok(self, transaction, cache_handler)

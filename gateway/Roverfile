@@ -9,7 +9,7 @@ luarocks {
     group 'testing' {
         module { 'busted' },
         module { 'luacov' },
-        module { 'ljsonschema' },
+        module { 'jsonschema' },
     },
 
     group 'development' {

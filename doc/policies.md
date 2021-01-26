@@ -1,7 +1,7 @@
 # APIcast policies
 
-The behaviour of APIcast is customizable via policies. A policy basically tells
-APIcast what it should do in each of the nginx phases. This document details
+The behavior of APIcast is customizable via policies. A policy basically tells
+APIcast what it should do in each of the NGINX phases. This document details
 how policies work and how you can write your own and integrate them into
 APIcast.
 
@@ -36,28 +36,31 @@ The way policy chains work is as follows: suppose that we have a policy A that
 describes what to do in the `rewrite` and `header_filter` phases and a policy B
 that describes what to run in `access` and `header_filter`. Assume also that
 when describing the chain, we indicate that policy A should be run before
-policy B. When APIcast receives an HTTP request, it will check the policy chain
-described to see what it should run on each phase:
-- rewrite: execute the function policy A provides for this phase.
-- access: execute the function policy B provides for this phase.
-- content: do nothing. Neither policy A nor B describe what to do.
-- balancer: do nothing. Neither policy A nor B describe what to do.
-- header_filter: execute first the function policy A provides for this phase
-  and then the function policy B provides for this phase. Remember that policy
-  chains define an order, and we specified that policy A comes before policy B.
-- body_filter: do nothing. Neither policy A nor B describe what to do.
-- post_action: do nothing. Neither policy A nor B describe what to do.
-- log: do nothing. Neither policy A nor B describe what to do.
+policy B. 
+When APIcast receives an HTTP request, it will check the policy chain
+and perform the tasks outlined in the following table:
 
-Notice that we did not indicate what APIcast does in the `init` and the
+| Phase    | APIcast tasks                                           |
+|----------|---------------------------------------------------------|
+| rewrite  | Executes the function policy A provides for this phase. |
+| access   | Executes the function policy B provides for this phase. |
+| content  | None. Neither policy A nor B  describes what to do.     |
+| balancer | None. Neither policy A nor B  describes what to do.     |
+| header_filter  | Executes the function policy A provides for this phase and then the function policy B provides for this phase. Policy chains define an order, and we specified that policy A comes before policy B |
+| body_filter   | None. Neither policy A nor B  describes what to do. |
+| post_action  | None. Neither policy A nor B  describes what to do.     |
+| log | None. Neither policy A nor B  describes what to do.     |
+
+
+Notice that there is not a description of what APIcast does in the `init` and the
 `init_worker` phases. The reason is that those two are not executed in every
 request. `init` is executed when APIcast boots, and `init_worker` when each
-of each of its workers start.
+of its workers starts.
 
 Another phase that is not executed for every request is `ssl_certificate` because
 it is called only when APIcast terminates the HTTPS connection.
 
-The order in which policies actions are applied depend on two factors:
+The order in which policies actions are applied depends on two factors:
 - Position of the policy within the policy chain.
 - The phase in which the policies act.
 
@@ -79,7 +82,7 @@ The `APIcast` policy will try to proxy the request to the upstream defined in
 the configuration of the service, whereas the `upstream` policy will try to
 proxy it to a different one if the request path matches the pattern defined
 in the policy config. Whichever of those 2 policies comes first will output
-content to the response. When the second gets a change to run its content
+content to the response. When the second gets a chance to run its content
 phase, the request will already be sent to the client, so it will not output
 anything to the response.
 
@@ -107,9 +110,9 @@ replaceable with custom ones.
 
 ### Policy structure
 
-Policy is expected to have some structure, so APIcast can find it. Minimal policy structure consists of two files: `init.lua` and `apicast-policy.json`.
+The policy is expected to have some structure, so APIcast can find it. Minimal policy structure consists of two files: `init.lua` and `apicast-policy.json`.
 
-Custom policies are expected to be on following paths:
+Custom policies are expected to be on the following paths:
 
 * `APICAST_DIR/policies/${name}/${version}/`
 
@@ -117,7 +120,7 @@ And builtin ones also on:
 
 * `APICAST_DIR/src/apicast/policy/${name}/`
 
-All files in the policy directory are namespaced, so you can vendor dependencies.  Consider following structure:
+All files in the policy directory are namespaced, so you can move the dependencies to the `/vendor' directory.  Consider the following structure:
 
 ```
 APICAST_DIR/policies/my_stuff/1.0/
@@ -127,7 +130,7 @@ APICAST_DIR/policies/my_stuff/1.0/vendor/dependency.lua
 APICAST_DIR/policies/my_stuff/1.0/apicast-policy.json
 ```
 
-First file to be loaded will be `init.lua`. That is the only Lua file APIcast cares about.
+The first file to be loaded will be `init.lua`. That is the only Lua file APIcast cares about.
 For better code organization we recommend that file to have just very simple implementation like:
 
 ```lua
@@ -136,7 +139,7 @@ return require('my_stuff')
 
 And actually implement everything in `my_stuff.lua`. This makes the policy file easier to find by humans.
 
-Lets say the policy needs some 3rd party dependency. Those can be put anywhere in the policy structure and will be available. Try to imagine it as UNIX `chroot`. So for example `require('vendor/dependency')` will load `APICAST_DIR/policies/my_stuff/1.0/vendor/dependency.lua` when loading your policy.
+If the policy requires third-party dependencies. Those can be put anywhere in the policy structure and will be available. Imagine it as UNIX `chroot`. So for example `require('vendor/dependency')` will load `APICAST_DIR/policies/my_stuff/1.0/vendor/dependency.lua` when loading your policy.
 
 The policy has access to only code it provides and shared code in `APICAST_DIR/src/`.
 
@@ -211,15 +214,15 @@ own:
 
 ### Policy scaffolding
 
-We provide a policy generator to make this process easier and create basic structure for you.
-Policy scaffolding generator will provide you with structure for your code,
+We provide a policy generator to make this process easier and create a basic structure for you.
+Policy scaffolding generator will provide you with the structure for your code,
 policy manifest, unit tests and integration tests.
 Invoke `bin/apicast generate policy --help` and follow the documentation.
 
 ## Integrate your policies
 
 Policies can be configured using the 3scale UI, but you can also configure them
-in APIcast using a configuration file. Remember that APIcast allows to specify a
+in APIcast using a configuration file. Remember that APIcast allows specifying a
 config file using the `THREESCALE_CONFIG_FILE` env variable:
 ```shell
 THREESCALE_CONFIG_FILE=my_config.json bin/apicast
@@ -278,7 +281,7 @@ not possible to use custom policies.
 - SaaS (self-hosted APIcast): the 3scale UI shows the policies provided in the
 APIcast hosted by 3scale. However, it is possible to use custom ones if they are
 included in APIcast as explained in the [Write your own
-policy](#write-your-own-policy) section. In order to use custom policies they
+policy](#write-your-own-policy) section. In order to use custom policies, they
 need to be included in the config file as explained in [Integrate your
 policies](#integrate-your-policies). You can download the config file from
 3scale and use it as a starting point. Notice that with this option, if you make

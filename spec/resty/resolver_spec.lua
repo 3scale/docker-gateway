@@ -126,7 +126,31 @@ describe('resty.resolver', function()
   end)
 
   describe(':lookup', function()
-    pending('does query when cached cname missing address')
+    local  resolver
+
+    before_each(function()
+      local dns = {
+        query = spy.new(function(_, name)
+          return {
+            { name = name , address = '127.0.0.1' }
+          }
+        end)
+      }
+      resolver = resty_resolver.new(dns, { cache = resolver_cache.new(), search = {"foo.com"}})
+    end)
+
+    it("works when fully qualified name in private base_url", function()
+      local answer, err = resolver:lookup('test.service.ns.cluster.local.')
+      assert.same("test.service.ns.cluster.local", answer[1].name)
+      assert.same(err, nil)
+    end)
+
+    it("search domain is appended correctly", function()
+      local answer, err = resolver:lookup('test.service.ns.cluster.local')
+      assert.same("test.service.ns.cluster.local.foo.com", answer[1].name)
+      assert.same(err, nil)
+    end)
+
   end)
 
   describe('.parse_resolver', function()

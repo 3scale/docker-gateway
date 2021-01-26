@@ -99,14 +99,33 @@ end
 --   with "{}". For example: "/{var_1}/something/{var_2}".
 -- @tparam string template Template in which the named args matched will be
 --   replaced. For example: "/v2/something/{var_1}?my_arg={var_2}".
-function _M.new(match_rule, template)
+function _M.new(match_rule, template, methods)
   local self = setmetatable({}, mt)
 
   self.named_args = extract_named_args(match_rule)
   self.regex_rule = transform_rule_to_regex(match_rule)
   self.template = template
+  self.methods = methods
 
   return self
+end
+
+-- Returns true if the Method of the request is in the methods of the command meaning the rewrite rule should be applied
+-- Returns true if no Method is provided in the config for backwardscompatibility
+local function is_match_methods(methods)
+
+  if methods == nil or next(methods) == nil  then
+    return true
+  end
+
+  local request_method = ngx.req.get_method()
+
+  for _,v in pairs(methods) do
+    if v == request_method then
+      return true
+    end
+  end
+  return false
 end
 
 --- Match a path
@@ -121,6 +140,11 @@ end
 -- this is so callers can iterate through them with pairs (jitted) instead of
 -- ipairs (non-jitted).
 function _M:match(path)
+
+  if not is_match_methods(self.methods) then
+    return false
+  end
+
   local matches = re_match(path, self.regex_rule, 'oj')
 
   if not matches or #self.named_args ~= #matches then

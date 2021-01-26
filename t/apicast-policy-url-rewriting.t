@@ -733,3 +733,103 @@ yay, api backend
 --- error_code: 200
 --- no_error_log
 [error]
+
+=== TEST 14: sub operation with GET method
+--- backend
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+      local expected = "service_token=token-value&service_id=42&usage%5Bhits%5D=2&user_key=value"
+      require('luassert').same(ngx.decode_args(expected), ngx.req.get_uri_args(0))
+    }
+  }
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "backend_version":  1,
+      "backend_authentication_type": "service_token",
+      "backend_authentication_value": "token-value",
+      "proxy": {
+        "api_backend": "http://test:$TEST_NGINX_SERVER_PORT/",
+        "proxy_rules": [
+          { "pattern": "/", "http_method": "GET", "metric_system_name": "hits", "delta": 2 }
+        ],
+        "policy_chain": [
+          { "name": "apicast.policy.apicast" },
+          {
+            "name": "apicast.policy.url_rewriting",
+            "configuration": {
+              "commands": [
+                { "op": "sub", "regex": "original", "replace": "new", "methods": ["GET", "POST", "PUT"] }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+--- upstream
+  location ~ /xxx_new_yyy$ {
+    content_by_lua_block {
+      ngx.say('yay, api backend');
+    }
+  }
+--- request
+GET /xxx_original_yyy?user_key=value
+--- response_body
+yay, api backend
+--- error_code: 200
+--- no_error_log
+[error]
+
+=== TEST 15: no rewrite operation
+--- backend
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+      local expected = "service_token=token-value&service_id=42&usage%5Bhits%5D=2&user_key=value"
+      require('luassert').same(ngx.decode_args(expected), ngx.req.get_uri_args(0))
+    }
+  }
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "backend_version":  1,
+      "backend_authentication_type": "service_token",
+      "backend_authentication_value": "token-value",
+      "proxy": {
+        "api_backend": "http://test:$TEST_NGINX_SERVER_PORT/",
+        "proxy_rules": [
+          { "pattern": "/", "http_method": "GET", "metric_system_name": "hits", "delta": 2 }
+        ],
+        "policy_chain": [
+          { "name": "apicast.policy.apicast" },
+          {
+            "name": "apicast.policy.url_rewriting",
+            "configuration": {
+              "commands": [
+                { "op": "sub", "regex": "original", "replace": "new", "methods": ["DELETE", "POST", "PUT"] }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+--- upstream
+  location ~ /xxx_original_yyy$ {
+    content_by_lua_block {
+      ngx.say('yay, api backend');
+    }
+  }
+--- request
+GET /xxx_original_yyy?user_key=value
+--- response_body
+yay, api backend
+--- error_code: 200
+--- no_error_log
+[error]

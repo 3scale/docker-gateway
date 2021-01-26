@@ -94,7 +94,10 @@ function _M:interpret(str)
     local context = self.context
     local filesystem = self.filesystem
     local filter_set = FilterSet:new()
-    local resource_limit = ResourceLimit:new(nil, 1000, nil)
+    -- The 1000000 limit, is to increase the body limits. This was triggered by
+    -- a issue THREESCALE-6315 where a lot of ENV variables are render in the
+    -- nginx.conf file.
+    local resource_limit = ResourceLimit:new(1000000, 1000, nil)
 
     local filesystem_cache = {}
 

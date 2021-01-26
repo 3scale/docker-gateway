@@ -48,22 +48,26 @@ server {
 }
 
 server {
+  {% capture log_buffer %} {%if log_buffer_size %}buffer={{ log_buffer_size }} {% endif %} {% endcapture %}
 
   set $access_logs_enabled '1';
-  access_log {{ access_log_file | default: "/dev/stdout" }} time if=$access_logs_enabled;
+  access_log {{ access_log_file | default: "/dev/stdout" }} time if=$access_logs_enabled {{ log_buffer }};
   set $extended_access_logs_enabled '0';
-  access_log {{ access_log_file | default: "/dev/stdout" }} extended if=$extended_access_logs_enabled;
+  access_log {{ access_log_file | default: "/dev/stdout" }} extended if=$extended_access_logs_enabled {{ log_buffer }};
 
   {%- assign http_port = port.apicast | default: 8080 %}
   {%- assign https_port = env.APICAST_HTTPS_PORT %}
+  {%- assign http_proxy_protocol = env.APICAST_HTTP_PROXY_PROTOCOL %}
+  {%- assign https_proxy_protocol = env.APICAST_HTTPS_PROXY_PROTOCOL %}
 
   {% if http_port != https_port -%}
-    listen {{ http_port }};
+    listen {{ http_port }} {% if http_proxy_protocol %}proxy_protocol {% endif %};
   {% endif %}
 
   {% if https_port -%}
-  listen {{ https_port }} ssl http2;
-  ssl_protocols TLSv1.2 TLSv1.3;
+    listen {{ https_port }} ssl http2 {% if https_proxy_protocol %}proxy_protocol{% endif %};
+
+    ssl_protocols TLSv1.2 TLSv1.3;
   {%- assign https_certificate = env.APICAST_HTTPS_CERTIFICATE -%}
   ssl_certificate {% if https_certificate -%}
     {{  https_certificate }}
@@ -92,6 +96,7 @@ server {
   {% if opentracing_tracer != empty %}
   opentracing_operation_name "apicast";
   opentracing_trace_locations on;
+  opentracing_tag original_request_uri $original_request_uri;
   {% endif %}
 
   {% include "http.d/ssl.conf" %}

@@ -8,8 +8,7 @@ describe('load_configuration', function()
   describe('.export', function()
     it('returns a table with the configuration of the policy', function()
       local load_config_policy = require('apicast.policy.load_configuration').new()
-      assert.same({ configuration = load_config_policy.configuration },
-                  load_config_policy:export())
+      assert.same(load_config_policy.configuration , load_config_policy:export().configuration)
     end)
   end)
 

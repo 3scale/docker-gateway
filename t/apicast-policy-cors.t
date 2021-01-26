@@ -39,6 +39,7 @@ Access-Control-Request-Method: GET
 --- response_headers
 Access-Control-Allow-Methods: GET
 Access-Control-Allow-Origin: localhost
+Access-Control-Max-Age: 600
 --- no_error_log
 [error]
 
@@ -96,6 +97,7 @@ Access-Control-Allow-Headers: Content-Type
 Access-Control-Allow-Methods: GET
 Access-Control-Allow-Origin: http://example.com
 Access-Control-Allow-Credentials: true
+Access-Control-Max-Age: 600
 --- error_code: 200
 --- no_error_log
 [error]
@@ -117,6 +119,7 @@ the CORS headers in the response.
             "configuration": { "allow_headers": [ "X-Custom-Header-1", "X-Custom-Header-2" ],
                                "allow_methods": [ "POST", "GET", "OPTIONS" ],
                                "allow_origin" : "*",
+                               "max_age" : 200,
                                "allow_credentials": false } },
           { "name": "apicast.policy.apicast" }
         ],
@@ -152,6 +155,7 @@ Access-Control-Allow-Headers: X-Custom-Header-1, X-Custom-Header-2
 Access-Control-Allow-Methods: POST, GET, OPTIONS
 Access-Control-Allow-Origin: *
 Access-Control-Allow-Credentials: false
+Access-Control-Max-Age: 200
 --- error_code: 200
 --- no_error_log
 [error]

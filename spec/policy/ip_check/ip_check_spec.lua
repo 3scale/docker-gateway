@@ -2,7 +2,7 @@ local IpCheckPolicy = require('apicast.policy.ip_check')
 local ClientIP = require('apicast.policy.ip_check.client_ip')
 local iputils = require("resty.iputils")
 
-describe('Headers policy', function()
+describe('IP Check policy', function()
   before_each(function()
     stub(ngx, 'say')
     stub(ngx, 'exit')

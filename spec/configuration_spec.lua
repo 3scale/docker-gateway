@@ -179,6 +179,76 @@ describe('Configuration object', function()
 
   end)
 
+  describe('.filter_oidc_config', function()
+    local Service = require 'apicast.configuration.service'
+    local filter_oidc_config = configuration.filter_oidc_config
+
+    local mockservices = {
+      Service.new({id="42", hosts={"test.foo.com", "test.bar.com"}}),
+      Service.new({id="12", hosts={"staging.foo.com"}}),
+      Service.new({id="21", hosts={"prod.foo.com"}}),
+    }
+
+    it('works with nil', function()
+      local res = filter_oidc_config(nil, nil)
+      assert.same(res, {})
+    end)
+
+
+    it('if no id in oidc config returns correctly', function()
+      local res = filter_oidc_config(mockservices, nil)
+      assert.same(res, {})
+    end)
+
+    it("filter multiple services correctly", function()
+      local oidc_config = {
+        {service_id= 42, issuer="foo"},
+        {service_id= 21, issuer="bar"},
+      }
+      local res = filter_oidc_config(mockservices, oidc_config)
+      assert.same(res, oidc_config)
+    end)
+
+    it("OIDC config without id pass the filter", function()
+
+      local oidc_config = {
+        {issuer="foo"},
+        {issuer="bar"},
+      }
+      local res = filter_oidc_config(mockservices, oidc_config)
+      assert.same(res, oidc_config)
+    end)
+
+    it("OIDC config with invalid services are filter out", function()
+      local oidc_config = {
+        {service_id= 42, issuer="foo"},
+        {service_id= 21, issuer="bar"},
+        {service_id= 100, issuer="foobar"},
+      }
+      local res = filter_oidc_config(mockservices, oidc_config)
+      assert.same(res, {
+        {service_id= 42, issuer="foo"},
+        {service_id= 21, issuer="bar"},
+      })
+    end)
+
+    it("Services without oidc_config data", function()
+      local oidc_config = {
+        false,
+        {service_id= 42, issuer="foo"},
+        {service_id= 21, issuer="bar"},
+
+      }
+      local res = filter_oidc_config(mockservices, oidc_config)
+      assert.same(res, {
+        {},
+        {service_id= 42, issuer="foo"},
+        {service_id= 21, issuer="bar"},
+      })
+    end)
+
+  end)
+
   insulate('.services_limit', function()
     local services_limit = configuration.services_limit
 

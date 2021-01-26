@@ -1,5 +1,8 @@
 use Test::APIcast::Blackbox 'no_plan';
 
+our $private_key = `cat t/fixtures/rsa.pem`;
+our $public_key = `cat t/fixtures/rsa.pub`;
+
 run_tests();
 
 __DATA__
@@ -184,3 +187,84 @@ __DATA__
 ["yay, api backend\n", "yay, api backend two\n", ""]
 --- error_code eval
 [200, 200, 404]
+
+
+=== TEST 4: Verify that OIDC is working when filter services.
+Related to issues THREESCALE-6042
+--- env eval
+(
+  "APICAST_SERVICES_LIST", "42"
+)
+--- configuration env eval
+use JSON qw(to_json);
+
+to_json({
+  services => [
+  {
+    id => 24,
+    backend_version => 'oauth',
+    backend_authentication_type => 'provider_key',
+    backend_authentication_value => 'fookey',
+    proxy => {
+        authentication_method => 'oidc',
+        oidc_issuer_endpoint => 'https://example.com/auth/realms/apicast_zero',
+        api_backend => "http://test:$TEST_NGINX_SERVER_PORT/",
+        hosts => ["zero"],
+        proxy_rules => [
+          { pattern => '/', http_method => 'GET', metric_system_name => 'hits', delta => 1  }
+        ]
+    }
+  },
+  {
+    id => 42,
+    backend_version => 'oauth',
+    backend_authentication_type => 'provider_key',
+    backend_authentication_value => 'fookey',
+    proxy => {
+        authentication_method => 'oidc',
+        oidc_issuer_endpoint => 'https://example.com/auth/realms/apicast_one',
+        api_backend => "http://test:$TEST_NGINX_SERVER_PORT/",
+        hosts => ["one"],
+        proxy_rules => [
+          { pattern => '/', http_method => 'GET', metric_system_name => 'hits', delta => 1  }
+        ]
+    }
+  }
+  ],
+  oidc => [{
+    service_id => 24, 
+    issuer => 'https://example.com/auth/realms/apicast_zero',
+    config => { id_token_signing_alg_values_supported => [ 'RS256' ] },
+    keys => { somekid => { pem => $::public_key } },
+  },
+  {
+    service_id => 42,
+    issuer => 'https://example.com/auth/realms/apicast_one',
+    config => { id_token_signing_alg_values_supported => [ 'RS256' ] },
+    keys => { somekid => { pem => $::public_key } },
+  }]
+});
+--- upstream
+  location /test {
+    echo "yes";
+  }
+--- backend
+  location = /transactions/oauth_authrep.xml {
+    content_by_lua_block {
+      local expected = "provider_key=fookey&service_id=42&usage%5Bhits%5D=1&app_id=appid"
+      require('luassert').same(ngx.decode_args(expected), ngx.req.get_uri_args(0))
+    }
+  }
+--- request: GET /test
+--- error_code: 200
+--- more_headers eval
+use Crypt::JWT qw(encode_jwt);
+my $jwt = encode_jwt(payload => {
+  aud => 'something',
+  azp => 'appid',
+  sub => 'someone',
+  iss => 'https://example.com/auth/realms/apicast_one',
+  exp => time + 3600 }, key => \$::private_key, alg => 'RS256', extra_headers => { kid => 'somekid' });
+"Authorization: Bearer $jwt\r\nHost: one";
+--- no_error_log
+[error]

@@ -32,26 +32,31 @@ nginx_http_connections{state="writing"} 1
 nginx_metric_errors_total 0
 # HELP openresty_shdict_capacity OpenResty shared dictionary capacity
 # TYPE openresty_shdict_capacity gauge
-openresty_shdict_capacity{dict="api_keys"} 10485760
-openresty_shdict_capacity{dict="batched_reports"} 1048576
+openresty_shdict_capacity{dict="api_keys"} 31457280
+openresty_shdict_capacity{dict="batched_reports"} 20971520
 openresty_shdict_capacity{dict="batched_reports_locks"} 1048576
-openresty_shdict_capacity{dict="cached_auths"} 1048576
+openresty_shdict_capacity{dict="cached_auths"} 20971520
 openresty_shdict_capacity{dict="configuration"} 10485760
 openresty_shdict_capacity{dict="init"} 16384
 openresty_shdict_capacity{dict="limiter"} 1048576
 openresty_shdict_capacity{dict="locks"} 1048576
 openresty_shdict_capacity{dict="prometheus_metrics"} 16777216
+openresty_shdict_capacity{dict="rate_limit_headers"} 20971520
 # HELP openresty_shdict_free_space OpenResty shared dictionary free space
 # TYPE openresty_shdict_free_space gauge
-openresty_shdict_free_space{dict="api_keys"} 10412032
-openresty_shdict_free_space{dict="batched_reports"} 1032192
+openresty_shdict_free_space{dict="api_keys"} 31264768
+openresty_shdict_free_space{dict="batched_reports"} 20840448
 openresty_shdict_free_space{dict="batched_reports_locks"} 1032192
-openresty_shdict_free_space{dict="cached_auths"} 1032192
+openresty_shdict_free_space{dict="cached_auths"} 20840448
 openresty_shdict_free_space{dict="configuration"} 10412032
 openresty_shdict_free_space{dict="init"} 4096
 openresty_shdict_free_space{dict="limiter"} 1032192
 openresty_shdict_free_space{dict="locks"} 1032192
 openresty_shdict_free_space{dict="prometheus_metrics"} 16662528
+openresty_shdict_free_space{dict="rate_limit_headers"} 20840448
+# HELP worker_process Number of times that a nginx worker has been started
+# TYPE worker_process counter
+worker_process{} 1
 --- error_code: 200
 --- no_error_log
 [error]
@@ -421,6 +426,73 @@ qr/upstream_status\{status="200",service_id="42",service_system_name="foo"\} 1/,
 qr/total_response_time_seconds_bucket\{service_id="21",service_system_name="bar",le=".*"\} 1/,
 qr/upstream_response_time_seconds_bucket\{service_id="21",service_system_name="bar",le=".*"\} 1/,
 qr/upstream_status\{status="200",service_id="21",service_system_name="bar"\} 1/
+]]
+--- no_error_log
+[error]
+
+
+=== TEST 8: APICast status metric
+This metric report APICast status, because service cannot be found, auth is
+invalid, the response cache from upstream is cached, or upstream is not
+available, so upstream_status is not a valid metric at all, to monitor APICast
+response codes.
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "backend_version":  1,
+      "backend_authentication_type": "service_token",
+      "backend_authentication_value": "token-value",
+      "proxy": {
+        "hosts": ["one"],
+        "api_backend": "http://test:$TEST_NGINX_SERVER_PORT/",
+        "proxy_rules": [
+          { "pattern": "/", "http_method": "GET", "metric_system_name": "hits", "delta": 1 }
+        ],
+        "policy_chain": [
+          {
+            "name": "apicast.policy.apicast"
+          }
+        ]
+      }
+    }
+  ]
+}
+
+--- backend
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+
+      local key = ngx.req.get_uri_args(0)["user_key"]
+      if key == "value" then
+        ngx.exit(200)
+      else
+        ngx.exit(403)
+      end
+    }
+  }
+--- upstream
+  location / {
+     content_by_lua_block {
+       ngx.say('yay, api backend');
+     }
+  }
+--- request eval
+["GET /?user_key=value", "GET /?user_key=invalid", "GET /?user_key=value", "GET /metrics/"]
+--- more_headers eval
+["Host: one", "Host: one", "Host: two", "Host: metrics"]
+--- error_code eval
+[200, 403, 404, 200]
+--- expected_response_body_like_multiple eval
+[
+"",
+"",
+"",
+[
+qr/apicast_status\{status="200"\} 1/,
+qr/apicast_status\{status="403"\} 1/,
+qr/apicast_status\{status="404"\} 1/,
 ]]
 --- no_error_log
 [error]

@@ -4,6 +4,7 @@ local errors = require('apicast.errors')
 local math = math
 local setmetatable = setmetatable
 local assert = assert
+local table_insert = table.insert
 
 local user_agent = require('apicast.user_agent')
 
@@ -102,7 +103,7 @@ function _M:access(context)
   local p = context and context.proxy or ctx.proxy or self.proxy
 
   if p then
-    return p:access(context.service, context.usage, context.credentials, context.ttl)
+    return p:access(context, context.service, context.usage, context.credentials, context.ttl)
   end
 end
 
@@ -117,6 +118,26 @@ function _M:content(context)
   if upstream then
     upstream:call(context)
   end
+end
+
+function _M:export()
+    return {
+        add_backend_auth_subscriber = function(context, handler)
+            if not context.backend_auth_subscribers then
+                context.backend_auth_subscribers = {}
+            end
+            table_insert(context.backend_auth_subscribers, handler)
+        end,
+        publish_backend_auth = function(context, response)
+            if not context.backend_auth_subscribers then
+                return
+            end
+
+            for _,handler in ipairs(context.backend_auth_subscribers) do
+                handler(context, response)
+            end
+        end
+    }
 end
 
 _M.balancer = balancer.call

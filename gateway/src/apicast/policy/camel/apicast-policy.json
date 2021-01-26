@@ -1,0 +1,27 @@
+{
+  "$schema": "http://apicast.io/policy-v1/schema#manifest#",
+  "name": "Camel Service",
+  "summary": "Adds an Camel proxy to the service.",
+  "description": [
+    "With this policy all the traffic for this service will be routed accross ",
+    "the defined proxy"
+  ],
+  "version": "builtin",
+  "configuration": {
+      "type": "object",
+      "properties": {
+        "all_proxy": {
+          "description": "Defines a HTTP proxy to be used for connecting to services if a protocol-specific proxy is not specified. Authentication is not supported.",
+          "type": "string"
+        },
+        "https_proxy": {
+          "description": "Defines a HTTPS proxy to be used for connecting to HTTPS services. Authentication is not supported",
+          "type": "string"
+        },
+        "http_proxy": {
+          "description": "Defines a HTTP proxy to be used for connecting to HTTP services. Authentication is not supported",
+          "type": "string"
+        }
+      }
+  }
+}

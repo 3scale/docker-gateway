@@ -6,6 +6,7 @@ local setmetatable = setmetatable
 local ipairs = ipairs
 local insert = table.insert
 local remove = table.remove
+local encode_args = ngx.encode_args
 
 local _M = {}
 
@@ -99,6 +100,23 @@ function _M:format()
   end
 
   return res
+end
+
+--- Return a string with the encoded format() output
+function _M:encoded_format()
+    return encode_args(self:format())
+end
+
+--- Return  the max delta in the usage, by default returns 0
+function _M:get_max_delta()
+    local max = 0
+
+    for _,v in pairs(self.deltas or {}) do
+        if v > max then
+            max = v
+        end
+    end
+    return max
 end
 
 return _M

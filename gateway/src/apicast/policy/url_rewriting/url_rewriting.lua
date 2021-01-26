@@ -4,6 +4,7 @@
 local ipairs = ipairs
 local sub = ngx.re.sub
 local gsub = ngx.re.gsub
+local next = next
 
 local QueryParams = require 'apicast.query_params'
 local TemplateString = require 'apicast.template_string'
@@ -26,6 +27,24 @@ local function substitute(func, subject, regex, replace, options)
   end
 
   return new_uri, num_changes > 0
+end
+
+-- Returns true if the Method of the request is in the methods of the command meaning the rewrite rule should be applied
+-- Returns true if no Method is provided in the config for backwardscompatibility
+local function is_match_methods(methods)
+
+  local request_method = ngx.req.get_method()
+
+  if methods == nil or next(methods) == nil  then
+    return true
+  end
+
+  for _,v in pairs(methods) do
+    if v == request_method then
+      return true
+    end
+  end
+  return false
 end
 
 -- Returns true when the URL was rewritten and false otherwise
@@ -103,16 +122,24 @@ end
 
 function _M:rewrite(context)
   for _, command in ipairs(self.commands) do
-    local rewritten = apply_rewrite_command(command)
+    local should_apply_command = is_match_methods(command.methods)
+    
+    if should_apply_command then
+      local rewritten = apply_rewrite_command(command)
 
-    if rewritten and command['break'] then
-      break
+      if rewritten and command['break'] then
+        break
+      end
     end
   end
 
   local query_args = QueryParams.new()
   for _, query_arg_command in ipairs(self.query_args_commands) do
-    apply_query_arg_command(query_arg_command, query_args, context)
+    local should_apply_query_arg_command = is_match_methods(query_arg_command.methods)
+
+    if should_apply_query_arg_command then
+      apply_query_arg_command(query_arg_command, query_args, context)
+    end
   end
 end
 

@@ -57,7 +57,7 @@ end
 -- the methods, the methods that are not  defined in the rule will be allowed.
 local function is_rule_denied_request(rule, context)
 
-  local uri = ngx.var.uri
+  local uri = context:get_uri()
   local request_method =  ngx.req.get_method()
 
   local resource = rule.resource:render(context)

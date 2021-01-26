@@ -615,3 +615,78 @@ my $jwt = encode_jwt(payload => {
 ["Authorization: Bearer $jwt", "Authorization: Bearer $jwt", "" , ""]
 --- no_error_log
 [error]
+
+
+=== TEST 7: with caching policy (allow mode)
+The purpose of this test is to test that the 3scale batcher policy works
+correctly when combined with the caching one.
+In this case, the caching policy is configured as "allow". We define a
+backend that returns 500
+The caching policy will allow all request to the Upstream API.
+To make sure that nothing is cached in the 3scale batcher policy, we flush its
+auth cache on every request (see rewrite_by_lua_block).
+--- http_config
+include $TEST_NGINX_UPSTREAM_CONFIG;
+lua_shared_dict api_keys 10m;
+lua_shared_dict cached_auths 1m;
+lua_shared_dict batched_reports 1m;
+lua_shared_dict batched_reports_locks 1m;
+lua_package_path "$TEST_NGINX_LUA_PATH";
+
+init_by_lua_block {
+  require('apicast.configuration_loader').mock({
+    services = {
+      {
+        id = 42,
+        backend_version = 1,
+        backend_authentication_type = 'service_token',
+        backend_authentication_value = 'token-value',
+        proxy = {
+          backend = { endpoint = "http://127.0.0.1:$TEST_NGINX_SERVER_PORT" },
+          api_backend = "http://127.0.0.1:$TEST_NGINX_SERVER_PORT/api-backend/",
+          proxy_rules = {
+            { pattern = '/', http_method = 'GET', metric_system_name = 'hits', delta = 2 }
+          },
+          policy_chain = {
+            {
+              name = 'apicast.policy.3scale_batcher',
+              configuration = { }
+            },
+            {
+              name = 'apicast.policy.apicast'
+            },
+            {
+              name = 'apicast.policy.caching',
+              configuration = { caching_type = 'allow' }
+            }
+          }
+        }
+      }
+    }
+  })
+}
+
+rewrite_by_lua_block {
+  require('resty.ctx').apply()
+  ngx.shared.cached_auths:flush_all()
+}
+--- config
+  include $TEST_NGINX_APICAST_CONFIG;
+
+  location /transactions/authorize.xml {
+    content_by_lua_block {
+      ngx.exit(500)
+    }
+  }
+
+  location /api-backend {
+     echo 'yay, api backend';
+  }
+--- request eval
+["GET /test?user_key=foo", "GET /foo?user_key=foo", "GET /?user_key=foo"]
+--- response_body eval
+["yay, api backend\x{0a}", "yay, api backend\x{0a}", "yay, api backend\x{0a}"]
+--- error_code eval
+[ 200, 200, 200 ]
+--- no_error_log
+[error]

@@ -1,5 +1,6 @@
 local ipairs = ipairs
 local re = require('ngx.re')
+local resty_url = require 'resty.url'
 
 local _M = {}
 
@@ -23,13 +24,24 @@ local function ip_from_x_forwarded_for_header()
     return nil
   end
 
-  return re.split(forwarded_for, ',', 'oj')[1]
+  -- THREESCALE-5258 forwarded_for can contain port. If port is in there IP
+  -- value will not be parsed correctly, parsing as url will get the correct
+  -- host
+  -- `:` split is not valid in case that it's IPv6 notation.
+  local host = re.split(forwarded_for, ',', 'oj')[1]
+  local uri = resty_url.parse("my://".. host)
+  return uri.host
+end
+
+local function ip_from_proxy_protocol_addr_variable()
+  return ngx.var.proxy_protocol_addr
 end
 
 local get_ip_func = {
   last_caller = last_caller_ip,
   ["X-Real-IP"] = ip_from_x_real_ip_header,
-  ["X-Forwarded-For"] = ip_from_x_forwarded_for_header
+  ["X-Forwarded-For"] = ip_from_x_forwarded_for_header,
+  ["proxy_protocol_addr"] = ip_from_proxy_protocol_addr_variable
 }
 
 function _M.get_from(sources)

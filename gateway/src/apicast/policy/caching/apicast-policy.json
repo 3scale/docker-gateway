@@ -21,6 +21,7 @@
   "version": "builtin",
   "configuration": {
     "type": "object",
+    "required": ["caching_type"],
     "properties": {
       "caching_type": {
         "description": "Caching mode",
@@ -42,8 +43,7 @@
             "enum": ["none"],
             "title": "None: disable caching."
           }
-        ],
-        "default": "none"
+        ]
       }
     }
   }

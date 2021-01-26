@@ -66,13 +66,13 @@ describe('Rate limit policy', function()
       it('does not crash', function()
         local rate_limit_policy = RateLimitPolicy.new({
           connection_limiters = {
-            { key = { name = 'test1', scope = 'global' }, conn = 0, burst = 0, delay = 0 }
+            { key = { name = 'test1', scope = 'global' }, conn = 1, burst = 0, delay = 0.5 }
           },
           leaky_bucket_limiters = {
-            { key = { name = 'test2', scope = 'global' }, rate = 0, burst = 0 }
+            { key = { name = 'test2', scope = 'global' }, rate = 1, burst = 0 }
           },
           fixed_window_limiters = {
-            { key = { name = 'test3', scope = 'global' }, count = 0, window = 0 }
+            { key = { name = 'test3', scope = 'global' }, count = 1, window = 1 }
           },
         })
 
@@ -98,7 +98,7 @@ describe('Rate limit policy', function()
       it('works with multiple limiters', function()
         local rate_limit_policy = RateLimitPolicy.new({
           connection_limiters = {
-            { key = { name = 'test1', scope = 'global' }, conn = 20, burst = 10, delay = 0.5 }
+            { key = { name = 'test1', scope = 'global' }, conn = 20, burst = 10, delay = 0.4 }
           },
           leaky_bucket_limiters = {
             { key = { name = 'test2', scope = 'global' }, rate = 18, burst = 9 }

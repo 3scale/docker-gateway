@@ -177,3 +177,93 @@ HTTP/1.1 200 OK
 --- error_code: 200
 --- no_error_log
 [error]
+
+
+=== TEST 2: Batching policy returns no mapping rule found correctly
+--- backend
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+      -- request should not be here, is using batcher.
+      ngx.exit(503)
+    }
+  }
+
+  location /transactions/authorize.xml {
+    content_by_lua_block {
+      ngx.say("ok")
+    }
+  }
+
+  location /transactions.xml {
+    content_by_lua_block {
+      ngx.say("ok")
+    }
+  }
+--- upstream
+  location ~* /second/foo/bar {
+    content_by_lua_block {
+      ngx.say('yay, api backend');
+    }
+  }
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "backend_version": 1,
+      "backend_authentication_type": "service_token",
+      "backend_authentication_value": "token-value",
+      "proxy": {
+        "policy_chain": [
+          {
+            "name": "apicast.policy.routing",
+            "configuration": {
+              "rules": [
+                {
+                  "url": "http://test:$TEST_NGINX_SERVER_PORT/second/",
+                  "owner_id": 4,
+                  "condition": {
+                    "operations": [
+                      {
+                        "match": "path",
+                        "op": "matches",
+                        "value": "/foo/bar"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "apicast.policy.3scale_batcher",
+            "configuration": {
+              "batch_report_seconds" : 1
+            }
+          },
+          {
+            "name": "apicast.policy.apicast"
+          }
+        ],
+        "proxy_rules": [
+          {
+            "pattern": "/foo/bar",
+            "http_method": "GET",
+            "metric_system_name": "hits",
+            "delta": 1,
+            "owner_id": 4,
+            "owner_type": "BackendApi"
+          }
+        ]
+      }
+    }
+  ]
+}
+--- request eval
+["GET /?user_key=value", "GET /foo/bar?user_key=value"]
+--- response_body chomp eval
+["No Mapping Rule matched", "yay, api backend\n"]
+--- error_code eval
+[404, 200]
+--- no_error_log
+[error]

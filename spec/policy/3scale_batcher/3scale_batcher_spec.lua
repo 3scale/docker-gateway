@@ -76,10 +76,19 @@ describe('3scale batcher policy', function()
         usage = usage,
         credentials = credentials,
         -- cache_handler does nothing because we just need to check if it's called
-        cache_handler = function() end
+        cache_handler = function() end,
+        publish_backend_auth = function() end
       }
 
       stub(context, 'cache_handler')
+    end)
+
+    describe('when mapping rule does not match', function()
+      it('returns 404 back', function()
+        context.usage = Usage.new()
+        batcher_policy:access(context)
+        assert.equals(ngx.status, 404)
+      end)
     end)
 
     describe('when the request is cached', function()

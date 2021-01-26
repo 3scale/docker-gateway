@@ -30,6 +30,7 @@ describe('URL rewriting policy', function()
         ngx.var.uri = new_uri
       end)
 
+      stub(ngx.req, 'get_method', function() return 'GET' end)
       stub(ngx.req, 'get_uri_args', function() return {} end)
       stub(ngx.req, 'set_uri_args')
 
@@ -229,5 +230,141 @@ describe('URL rewriting policy', function()
       assert.spy(spy_mocked_query_params_add).was_called_with(
         mocked_query_params, 'an_arg', context.var_in_context)
     end)
+
+    it('only rewrite URL with GET method', function()
+      local config_with_sub = {
+        commands = {
+          {op = 'sub', regex = 'to_be_replaced', replace = 'new', methods = {'GET'} }
+        }
+      }
+      local url_rewriting = URLRewriting.new(config_with_sub)
+
+      url_rewriting:rewrite()
+
+      assert.stub(ngx.req.set_uri).was_called_with('/some_path/new/123/to_be_replaced')
+    end)
+
+    it('should rewrite URL with method in array', function()
+      local config_with_sub = {
+        commands = {
+          {op = 'sub', regex = 'to_be_replaced', replace = 'new', methods = {'POST', 'GET'} }
+        }
+      }
+      local url_rewriting = URLRewriting.new(config_with_sub)
+
+      url_rewriting:rewrite()
+
+      assert.stub(ngx.req.set_uri).was_called_with('/some_path/new/123/to_be_replaced')
+    end)
+
+    it('should rewrite URL with an empty methods array', function()
+      local config_with_sub = {
+        commands = {
+          {op = 'sub', regex = 'to_be_replaced', replace = 'new', methods = {} }
+        }
+      }
+      local url_rewriting = URLRewriting.new(config_with_sub)
+
+      url_rewriting:rewrite()
+
+      assert.stub(ngx.req.set_uri).was_called_with('/some_path/new/123/to_be_replaced')
+    end)
+
+    it('should not execute rewrite for different method as configured', function()
+      local config_with_sub = {
+        commands = {
+          {op = 'sub', regex = 'to_be_replaced', replace = 'new', methods = {'POST'} }
+        }
+      }
+      
+      local url_rewriting = URLRewriting.new(config_with_sub)
+      
+      url_rewriting:rewrite()
+
+      assert.stub(ngx.req.set_uri).was_not_called()
+    end)
+
+    it('should not execute rewrite for different method as configured', function()
+      local config_with_sub = {
+        commands = {
+          {op = 'sub', regex = 'to_be_replaced', replace = 'new', methods = {'PATCH', 'PUT', 'DELETE'} }
+        }
+      }
+      
+      local url_rewriting = URLRewriting.new(config_with_sub)
+      
+      url_rewriting:rewrite()
+
+      assert.stub(ngx.req.set_uri).was_not_called()
+    end)
+
+    it('can apply the "push" operation to args in the query when the method is provided in the config', function()
+      local config_to_push_args = {
+        query_args_commands = {
+          { op = 'push', arg = 'an_arg', value = '1', methods = {'GET'} }
+        }
+      }
+      local url_rewriting = URLRewriting.new(config_to_push_args)
+
+      url_rewriting:rewrite()
+
+      assert.spy(spy_mocked_query_params_push).was_called_with(
+        mocked_query_params, 'an_arg', '1')
+    end)
+
+    it('can apply the "push" operation to args in the query when the method is provided in the config list', function()
+      local config_to_push_args = {
+        query_args_commands = {
+          { op = 'push', arg = 'an_arg', value = '1', methods = {'POST', 'GET'} }
+        }
+      }
+      local url_rewriting = URLRewriting.new(config_to_push_args)
+
+      url_rewriting:rewrite()
+
+      assert.spy(spy_mocked_query_params_push).was_called_with(
+        mocked_query_params, 'an_arg', '1')
+    end)
+
+    it('will not apply the "push" operation to args in the query when the method is not provided in the config', function()
+      local config_to_push_args = {
+        query_args_commands = {
+          { op = 'push', arg = 'an_arg', value = '1', methods = {'POST'} }
+        }
+      }
+      local url_rewriting = URLRewriting.new(config_to_push_args)
+
+      url_rewriting:rewrite()
+
+      assert.spy(spy_mocked_query_params_push).was_not_called()
+    end)
+
+    it('will not apply the "push" operation to args in the query when the method is not provided in the config list', function()
+      local config_to_push_args = {
+        query_args_commands = {
+          { op = 'push', arg = 'an_arg', value = '1', methods = {'POST', 'DELETE', 'PATCH'} }
+        }
+      }
+      local url_rewriting = URLRewriting.new(config_to_push_args)
+
+      url_rewriting:rewrite()
+
+      assert.spy(spy_mocked_query_params_push).was_not_called()
+    end)
+
+    it('can apply the "push" operation to args in the query when the method list in the config is empty', function()
+      local config_to_push_args = {
+        query_args_commands = {
+          { op = 'push', arg = 'an_arg', value = '1', methods = {} }
+        }
+      }
+      local url_rewriting = URLRewriting.new(config_to_push_args)
+
+      url_rewriting:rewrite()
+
+      assert.spy(spy_mocked_query_params_push).was_called_with(
+        mocked_query_params, 'an_arg', '1')
+    end)
+
   end)
 end)

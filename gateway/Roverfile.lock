@@ -10,8 +10,8 @@ fifo 0.2-0||development
 http 0.3-0||development
 inspect 3.1.1-0||production
 ldoc 1.4.6-2||development
-liquid 0.1.4-1||production
-ljsonschema 0.1.0-1||testing
+liquid 0.1.6-1||production
+jsonschema 0.8-0|aa4740624cca4c10585bd7d086b42aa0b9ab14fa|testing
 lpeg 1.0.2-1||development
 lpeg_patterns 0.5-0||development
 lua-resty-env 0.4.0-1||production
@@ -33,7 +33,7 @@ lyaml 6.2.4-1||production
 markdown 0.33-1||development
 mediator_lua 1.1.2-0||testing
 net-url 0.9-1||testing
-nginx-lua-prometheus 0.20181120-2||production
+nginx-lua-prometheus 0.20181120-3||production
 penlight 1.7.0-1||production,development,testing
 router 2.1-0||production
 say 1.3-1||testing

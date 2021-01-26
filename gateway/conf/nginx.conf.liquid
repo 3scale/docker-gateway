@@ -34,12 +34,14 @@ events {
 
 http {
   sendfile           on;
+  sendfile_max_chunk 512k;
   tcp_nopush         on;
   tcp_nodelay        on;
   server_tokens off;
 
 
 
+  proxy_cache_path /tmp/cache levels=1:2 keys_zone=apicast_cache:10m;
   # Enabling the Lua code cache is strongly encouraged for production use
   # Disabling it should only be done for testing and development purposes
   lua_code_cache {{  lua_code_cache | default: 'on' }};
@@ -88,8 +90,8 @@ http {
   # This shared dictionaries are only used in the 3scale batcher policy.
   # This is not ideal, but they'll need to be here until we allow policies to
   # modify this template.
-  lua_shared_dict cached_auths 1m;
-  lua_shared_dict batched_reports 1m;
+  lua_shared_dict cached_auths 20m;
+  lua_shared_dict batched_reports 20m;
   lua_shared_dict batched_reports_locks 1m;
 
   {% for file in "sites.d/*.conf" | filesystem %}

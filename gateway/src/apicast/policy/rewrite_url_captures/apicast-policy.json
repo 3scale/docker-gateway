@@ -11,6 +11,59 @@
      "'/123/456' will be transformed into '/sales/v2/123?account=456'"],
   "version": "builtin",
   "configuration": {
+    "definitions": {
+      "methods": {
+        "description": "Array of HTTP methods this rule must be applied to. If left blank it will be applied to all HTTP methods",
+        "type": "array",
+        "items": {
+          "type": "string",
+          "oneOf": [
+            {
+              "enum": [
+                "GET"
+              ],
+              "title": "GET"
+            },
+            {
+              "enum": [
+                "POST"
+              ],
+              "title": "POST"
+            },
+            {
+              "enum": [
+                "PUT"
+              ],
+              "title": "PUT"
+            },
+            {
+              "enum": [
+                "PATCH"
+              ],
+              "title": "PATCH"
+            },
+            {
+              "enum": [
+                "DELETE"
+              ],
+              "title": "DELETE"
+            },
+            {
+              "enum": [
+                "HEAD"
+              ],
+              "title": "HEAD"
+            },
+            {
+              "enum": [
+                "OPTIONS"
+              ],
+              "title": "OPTIONS"
+            }
+          ]
+        }
+      }
+    },
     "type": "object",
     "properties": {
       "transformations": {
@@ -25,6 +78,9 @@
             "template": {
               "type": "string",
               "description": "Template in which the matched args are replaced"
+            },
+            "methods": {
+              "$ref": "#/definitions/methods"
             }
           }
         }

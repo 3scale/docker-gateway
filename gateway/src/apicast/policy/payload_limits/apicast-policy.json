@@ -1,0 +1,39 @@
+{
+  "$schema": "http://apicast.io/policy-v1.1/schema#manifest#",
+  "name": "Response/Request content limits",
+  "summary": "Limit request or response base on the size of the content",
+  "description": [
+    "This policy add limits based on request or response content size."
+  ],
+  "version": "builtin",
+  "configuration": {
+    "type": "object",
+    "required": [
+        "request",
+        "response"
+    ],
+    "properties": {
+        "request": {
+            "type": "integer",
+            "title": "The request limit in bytes",
+            "description": "Request limit in bytes, 0 allows all",
+            "default": 0,
+            "minimum": 0,
+            "examples": [
+                0
+            ]
+        },
+        "response": {
+            "type": "integer",
+            "title": "The response limit in bytes",
+            "description": "Response limit in bytes, 0 allows all",
+            "default": 0,
+            "minimum": 0,
+            "examples": [
+                0
+            ]
+        }
+    },
+    "additionalProperties": true
+  }
+}

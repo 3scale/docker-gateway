@@ -159,9 +159,8 @@ function _M:rewrite_request()
     end
 
     local uri = self.uri
-
     if uri.path then
-        ngx.req.set_uri(prefix_path(uri.path))
+        ngx.req.set_uri(ngx.unescape_uri(prefix_path(uri.path)))
     end
 
     if uri.query then
@@ -194,6 +193,9 @@ function _M:set_host_header()
     return host, nil
 end
 
+function _M:set_skip_https_connect_on_proxy()
+  self.skip_https_connect = true
+end
 --- Execute the upstream.
 --- @tparam table context any table (policy context, ngx.ctx) to store the upstream for later use by balancer
 function _M:call(context)
@@ -212,6 +214,10 @@ function _M:call(context)
         ngx.log(ngx.DEBUG, 'using proxy: ', proxy_uri)
         -- https requests will be terminated, http will be rewritten and sent
         -- to a proxy
+        if context.skip_https_connect_on_proxy then
+          self:set_skip_https_connect_on_proxy();
+        end
+
         http_proxy.request(self, proxy_uri)
     else
         local err = self:rewrite_request()
@@ -221,7 +227,9 @@ function _M:call(context)
     end
 
     if not self.servers then self:resolve() end
-
+    if context.upstream_location_name then
+        self.location_name = context.upstream_location_name
+    end
     context[self.upstream_name] = self
 
     return exec(self)

@@ -294,3 +294,79 @@ Host: one
 [200, 200, 200]
 --- no_error_log
 [error]
+
+=== TEST 5: multi service configuration with path based routing and query args in mapping rules
+--- env eval
+('APICAST_PATH_ROUTING' => '1')
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "backend_version": 2,
+      "proxy": {
+        "api_backend": "http://test:$TEST_NGINX_SERVER_PORT/api-backend/foo/",
+        "hosts": [
+          "same"
+        ],
+        "backend_authentication_type": "service_token",
+        "backend_authentication_value": "service-one",
+        "proxy_rules": [
+          {
+            "pattern": "/one/test",
+            "http_method": "GET",
+            "metric_system_name": "one",
+            "delta": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": 21,
+      "backend_version": 2,
+      "proxy": {
+        "api_backend": "http://test:$TEST_NGINX_SERVER_PORT/api-backend/bar/",
+        "hosts": [
+          "same"
+        ],
+        "backend_authentication_type": "service_token",
+        "backend_authentication_value": "service-two",
+        "proxy_rules": [
+          {
+            "pattern": "/two/test?foo={bar}",
+            "http_method": "GET",
+            "metric_system_name": "two",
+            "delta": 2,
+            "querystring_parameters": {
+                "foo": "{bar}"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+--- backend
+  location /transactions/authrep.xml {
+    content_by_lua_block { ngx.exit(200) }
+  }
+--- upstream
+  location ~ /api-backend(/.+) {
+     echo 'yay, api backend: $1';
+  }
+--- request eval
+[
+  "GET /two/test?app_id=two-id&app_key=two-key&foo=bar",
+  "GET /two/test?app_id=two-id&app_key=two-key"
+]
+--- more_headers eval
+["Host: same", "Host: same"]
+--- response_body eval
+[
+  "yay, api backend: /bar/two/test\x{0a}",
+  "No Mapping Rule matched"
+]
+--- error_code eval
+[200, 404]
+--- no_error_log
+[error]

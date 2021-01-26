@@ -1,0 +1,10 @@
+{
+  "$schema": "http://apicast.io/policy-v1.1/schema#manifest#",
+  "name": "Rate Limits Headers",
+  "summary": "Set rate limit headers on response",
+  "description":
+    ["This policy implements the `RateLimit Header Fields for HTTP` draft in  ",
+     "responses."],
+  "version": "builtin",
+  "configuration": {}
+}

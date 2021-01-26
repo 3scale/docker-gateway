@@ -13,7 +13,7 @@ local _M = {
   path_routing = env.enabled('APICAST_PATH_ROUTING') or env.enabled('APICAST_PATH_ROUTING_ENABLED') or
                  env.enabled('APICAST_PATH_ROUTING_ONLY'),
   path_routing_only = env.enabled('APICAST_PATH_ROUTING_ONLY'),
-  cache_size = 1000
+  cache_size = tonumber(env.value('APICAST_SERVICE_CACHE_SIZE')) or 1000
 }
 
 if env.enabled('APICAST_PATH_ROUTING_ENABLED') then ngx.log(ngx.WARN, 'DEPRECATION NOTICE: Use APICAST_PATH_ROUTING not APICAST_PATH_ROUTING_ENABLED as this will soon be unsupported') end
@@ -34,7 +34,6 @@ function _M.new(cache_size, options)
   else
     path_routing_only = _M.path_routing_only
   end
-
   return setmetatable({
     -- services hashed by id, example: {
     --   ["16"] = service1

@@ -1,16 +1,128 @@
 # Change Log
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](http://keepachangelog.com/) 
+The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
+
 
 ## [Unreleased]
 
-### Fixed:
+### Fixed
 
+- Fixed issues with URI when using Routing Policy [PR #1245](https://github.com/3scale/APIcast/pull/1245) [THREESCALE-6410](https://issues.redhat.com/browse/THREESCALE-6410)
+
+### Added
+
+- Add methods to transformations in rewrite url captures policy [PR #1253](https://github.com/3scale/APIcast/pull/1253) [THREESCALE-6270](https://issues.redhat.com/browse/THREESCALE-6270)
+- Add Access-Control-Max-Age [PR #1247](https://github.com/3scale/APIcast/pull/1247) [THREESCALE-6556](https://issues.redhat.com/browse/THREESCALE-6556)
+- Add HTTP codes policy [PR #1236](https://github.com/3scale/APIcast/pull/1236) [THREESCALE-6255](https://issues.redhat.com/browse/THREESCALE-6255)
+- Buffer access log on chunks [PR #1248](https://github.com/3scale/APIcast/pull/1248) [THREESCALE-6563](https://issues.redhat.com/browse/THREESCALE-6563)
+- Added sendfile_max_chunk to the worker [PR #1250](https://github.com/3scale/APIcast/pull/1250) [THREESCALE-6570](https://issues.redhat.com/browse/THREESCALE-6570)
+- Increased api-keys shared memory size [PR #1250](https://github.com/3scale/APIcast/pull/1250) [THREESCALE-6570](https://issues.redhat.com/browse/THREESCALE-6570)
+
+
+## [3.10.0] 2021-01-04
+
+Beta1 is stable and moved to final release.
+
+## [3.10.0-beta1] 2020-11-23
+
+- Fixed issues with OIDC validation [PR #1239](https://github.com/3scale/APIcast/pull/1239) [THREESCALE-6313](https://issues.redhat.com/browse/THREESCALE-6313)
+- Fixed issues with Liquid body size [PR #1240](https://github.com/3scale/APIcast/pull/1240) [THREESCALE-6315](https://issues.redhat.com/browse/THREESCALE-6315)
+
+## [3.10.0-alpha2] 2020-11-04
+
+### Fixed
+
+- Non-alphanumeric metric name in 3scale-batcher policy [PR #1234](https://github.com/3scale/APIcast/pull/1234) [THREESCALE-4913](https://issues.redhat.com/browse/THREESCALE-4913)
+- Fixed issues when using fully qualified DNS query [PR #1235](https://github.com/3scale/APIcast/pull/1235) [THREESCALE-4752](https://issues.redhat.com/browse/THREESCALE-4752)
+
+## [3.10.0-alpha1] 2020-10-13
+
+### Added
+- Support Proxy Protocol [PR #1211](https://github.com/3scale/APIcast/pull/1211) [THREESCALE-5366](https://issues.redhat.com/browse/THREESCALE-5366)
+- Enable support to log credentials on logging policy [PR #1217](https://github.com/3scale/APIcast/pull/1217) [THREESCALE-5273](https://issues.redhat.com/browse/THREESCALE-5273)
+- Add a way to support more than 1000 services in a single instance  [PR #1222](https://github.com/3scale/APIcast/pull/1222) [THREESCALE-5308](https://issues.redhat.com/browse/THREESCALE-5308)
+- Added new original_request_uri tag on Opentracing [PR #1223](https://github.com/3scale/APIcast/pull/1223) [THREESCALE-5669](https://issues.redhat.com/browse/THREESCALE-5669)
+- Caching policy disable default field [PR #1226](https://github.com/3scale/APIcast/pull/1226) [THREESCALE-1514](https://issues.redhat.com/browse/THREESCALE-1514)
+- Add response/request content size limits [PR #1227](https://github.com/3scale/APIcast/pull/1227) [THREESCALE-5244](https://issues.redhat.com/browse/THREESCALE-5244)
+- Add HTTP codes policy [PR #1236](https://github.com/3scale/APIcast/pull/1236) [THREESCALE-6255](https://issues.redhat.com/browse/THREESCALE-6255)
+
+
+
+### Fixed
+- Fixed issues with allow caching mode  and 3scale batcher [PR #1216](https://github.com/3scale/APIcast/pull/1216) [THREESCALE-5753](https://issues.redhat.com/browse/THREESCALE-5753)
+- Fixed issues when Auth Caching is disabled [PR #1225](https://github.com/3scale/APIcast/pull/1225) [THREESCALE-4464](https://issues.redhat.com/browse/THREESCALE-4464)
+- Fixed issues with service filter and OIDC [PR #1229](https://github.com/3scale/APIcast/pull/1229) [THREESCALE-6042](https://issues.redhat.com/browse/THREESCALE-6042)
+- Increased size of dictionaries used by the Batching policy to 20 MB. Users
+with many services might have experienced issues with this policy because the
+size of those dictionaries was not enough to store everything the policy needs
+to function correctly. [PR #1231](https://github.com/3scale/APIcast/pull/1231)
+- Fixed issue with Camel service over HTTPs when Routing Policy [PR #1230](https://github.com/3scale/APIcast/pull/1230) [THREESCALE-5891](https://issues.redhat.com/browse/THREESCALE-5891)
+- Fixed doc issue on SERVICES_FILTER parameter [PR #1233](https://github.com/3scale/APIcast/pull/1233) [THREESCALE-5421](https://issues.redhat.com/browse/THREESCALE-5421)
+- Non-alphanumeric metric name in 3scale-batcher policy [PR #1234](https://github.com/3scale/APIcast/pull/1234) [THREESCALE-4913](https://issues.redhat.com/browse/THREESCALE-4913)
+
+## [3.9.1] 2020-10-13
+- Fixed issues when using fully qualified DNS query [PR #1235](https://github.com/3scale/APIcast/pull/1235) [THREESCALE-4752](https://issues.redhat.com/browse/THREESCALE-4752)
+- Fixed issues with OIDC validation [PR #1239](https://github.com/3scale/APIcast/pull/1239) [THREESCALE-6313](https://issues.redhat.com/browse/THREESCALE-6313)
+- Fixed issues with Liquid body size [PR #1240](https://github.com/3scale/APIcast/pull/1240) [THREESCALE-6315](https://issues.redhat.com/browse/THREESCALE-6315)
+- Fixed filter services with APICAST_SERVICES_FILTER_BY_URL when using remote v2 config [PR #1243](https://github.com/3scale/APIcast/pull/1243) [THREESCALE-6139](https://issues.redhat.com/browse/THREESCALE-6139)
+- Added a new metric when the `worker_process` starts [PR #1228](https://github.com/3scale/APIcast/pull/1228) [THREESCALE-5965](https://issues.redhat.com/browse/THREESCALE-5965)
+- Fixed issues when using fully qualified DNS query [PR #1235](https://github.com/3scale/APIcast/pull/1235) [THREESCALE-4752](https://issues.redhat.com/browse/THREESCALE-4752)
+
+## [3.9.0] 2020-08-17
+
+No issues found on beta1,so becames final release.
+
+## [3.9.0-beta1] 2020-07-17
+
+### Fixed
+
+- Fixed issues with URL encode on routing policy [THREESCALE-5454](https://issues.redhat.com/browse/THREESCALE-5454) [PR #1208](https://github.com/3scale/APIcast/pull/1208)
+- Fixed issue with mapping rules and 3scale batcher policy [THREESCALE-5513](https://issues.redhat.com/browse/THREESCALE-5513) [PR #1210](https://github.com/3scale/APIcast/pull/1210)
+- Fixed issues with invalid number of conditions [THREESCALE-5435](https://issues.redhat.com/browse/THREESCALE-5435) [PR #1212](https://github.com/3scale/APIcast/pull/1212)
+
+## [3.9.0-alpha1] 2020-06-26
+
+### Fixed
+
+- Fixed issues with liquid replaces [THREESCALE-4937](https://issues.jboss.org/browse/THREESCALE-4937) [PR #1185](https://github.com/3scale/APIcast/pull/1185)
+- Fixed issues with HTTPS_PROXY and large bodies [THREESCALE-3863](https://issues.jboss.org/browse/THREESCALE-3863) [PR #1191](https://github.com/3scale/APIcast/pull/1191)
+- Fixed issues with path routing and query args [THREESCALE-5149](https://issues.redhat.com/browse/THREESCALE-5149) [PR #1190](https://github.com/3scale/APIcast/pull/1190)
+- Fixed issue with IPCheck policy when forwarder-for value contains port [THREESCALE-5258](https://issues.redhat.com/browse/THREESCALE-5258) [PR #1192](https://github.com/3scale/APIcast/pull/1192)
+
+
+### Added
+
+- Added upstream Mutual TLS policy [THREESCALE-672](https://issues.jboss.org/browse/THREESCALE-672) [PR #1182](https://github.com/3scale/APIcast/pull/1182)
+- Added Rate-limit headers policy [THREESCALE-3795](https://issues.jboss.org/browse/THREESCALE-3795) [PR #1166](https://github.com/3scale/APIcast/pull/1166) [PR #1197](https://github.com/3scale/APIcast/pull/1197) [PR #1209](https://github.com/3scale/APIcast/pull/1209)
+- Added Content-caching policy [THREESCALE-2894](https://issues.jboss.org/browse/THREESCALE-2894) [PR #1182](https://github.com/3scale/APIcast/pull/1182)
+- Added Nginx request_id variable to context [PR #1184](https://github.com/3scale/APIcast/pull/1184)
+- Added HTTP verb on url_rewriten [PR #1187](https://github.com/3scale/APIcast/pull/1187)  [THREESCALE-5259](https://issues.jboss.org/browse/THREESCALE-5259) [PR #1202](https://github.com/3scale/APIcast/pull/1202)
+- Added custom_metrics policy [PR #1188](https://github.com/3scale/APIcast/pull/1188) [THREESCALE-5098](https://issues.jboss.org/browse/THREESCALE-5098)
+- New apicast_status Prometheus metric [THREESCALE-5417](https://issues.jboss.org/browse/THREESCALE-5417) [PR #1200](https://github.com/3scale/APIcast/pull/1200)
+- New content_caching Prometheus metric [THREESCALE-5439](https://issues.jboss.org/browse/THREESCALE-5439) [PR #1203](https://github.com/3scale/APIcast/pull/1203)
+- Added Camel policy [PR #1193](https://github.com/3scale/APIcast/pull/1193) [THREESCALE-4867](https://issues.jboss.org/browse/THREESCALE-4867)
+
+
+## [3.8.0] - 2020-03-24
+
+`3.8.0-cr1` was considered final and became `3.8.0`.
+
+## [3.8.0-cr1] - 2020-03-07
+
+### Fixed
+- Fixed naming issues in policies [THREESCALE-4150](https://issues.jboss.org/browse/THREESCALE-4150) [PR #1167](https://github.com/3scale/APIcast/pull/1167)
+- Fixed issues on invalid config in logging policy [THREESCALE-4605](https://issues.jboss.org/browse/THREESCALE-4605) [PR #1168](https://github.com/3scale/APIcast/pull/1168)
+- Fixed issues with routing policy and GRPC one [THREESCALE-4684](https://issues.jboss.org/browse/THREESCALE-4684) [PR #1177](https://github.com/3scale/APIcast/pull/1177) [PR #1179](https://github.com/3scale/APIcast/pull/1179)
+
+## [3.8.0-alpha2] - 2020-02-18
+
+### Fixed
 - Check status is bigger than zero on caching policy [THREESCALE-4471](https://issues.jboss.org/browse/THREESCALE-4471) [PR #1163](https://github.com/3scale/APIcast/pull/1163)
 
-## [3.7.0-alpha1]
+
+## [3.8.0-alpha1] - 2020-01-31
 
 ### Added
 
@@ -29,10 +141,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Normalize policy names capitalization [THREESCALE-4150](https://issues.jboss.org/browse/THREESCALE-4150) [PR #1154](https://github.com/3scale/APIcast/pull/1154)
 - Fix issues with non-alphanumeric variables in liquid [THREESCALE-3968](https://issues.jboss.org/browse/THREESCALE-3968) [PR #1158](https://github.com/3scale/APIcast/pull/1158)
 - Fix issues with double mapping rules [THREESCALE-3950](https://issues.jboss.org/browse/THREESCALE-3950) [PR #1159](https://github.com/3scale/APIcast/pull/1159)
-
-
-
-### Fixed
 
 
 ## [3.7.0] - 2019-11-27
@@ -193,7 +301,7 @@ Apart from the changes mentioned in this section, this version also includes the
 
 ## [3.4.0-rc2] - 2018-11-16
 
-### Fixed 
+### Fixed
 
 - Fix bug in the Default credentials policy. It was using the default credentials in some cases where it should not [PR #954](https://github.com/3scale/apicast/pull/954), [THREESCALE-1547](https://issues.jboss.org/browse/THREESCALE-1547)
 
@@ -285,7 +393,7 @@ expressed might change in future releases.
 - Default credentials policy [PR #741](https://github.com/3scale/apicast/pull/741), [THREESCALE-586](https://issues.jboss.org/browse/THREESCALE-586)
 - Configurable caching for the token introspection policy [PR #656](https://github.com/3scale/apicast/pull/656)
 - `APICAST_ACCESS_LOG_FILE` env to make the access log location configurable [PR #743](https://github.com/3scale/apicast/pull/743), [THREESCALE-1148](https://issues.jboss.org/browse/THREESCALE-1148)
-- ENV variables to make APIcast listen on HTTPS port [PR #622](https://github.com/3scale/apicast/pull/622) 
+- ENV variables to make APIcast listen on HTTPS port [PR #622](https://github.com/3scale/apicast/pull/622)
 - New `ssl_certificate` phase allows policies to provide certificate to terminate HTTPS connection [PR #622](https://github.com/3scale/apicast/pull/622)
 - Configurable `auth_type` for the token introspection policy [PR #755](https://github.com/3scale/apicast/pull/755)
 - `TimerTask` module to execute recurrent tasks that can be cancelled [PR #782](https://github.com/3scale/apicast/pull/782), [PR #784](https://github.com/3scale/apicast/pull/784), [PR #791](https://github.com/3scale/apicast/pull/791)
@@ -597,7 +705,7 @@ expressed might change in future releases.
 
 ### Changed
 
-- Bump OpenResty version to [1.11.2.3](https://github.com/3scale/s2i-openresty/releases/tag/1.11.2.3-1) [PR #359](https://github.com/3scale/apicast/pull/359) 
+- Bump OpenResty version to [1.11.2.3](https://github.com/3scale/s2i-openresty/releases/tag/1.11.2.3-1) [PR #359](https://github.com/3scale/apicast/pull/359)
 - Upgraded lua-resty-http and lua-resty-jwt [PR #361](https://github.com/3scale/apicast/pull/361)
 
 ### Added
@@ -737,7 +845,7 @@ expressed might change in future releases.
 ### Changed
 - Major rewrite using JSON configuration instead of code generation.
 
-[Unreleased]: https://github.com/3scale/apicast/compare/v3.7.0...HEAD
+[Unreleased]: https://github.com/3scale/apicast/compare/v3.10.0...HEAD
 [2.0.0]: https://github.com/3scale/apicast/compare/v0.2...v2.0.0
 [3.0.0-alpha1]: https://github.com/3scale/apicast/compare/v2.0.0...v3.0.0-alpha1
 [3.0.0-alpha2]: https://github.com/3scale/apicast/compare/v3.0.0-alpha1...v3.0.0-alpha2
@@ -782,3 +890,13 @@ expressed might change in future releases.
 [3.7.0-cr1]: https://github.com/3scale/apicast/compare/v3.7.0-beta2...v3.7.0-cr1
 [3.7.0-cr2]: https://github.com/3scale/apicast/compare/v3.7.0-cr1...v3.7.0-cr2
 [3.7.0]: https://github.com/3scale/apicast/compare/v3.7.0-cr2...v3.7.0
+[3.8.0-alpha1]: https://github.com/3scale/apicast/compare/v3.7.0...v3.8.0-alpha1
+[3.8.0-alpha2]: https://github.com/3scale/apicast/compare/v3.8.0-alpha1...v3.8.0-alpha2
+[3.8.0-cr1]: https://github.com/3scale/apicast/compare/v3.8.0-alpha2...v3.8.0-cr1
+[3.9.0-alpha1]: https://github.com/3scale/apicast/compare/v3.8.0...v3.9.0-alpha1
+[3.9.0-beta1]: https://github.com/3scale/apicast/compare/v3.9.0-alpha1..v3.9.0-beta1
+[3.9.0]: https://github.com/3scale/apicast/compare/v3.9.0-beta1..v3.9.0
+[3.10.0-alpha1]: https://github.com/3scale/apicast/compare/v3.9.1..v3.10.0-alpha1
+[3.10.0-alpha2]: https://github.com/3scale/apicast/compare/v3.10.0-alpha1..v3.10.0-alpha2
+[3.10.0-beta1]: https://github.com/3scale/apicast/compare/v3.10.0-alpha2..v3.10.0-beta1
+[3.10.0]: https://github.com/3scale/apicast/compare/v3.10.0-beta1..v3.10.0

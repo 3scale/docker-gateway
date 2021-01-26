@@ -2125,3 +2125,72 @@ GET /?user_key=value
 could not find upstream for service: 42
 --- no_error_log
 [error]
+
+
+=== TEST 32: URL is not double encoded.
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "backend_version": 1,
+      "backend_authentication_type": "service_token",
+      "backend_authentication_value": "token-value",
+      "proxy": {
+        "policy_chain": [
+          {
+            "name": "apicast.policy.routing",
+            "configuration": {
+              "rules": [
+                {
+                  "url": "http://test:$TEST_NGINX_SERVER_PORT/second/",
+                  "owner_id": 4,
+                  "condition": {
+                    "operations": [
+                      {
+                        "match": "liquid",
+                        "liquid_value": "test",
+                        "op": "==",
+                        "value": "test"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "apicast.policy.apicast"
+          }
+        ],
+        "proxy_rules": [
+          {
+            "pattern": "/foo",
+            "http_method": "GET",
+            "metric_system_name": "test",
+            "delta": 1
+          }
+        ]
+      }
+    }
+  ]
+}
+--- backend
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+      ngx.say("OK")
+    }
+  }
+--- upstream
+  location / {
+    content_by_lua_block {
+      ngx.say(ngx.var.uri);
+    }
+  }
+--- request
+GET /foo/test%20space?user_key=foo
+--- response_body
+/second/foo/test space
+--- error_code: 200
+--- no_error_log
+[error]

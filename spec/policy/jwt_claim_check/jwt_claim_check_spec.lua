@@ -12,7 +12,10 @@ describe('JWT claim check policy', function()
       ooo = { 1,2},
       roles = { "one", "two"}
 
-    }
+    },
+    get_uri = function()
+      return ngx.var.uri
+    end
   }
 
   before_each(function()

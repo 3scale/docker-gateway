@@ -39,10 +39,10 @@ local function metrics_part_in_key(usage)
 end
 
 local regexes_report_key = {
-  [[service_id:(?<service_id>[\w-]+),user_key:(?<user_key>[\w-]+),metric:(?<metric>[\w-]+)]],
-  [[service_id:(?<service_id>[\w-]+),access_token:(?<access_token>[\w-]+),metric:(?<metric>[\w-]+)]],
-  [[service_id:(?<service_id>[\w-]+),app_id:(?<app_id>[\w-]+),app_key:(?<app_key>[\w-]+),metric:(?<metric>[\w-]+)]],
-  [[service_id:(?<service_id>[\w-]+),app_id:(?<app_id>[\w-]+),metric:(?<metric>[\w-]+)]],
+  [[service_id:(?<service_id>[\w-]+),user_key:(?<user_key>[\w-]+),metric:(?<metric>[\S-]+)]],
+  [[service_id:(?<service_id>[\w-]+),access_token:(?<access_token>[\w-]+),metric:(?<metric>[\S-]+)]],
+  [[service_id:(?<service_id>[\w-]+),app_id:(?<app_id>[\w-]+),app_key:(?<app_key>[\w-]+),metric:(?<metric>[\S-]+)]],
+  [[service_id:(?<service_id>[\w-]+),app_id:(?<app_id>[\w-]+),metric:(?<metric>[\S-]+)]],
 }
 
 function _M.key_for_cached_auth(transaction)

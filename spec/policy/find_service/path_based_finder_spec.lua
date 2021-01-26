@@ -100,5 +100,77 @@ describe('PathBasedFinder', function()
 
       assert.is_nil(service_found)
     end)
+
+    it('returns the service if it matches the path, the host and the querystring params', function()
+      ngx.var = { uri = '/abc' }
+      stub(ngx.req, 'get_uri_args', function() return { foo = 'bar' } end)
+      stub(ngx.req, 'get_method', function() return 'GET' end)
+
+      local host = 'example.com'
+
+      local service_not_matching = Configuration.parse_service({
+        id = 1,
+        proxy = {
+          hosts = { host },
+          proxy_rules = { { pattern = '/dont_match', http_method = 'GET',
+                            metric_system_name = 'hits', delta = 2 } }
+        }
+      })
+
+      local service_matching = Configuration.parse_service({
+        id = 2,
+        proxy = {
+          hosts = { host },
+          proxy_rules = { { pattern = '/abc',
+                            querystring_parameters = { foo = '{bar}' },
+                            http_method = 'GET', metric_system_name = 'hits',
+                            delta = 2 } }
+        }
+      })
+
+      local services = { service_not_matching, service_matching }
+      local config_store = ConfigurationStore.new(nil, config_store_opts)
+      config_store:store({ services = services })
+
+      local service_found = PathBasedFinder.find_service(config_store, host)
+
+      assert.equal(service_matching, service_found)
+    end)
+
+    it('returns nil if it matches the path, the host but not the querystring params', function()
+      ngx.var = { uri = '/abc' }
+      stub(ngx.req, 'get_uri_args', function() return { } end)
+      stub(ngx.req, 'get_method', function() return 'GET' end)
+
+      local host = 'example.com'
+
+      local service_not_matching = Configuration.parse_service({
+        id = 1,
+        proxy = {
+          hosts = { host },
+          proxy_rules = { { pattern = '/dont_match', http_method = 'GET',
+                            metric_system_name = 'hits', delta = 2 } }
+        }
+      })
+
+      local service_matching = Configuration.parse_service({
+        id = 2,
+        proxy = {
+          hosts = { host },
+          proxy_rules = { { pattern = '/abc',
+                            querystring_parameters = { foo = 'bar' },
+                            http_method = 'GET', metric_system_name = 'hits',
+                            delta = 2 } }
+        }
+      })
+
+      local services = { service_not_matching, service_matching }
+      local config_store = ConfigurationStore.new(nil, config_store_opts)
+      config_store:store({ services = services })
+
+      local service_found = PathBasedFinder.find_service(config_store, host)
+
+      assert.is_nil(service_found)
+    end)
   end)
 end)

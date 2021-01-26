@@ -62,6 +62,15 @@ describe('Proxy', function()
   describe('.authorize', function()
     local service = { backend_authentication = { value = 'not_baz' }, backend = { endpoint = 'http://0.0.0.0' } }
 
+    local context
+
+    before_each(function()
+      context = {
+        cache_handler = function() end,
+        publish_backend_auth = function() end
+      }
+    end)
+
     it('takes ttl value if sent', function()
       local ttl = 80
       ngx.var = { cached_key = 'client_id=blah', http_x_3scale_debug='baz', real_url='blah' }
@@ -73,7 +82,7 @@ describe('Proxy', function()
 
       local usage = Usage.new()
       usage:add('foo', 0)
-      proxy:authorize(service, usage, { client_id = 'blah' }, ttl)
+      proxy:authorize(context, service, usage, { client_id = 'blah' }, ttl)
 
       assert.spy(proxy.cache_handler).was.called_with(
         proxy.cache, 'client_id=blah:usage%5Bfoo%5D=0', response, ttl)
@@ -88,7 +97,7 @@ describe('Proxy', function()
 
       local usage = Usage.new()
       usage:add('foo', 0)
-      proxy:authorize(service, usage, { client_id = 'blah' })
+      proxy:authorize(context, service, usage, { client_id = 'blah' })
 
       assert.spy(proxy.cache_handler).was.called_with(
         proxy.cache, 'client_id=blah:usage%5Bfoo%5D=0', response, nil)
@@ -105,7 +114,7 @@ describe('Proxy', function()
       proxy.cache:set(cache_key, 200)
       ngx.var = { cached_key = "uk" } -- authorize() expects creds to be set up
 
-      proxy:authorize(service, usage, { user_key = 'uk' })
+      proxy:authorize(context, service, usage, { user_key = 'uk' })
 
       -- Calls backend because the call is not cached
       assert.stub(test_backend.send).was_called()
@@ -122,7 +131,7 @@ describe('Proxy', function()
       proxy.cache:set(cache_key, 200)
       ngx.var = { cached_key = "uk" } -- authorize() expects creds to be set up
 
-      proxy:authorize(service, usage, { user_key = 'uk' })
+      proxy:authorize(context, service, usage, { user_key = 'uk' })
 
       -- Does not call backend because the call is cached
       assert.stub(test_backend.send).was_not_called()
@@ -146,15 +155,26 @@ describe('Proxy', function()
         }
       )
 
-      proxy:authorize(service, usage, { user_key = 'uk' })
+      proxy:authorize(context, service, usage, { user_key = 'uk' })
 
       assert.stub(errors.limits_exceeded).was_called_with(service, retry_after)
     end)
   end)
 
   describe('.handle_backend_response', function()
+
+    local context
+
+    before_each(function()
+      context = {
+        cache_handler = function() end,
+        publish_backend_auth = function() end
+      }
+    end)
+
     it('returns a rejection reason when given', function()
       local authorized, rejection_reason = proxy:handle_backend_response(
+        context,
         lrucache.new(1),
         http_ng_response.new(nil, 403, { ['3scale-rejection-reason'] = 'some_reason' }, ''),
         nil)
@@ -165,6 +185,7 @@ describe('Proxy', function()
 
     it('returns an empty rejection reason instead of "limits exceeded" for disabled metrics', function()
       local authorized, rejection_reason = proxy:handle_backend_response(
+        context,
         lrucache.new(1),
         http_ng_response.new(
             nil,
@@ -184,6 +205,7 @@ describe('Proxy', function()
 
     it('returns limits exceeded for enabled metrics', function()
       local authorized, rejection_reason = proxy:handle_backend_response(
+          context,
           lrucache.new(1),
           http_ng_response.new(
               nil,
@@ -215,7 +237,7 @@ describe('Proxy', function()
         proxy.cache:set(cache_key, 200)
 
         for _, status in ipairs(backend_unavailable_statuses) do
-          local authorized = proxy:handle_backend_response(cache_key, { status = status })
+          local authorized = proxy:handle_backend_response(context, cache_key, { status = status })
           assert(authorized)
         end
       end)
@@ -224,7 +246,7 @@ describe('Proxy', function()
         proxy.cache:delete(cache_key)
 
         for _, status in ipairs(backend_unavailable_statuses) do
-          local authorized = proxy:handle_backend_response(cache_key, { status = status })
+          local authorized = proxy:handle_backend_response(context, cache_key, { status = status })
           assert.falsy(authorized)
         end
       end)
@@ -233,7 +255,7 @@ describe('Proxy', function()
         proxy.cache:set(cache_key, 429)
 
         for _, status in ipairs(backend_unavailable_statuses) do
-          local authorized = proxy:handle_backend_response(cache_key, { status = status })
+          local authorized = proxy:handle_backend_response(context, cache_key, { status = status })
           assert.falsy(authorized)
         end
       end)

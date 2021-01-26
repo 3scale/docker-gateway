@@ -50,6 +50,12 @@ local function set_access_control_allow_credentials(allow_credentials)
   ngx.header['Access-Control-Allow-Credentials'] = value
 end
 
+local function set_access_control_max_age(max_age)
+  local value = max_age
+  if value == nil then value = 600 end
+  ngx.header['Access-Control-Max-Age'] = value
+end
+
 local function set_cors_headers(config)
   local origin = ngx.var.http_origin
   if not origin then return end
@@ -58,6 +64,7 @@ local function set_cors_headers(config)
   set_access_control_allow_methods(config.allow_methods)
   set_access_control_allow_origin(config.allow_origin, origin)
   set_access_control_allow_credentials(config.allow_credentials)
+  set_access_control_max_age(config.max_age)
 end
 
 local function cors_preflight_response()

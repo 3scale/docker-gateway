@@ -167,7 +167,6 @@ function mt:__call(options)
     update_env(env)
     -- also use env from the config file
     update_env(context.env or {})
-
     local nginx = nginx_config(context, template_path)
 
     local log_level = get_log_level(self, options)

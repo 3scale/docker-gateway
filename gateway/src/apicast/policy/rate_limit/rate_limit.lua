@@ -98,7 +98,7 @@ local function build_condition(config_condition)
   local cond = config_condition or {}
 
   return Condition.new(
-    build_operations(cond.operations),
+    build_operations(cond.operations or {}),
     cond.combine_op
   )
 end

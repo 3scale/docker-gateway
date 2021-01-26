@@ -3,6 +3,7 @@ local next = next
 local open = io.open
 local gmatch = string.gmatch
 local match = string.match
+local sub = string.sub
 local format = string.format
 local find = string.find
 local insert = table.insert
@@ -280,28 +281,44 @@ local function valid_answers(answers)
 end
 
 local function search_dns(self, qname, stale)
+
   local search = self.search
   local dns = self.dns
   local options = self.options
   local cache = self.cache
 
-  local answers, err
-
-  for i=1, #search do
-    local query = qname .. '.' .. search[i]
-    ngx.log(ngx.DEBUG, 'resolver query: ', qname, ' search: ', search[i], ' query: ', query)
-
+  local function get_answer(query)
+    local answers, err
     answers, err = cache:get(query, stale)
-    if valid_answers(answers) then break end
+    if valid_answers(answers) then
+      return answers, err
+    end
 
     answers, err = dns:query(query, options)
     if valid_answers(answers) then
       cache:save(answers)
-      break
+      return answers, err
+    end
+    return nil, err
+  end
+
+  if sub(qname, -1) == "." then
+    local query = sub(qname, 1 ,-2)
+    ngx.log(ngx.DEBUG, 'resolver query: ', qname, ' query: ', query)
+    return get_answer(query)
+  end
+
+  local answer, err
+  for i=1, #search do
+    local query = qname .. '.' .. search[i]
+    ngx.log(ngx.DEBUG, 'resolver query: ', qname, ' search: ', search[i], ' query: ', query)
+    answer, err = get_answer(query)
+    if answer then
+      return answer, err
     end
   end
 
-  return answers, err
+  return nil, err
 end
 
 local function resolve_upstream(qname)

@@ -27,7 +27,8 @@ function _M.new(config)
   for _, transformation in ipairs(config.transformations or {}) do
     local matcher = NamedArgsMatcher.new(
       transformation.match_rule,
-      transformation.template
+      transformation.template,
+      transformation.methods
     )
 
     insert(self.matchers, matcher)

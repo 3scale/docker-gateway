@@ -17,16 +17,6 @@ describe('Caching policy', function()
     end
   end)
 
-  describe('.new', function()
-    it('disables caching when caching type is not specified', function()
-      caching_policy = require('apicast.policy.caching').new({})
-      cache_handler = caching_policy:export().cache_handler
-
-      cache_handler(cache, 'a_key', { status = 200 }, nil)
-      assert.is_nil(cache:get('a_key'))
-    end)
-  end)
-
   describe('.export', function()
     describe('when configured as strict', function()
       before_each(function()
@@ -138,6 +128,15 @@ describe('Caching policy', function()
         cache_handler(cache, 'a_key', { status = 200 }, nil)
         assert.is_nil(cache:get('a_key'))
       end)
+
+      it("clears the cache if it's present", function()
+          -- THREESCALE-4464
+          cache:set('a_key', 200)
+
+          cache_handler(cache, 'a_key', { status = 200 }, nil)
+          assert.is_nil(cache:get('a_key'))
+      end)
+
     end)
   end)
 end)

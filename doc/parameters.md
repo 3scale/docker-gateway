@@ -28,6 +28,15 @@ Specifies the period (in seconds) that the configuration will be stored in the c
 
 This parameter is also used to store OpenID discovery configuration in the local cache, as the same behavior as described above.
 
+### `APICAST_SERVICE_CACHE_SIZE`
+
+**Values:** _a number_
+**Default:** 1000
+
+Specifies the number of services that APICast can store in the internal cache. A
+big number has a performance impact because Lua lru cache will
+initialize all the entries.
+
 ### `APICAST_CONFIGURATION_LOADER`
 
 **Values:** boot | lazy  
@@ -94,6 +103,15 @@ Specifies the log level for the OpenResty logs.
 **Default:** _stdout_
 
 Defines the file that will store the access logs.
+
+
+### APICAST_ACCESS_LOG_BUFFER
+
+**Values:** integer
+**Default**: nil
+
+Allows access log writes to be included in chunks of bytes, resulting on fewer system calls
+that improve the performance of the whole gateway.
 
 
 ### `APICAST_OIDC_LOG_LEVEL`
@@ -165,6 +183,8 @@ It can be used to first load policies from a development directory or to load ex
 
 The path to the key of the client SSL certificate.
 
+This parameter can be overridden by the Upstream_TLS policy.
+
 ### `APICAST_PROXY_HTTPS_CERTIFICATE`
 
 **Default:**  
@@ -174,6 +194,8 @@ The path to the key of the client SSL certificate.
 The path to the client SSL certificate that APIcast will use when connecting
 with the upstream. Notice that this certificate will be used for all the
 services in the configuration.
+
+This parameter can be overridden by the Upstream_TLS policy.
 
 ### `APICAST_PROXY_HTTPS_PASSWORD_FILE`
 
@@ -219,22 +241,22 @@ Find more information about the Response Codes feature on the [3scale support si
 **Example:** .*.example.com
 
 Used to filter the service configured in the 3scale API Manager, the filter
-matches with the public base URL. Services that do not match the filter will be
-discarded. If the regular expression cannot be compiled no services will be
-loaded. 
+matches with the public base URL (Staging or production). Services that do not
+match the filter will be discarded. If the regular expression cannot be compiled
+no services will be loaded. 
 
 Note: If a service does not match, but is included in the
 `APICAST_SERVICES_LIST`, service will not be discarded
 
 Example:
 
-Regexp Filter: http:\/\/.*.google.com
-Service 1: backend endpoint http://www.google.com
-Service 2: backend endpoint http://www.yahoo.com
-Service 3: backend endpoint http://mail.google.com
-Service 4: backend endpoint http://mail.yahoo.com
+Regexp Filter: http:\/\/.*.api.foo
+Service 1: backend endpoint http://www.api.foo
+Service 2: backend endpoint http://www.api.bar
+Service 3: backend endpoint http://mail.api.foo
+Service 4: backend endpoint http://mail.api.bar
 
-The services that will be configured in Apicast will be 1 and 3. Services 2 and
+The services that will be configured in APIcast will be 1 and 3. Services 2 and
 4 will be discarded.
 
 ### `APICAST_SERVICES_LIST`
@@ -420,6 +442,22 @@ Defines a HTTP proxy to be used for connecting to HTTPS services. Authentication
 
 Defines a comma-separated list of hostnames and domain names for which the requests should not be proxied. Setting to a single `*` character, which matches all hosts, effectively disables the proxy.
 
+### `APICAST_HTTP_PROXY_PROTOCOL`
+
+**Default:** false
+**Values:** boolean  
+**Example:** "true"
+
+This parameter enables the Proxy Protocol for the HTTP listener.
+
+### `APICAST_HTTPS_PROXY_PROTOCOL`
+
+**Default:** false
+**Values:** boolean  
+**Example:** "true"
+
+This parameter enables the Proxy Protocol for the HTTPS listener.
+
 ### `APICAST_EXTENDED_METRICS`
 
 **Default:** false
@@ -447,3 +485,32 @@ connections.
 
 By default Gateway does not enable it, and the keepalive timeout on nginx is set
 to [75 seconds](http://nginx.org/en/docs/http/ngx_http_core_module.html#keepalive_timeout)
+
+
+### `APICAST_CACHE_STATUS_CODES`
+
+**Default:** 200 302
+**Value:** string
+
+When the response code from upstream matches one of the status codes defined in
+this environment variable, the response content will be cached in NGINX for the
+Headers cache time value, or the maximum time defined by
+`APICAST_CACHE_MAX_TIME` env variable.
+
+This parameter is only used by the services that are using content caching
+policy.
+
+### `APICAST_CACHE_MAX_TIME`
+
+**Default:** 1m
+**Value:** string
+
+When the response is selected to be cached in the system, the value of this
+variable indicates the maximum time to be cached. If cache-control header is not
+set, the time to be cached will be the defined one.
+
+The format for this value is defined by the [`proxy_cache_valid` NGINX
+directive](http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache_valid)
+
+This parameter is only used by the services that are using content caching
+policy.

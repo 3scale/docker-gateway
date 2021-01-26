@@ -176,14 +176,37 @@ function _M.filter_services(services, subset)
   return selected_services
 end
 
+function _M.filter_oidc_config(services, oidc)
+  local services_ids = {}
+  for _,service in ipairs(services or {}) do
+    services_ids[service.id] = 1
+  end
+
+  local oidc_final_config={}
+
+  -- If the oidc config comes from remote_v2, will have the service_id, if not
+  -- the config should be skipped to make sure that we don't break anything
+  for _,oidc_config in ipairs(oidc or {}) do
+    if oidc_config then
+      if not oidc_config.service_id or services_ids[tostring(oidc_config.service_id)] then
+        table.insert(oidc_final_config, oidc_config)
+      end
+    else
+      table.insert(oidc_final_config, {})
+    end
+  end
+  return oidc_final_config
+end
+
 function _M.new(configuration)
   configuration = configuration or {}
   local services = (configuration or {}).services or {}
+  local final_services = _M.filter_services(map(_M.parse_service, services))
 
   return setmetatable({
     version = configuration.timestamp,
-    services = _M.filter_services(map(_M.parse_service, services)),
-    oidc = configuration.oidc or {}
+    services = final_services,
+    oidc = _M.filter_oidc_config(final_services, configuration.oidc or {})
   }, mt)
 end
 

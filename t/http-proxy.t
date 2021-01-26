@@ -3,6 +3,16 @@ use Test::APIcast::Blackbox 'no_plan';
 
 require("http_proxy.pl");
 
+sub large_body {
+  my $res = "";
+  for (my $i=0; $i <= 1024; $i++) {
+    $res = $res . "1111111 1111111 1111111 1111111\n";
+  }
+  return $res;
+}
+
+$ENV{'LARGE_BODY'} = large_body();
+
 repeat_each(3);
 
 run_tests();
@@ -949,6 +959,60 @@ Host: test:$TEST_NGINX_RANDOM_PORT
 --- error_code: 200
 --- error_log env
 proxy request: CONNECT 127.0.0.1:$TEST_NGINX_RANDOM_PORT HTTP/1.1
+--- no_error_log
+[error]
+--- user_files fixture=tls.pl eval
+
+
+=== TEST 20: Body is larger than client_body_buffer
+--- env eval
+("https_proxy" => $ENV{TEST_NGINX_HTTPS_PROXY})
+--- configuration random_port env
+{
+  "services": [
+    {
+      "proxy": {
+        "policy_chain": [
+          { "name": "apicast.policy.upstream",
+            "configuration":
+              {
+                "rules": [ { "regex": "/test", "url": "https://test:$TEST_NGINX_RANDOM_PORT" } ]
+              }
+          }
+        ]
+      }
+    }
+  ]
+}
+--- upstream env
+listen $TEST_NGINX_RANDOM_PORT ssl;
+
+ssl_certificate $TEST_NGINX_SERVER_ROOT/html/server.crt;
+ssl_certificate_key $TEST_NGINX_SERVER_ROOT/html/server.key;
+
+location /test {
+    echo_foreach_split '\r\n' $echo_client_request_headers;
+    echo $echo_it;
+    echo_end;
+
+    access_by_lua_block {
+       assert = require('luassert')
+       assert.equal('https', ngx.var.scheme)
+       assert.equal('$TEST_NGINX_RANDOM_PORT', ngx.var.server_port)
+       assert.equal('test', ngx.var.ssl_server_name)
+
+      ngx.req.read_body()
+      local handle = io.open(ngx.req.get_body_file(), "r")
+      local body = handle:read("*a")
+      assert.equal(#body, 32799)
+    }
+}
+--- request eval
+"POST /test \n" . $ENV{LARGE_BODY}
+--- error_code: 200
+--- error_log env
+proxy request: CONNECT 127.0.0.1:$TEST_NGINX_RANDOM_PORT HTTP/1.1
+Request body is bigger than client_body_buffer_size
 --- no_error_log
 [error]
 --- user_files fixture=tls.pl eval

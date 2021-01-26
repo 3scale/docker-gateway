@@ -105,12 +105,12 @@ local function build_backend_client(self, service)
   return assert(backend_client:new(service, self.http_ng_backend), 'missing backend')
 end
 
-function _M:authorize(service, usage, credentials, ttl)
+function _M:authorize(context, service, usage, credentials, ttl)
   if not usage or not credentials then return nil, 'missing usage or credentials' end
 
   local formatted_usage = usage:format()
 
-  local encoded_usage = encode_args(formatted_usage)
+  local encoded_usage = usage:encoded_format()
   if encoded_usage == '' then
     return errors.no_match(service)
   end
@@ -142,7 +142,7 @@ function _M:authorize(service, usage, credentials, ttl)
     local res = backend:authrep(formatted_usage, credentials, self.extra_params_backend_authrep)
 
     local authorized, rejection_reason, retry_after = self:handle_backend_response(
-      cached_key, res, ttl
+      context, cached_key, res, ttl
     )
 
     if not authorized then
@@ -288,17 +288,17 @@ function _M:rewrite(service, context)
   context.credentials = ctx.credentials
 end
 
-function _M:access(service, usage, credentials, ttl)
+function _M:access(context)
   local ctx = ngx.ctx
-  local final_usage = usage or ctx.usage
+  local final_usage = context.usage
 
   -- If routing policy changes the upstream and it only belongs to a specified
   -- owner, we need to filter out the usage for APIs that are not used at all.
-  if ctx.context.route_upstream_usage_cleanup then
-    ctx.context:route_upstream_usage_cleanup(final_usage, ctx.matched_rules)
+  if context.route_upstream_usage_cleanup then
+    context:route_upstream_usage_cleanup(final_usage, ctx.matched_rules)
   end
-  return self:authorize(service, final_usage, credentials or ctx.credentials, ttl or ctx.ttl)
 
+  return self:authorize(context, context.service, final_usage, context.credentials, context.ttl)
 end
 
 local function response_codes_data(status)
@@ -309,7 +309,7 @@ local function response_codes_data(status)
   end
 end
 
-local function post_action(self, cached_key, service, credentials, formatted_usage, response_status_code)
+local function post_action(self, context, cached_key, service, credentials, formatted_usage, response_status_code)
   local backend = build_backend_client(self, service)
   local res = backend:authrep(
           formatted_usage,
@@ -318,7 +318,7 @@ local function post_action(self, cached_key, service, credentials, formatted_usa
           self.extra_params_backend_authrep
   )
 
-  self:handle_backend_response(cached_key, res)
+  self:handle_backend_response(context, cached_key, res)
 end
 
 function _M:post_action(context)
@@ -337,7 +337,7 @@ function _M:post_action(context)
   local credentials = context.credentials
   local formatted_usage = context.usage:format()
 
-  reporting_executor:post(post_action, self, cached_key, service, credentials, formatted_usage, ngx.var.status)
+  reporting_executor:post(post_action, self, context, cached_key, service, credentials, formatted_usage, ngx.var.status)
 end
 
 -- Returns the rejection reason from the headers of a 3scale backend response.
@@ -370,9 +370,10 @@ local function backend_is_unavailable(response_status)
   return not response_status or response_status == 0 or response_status >= 499
 end
 
-function _M:handle_backend_response(cached_key, response, ttl)
+function _M:handle_backend_response(context, cached_key, response, ttl)
   ngx.log(ngx.DEBUG, '[backend] response status: ', response.status, ' body: ', response.body)
 
+  context:publish_backend_auth(response)
   self.cache_handler(self.cache, cached_key, response, ttl)
 
   if backend_is_unavailable(response.status) then

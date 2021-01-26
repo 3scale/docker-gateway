@@ -36,6 +36,21 @@ describe('Keys Helper', function()
       assert.same({ service_id = 's1', app_id = 'ai', app_key = 'ak', metric = 'm1' }, report)
     end)
 
+    it('returns a valid metric in case of special chars', function()
+      local key = 'service_id:s1,app_id:ai,app_key:ak,metric:m/1'
+      local report = keys_helper.report_from_key_batched_report(key)
+      assert.same({ service_id = 's1', app_id = 'ai', app_key = 'ak', metric = 'm/1' }, report)
+
+      key = 'service_id:s1,app_id:ai,app_key:ak,metric:m_1'
+      report = keys_helper.report_from_key_batched_report(key)
+      assert.same({ service_id = 's1', app_id = 'ai', app_key = 'ak', metric = 'm_1' }, report)
+
+
+      key = 'service_id:s1,app_id:ai,app_key:ak,metric:m%1'
+      report = keys_helper.report_from_key_batched_report(key)
+      assert.same({ service_id = 's1', app_id = 'ai', app_key = 'ak', metric = 'm%1' }, report)
+    end)
+
     it('returns a report given a key of a batched report with user key', function()
       local key = 'service_id:s1,user_key:uk,metric:m1'
 

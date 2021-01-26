@@ -6,7 +6,7 @@ local b64 = require('ngx.base64')
 -- The "x5t#S256" (X.509 Certificate SHA-256 Thumbprint) Header
 -- Parameter is a base64url encoded SHA-256 thumbprint (a.k.a. digest)
 -- of the DER encoding of the X.509 certificate.
--- https://tools.ietf.org/html/draft-ietf-jose-json-web-signature-41#section-4.1.8
+-- https://tools.ietf.org/html/rfc7515#section-4.1.8
 local header_parameter = 'x5t#S256'
 
 local function error(service)

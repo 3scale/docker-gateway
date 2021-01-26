@@ -1,0 +1,92 @@
+{
+  "$schema": "http://apicast.io/policy-v1.1/schema#manifest#",
+  "name": "Upstream Mutual TLS",
+  "summary": "Certificates to be used with the upstream API",
+  "description": "With this policy a new TLS connection with the upstream API will be used with the certificates set in the config",
+  "version": "builtin",
+  "configuration": {
+    "title": "Upstream MTLS",
+    "description": "Built-in Upstream MTLS APIcast policy",
+    "type": "object",
+    "required": [
+      "certificate_type",
+      "certificate_key_type"
+    ],
+    "properties": {
+      "certificate_type": {
+        "title": "Certificate type",
+        "type": "string",
+        "enum": [
+          "path",
+          "embedded"
+        ],
+        "default": "path"
+      },
+      "certificate_key_type": {
+        "title": "Certificate key type",
+        "type": "string",
+        "enum": [
+          "path",
+          "embedded"
+        ],
+        "default": "path"
+      }
+    },
+    "dependencies": {
+      "certificate_type": {
+        "oneOf": [
+          {
+            "properties": {
+              "certificate_type": {
+                "const": "embedded"
+              },
+              "certificate": {
+                "title": "Certificate",
+                "format": "data-url",
+                "type": "string"
+              }
+            }
+          },
+          {
+            "properties": {
+              "certificate_type": {
+                "const": "path"
+              },
+              "certificate": {
+                "title": "Certificate",
+                "type": "string"
+              }
+            }
+          }
+        ]
+      },
+      "certificate_key_type": {
+        "oneOf": [
+          {
+            "properties": {
+              "certificate_key_type": {
+                "const": "embedded"
+              },
+              "certificate_key": {
+                "title": "Certificate Key",
+                "format": "data-url",
+                "type": "string"
+              }
+            }
+          },
+          {
+            "properties": {
+              "certificate_key_type": {
+                "const": "path"
+              },
+              "certificate_key": {
+                "title": "Certificate Key",
+                "type": "string"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
