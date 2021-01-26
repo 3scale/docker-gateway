@@ -2,11 +2,79 @@
   "$schema": "http://apicast.io/policy-v1.1/schema#manifest#",
   "name": "Maintenance Mode",
   "summary": "Rejects incoming requests. Useful for maintenance periods.",
-  "description": ["A policy which allows you reject incoming requests with a specified status code and message.",
-    "It's useful for maintenance periods or to temporarily block an API."
+  "description": [
+    "A policy which allows you to reject incoming requests with a specified status code and message. ",
+    "It's useful for maintenance periods or to temporarily block an API. \n",
+    "It allows to select a list of Upstream URLs for which to enable the maintenance mode."
   ],
   "version": "builtin",
   "configuration": {
+    "definitions": {
+      "operation": {
+        "type": "object",
+        "$id": "#/definitions/operation",
+        "properties": {
+          "left": {
+            "type": "string"
+          },
+          "op": {
+            "description": "Operation to apply. The matches op supports PCRE (Perl compatible regular expressions)",
+            "type": "string",
+            "enum": [
+              "==",
+              "!=",
+              "matches"
+            ]
+          },
+          "right": {
+            "type": "string"
+          },
+          "left_type": {
+            "description": "How to evaluate 'left'",
+            "type": "string",
+            "default": "plain",
+            "oneOf": [
+              {
+                "enum": [
+                  "plain"
+                ],
+                "title": "Evaluate 'left' as plain text."
+              },
+              {
+                "enum": [
+                  "liquid"
+                ],
+                "title": "Evaluate 'left' as liquid."
+              }
+            ]
+          },
+          "right_type": {
+            "description": "How to evaluate 'right'",
+            "type": "string",
+            "default": "plain",
+            "oneOf": [
+              {
+                "enum": [
+                  "plain"
+                ],
+                "title": "Evaluate 'right' as plain text."
+              },
+              {
+                "enum": [
+                  "liquid"
+                ],
+                "title": "Evaluate 'right' as liquid."
+              }
+            ]
+          }
+        },
+        "required": [
+          "left",
+          "op",
+          "right"
+        ]
+      }
+    },
     "type": "object",
     "properties": {
       "status": {
@@ -23,6 +91,32 @@
         "type": "string",
         "description": "Content-Type header for the response",
         "default": "text/plain; charset=utf-8"
+      },
+      "condition": {
+        "type": "object",
+        "title": "Condition",
+        "required": [
+          "combine_op",
+          "operations"
+        ],
+        "properties": {
+          "combine_op": {
+            "title": "Combine operation",
+            "type": "string",
+            "default": "and",
+            "enum": [
+              "and",
+              "or"
+            ]
+          },
+          "operations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/operation"
+            },
+            "minItems": 1
+          }
+        }
       }
     }
   }

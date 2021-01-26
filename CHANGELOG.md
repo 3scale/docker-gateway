@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Added
 
+- Added conditions in maintenance mode policy including upstream in the liquid context + the upstream updated by Upstream policy is now shared in context.route_upstream [PR #1255](https://github.com/3scale/APIcast/pull/1255) [THREESCALE-6552](https://issues.redhat.com/browse/THREESCALE-6552)
 - Add methods to transformations in rewrite url captures policy [PR #1253](https://github.com/3scale/APIcast/pull/1253) [THREESCALE-6270](https://issues.redhat.com/browse/THREESCALE-6270)
 - Add Access-Control-Max-Age [PR #1247](https://github.com/3scale/APIcast/pull/1247) [THREESCALE-6556](https://issues.redhat.com/browse/THREESCALE-6556)
 - Add HTTP codes policy [PR #1236](https://github.com/3scale/APIcast/pull/1236) [THREESCALE-6255](https://issues.redhat.com/browse/THREESCALE-6255)

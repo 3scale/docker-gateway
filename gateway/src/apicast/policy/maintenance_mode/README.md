@@ -10,7 +10,9 @@ and message. It's useful for maintenance periods or to temporarily block an API.
 | status (integer, _optional_) | 503                               | Response code    |
 | message (string, _optional_) | Service Unavailable - Maintenance | Response message |
 
-## Example Configuration
+## Examples Configuration
+
+- Custom response message
 ```json
 {
   "name": "maintenance-mode",
@@ -18,5 +20,27 @@ and message. It's useful for maintenance periods or to temporarily block an API.
     "message": "Be back soon..",
     "status": 503
   }
+}
+```
+- Apply Maintenance Mode for a specific upstream
+```json
+{
+    "name": "maintenance_mode",
+    "configuration": {
+      "condition": {
+        "operations": [
+          {
+            "left_type": "liquid",
+            "right_type": "plain",
+            "left": "{{ upstream.host }}{{ upstream.path }}",
+            "right": "echo-api.3scale.net/test",
+            "op": "=="
+          }
+        ],
+        "combine_op": "and"
+      },
+      "status": 503,
+      "message": "Echo API /test is currently Unavailable"
+    }
 }
 ```
