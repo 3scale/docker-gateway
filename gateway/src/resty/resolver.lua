@@ -20,6 +20,7 @@ local upstream = require 'ngx.upstream'
 local re = require('ngx.re')
 local semaphore = require "ngx.semaphore"
 local synchronization = require('resty.synchronization').new(1)
+local hosts_map = {}
 
 local init = semaphore.new(1)
 
@@ -31,9 +32,7 @@ local _M = {
 
 local mt = { __index = _M }
 
-local function read_resolv_conf(path)
-  path = path or '/etc/resolv.conf'
-
+local function read_file(path)
   local handle, err
 
   if io_type(path) then
@@ -53,6 +52,10 @@ local function read_resolv_conf(path)
   return output or "", err
 end
 
+local function read_resolv_conf(path)
+  return read_file(path or '/etc/resolv.conf')
+end
+
 local function ipv4(address)
   return re_match(address, '^([0-9]{1,3}\\.){3}[0-9]{1,3}$', 'oj')
 end
@@ -60,6 +63,21 @@ end
 local function ipv6(address)
   return re_match(address, '^\\[[a-f\\d:]+\\]$', 'oj')
 end
+
+local function init_hosts()
+  local etc_hosts, err = read_file('/etc/hosts')
+  ngx.log(ngx.DEBUG, '/etc/hosts:\n', etc_hosts)
+  for _,line in ipairs(re.split(etc_hosts, "\n+")) do
+    local ip, hosts_string = match(line, '^([^%s]+)%s+(.+)$')
+    for domain in gmatch(hosts_string or '', '([^%s]+)') do
+      if match(domain, '^%#') then break end
+      ngx.log(ngx.DEBUG, 'add domain: ', domain, ' for ip: ', ip)
+      hosts_map[domain] = ip
+    end
+  end
+end
+
+init_hosts()
 
 local nameserver = {
   mt = {
@@ -343,7 +361,14 @@ function _M.lookup(self, qname, stale)
   ngx.log(ngx.DEBUG, 'resolver query: ', qname)
 
   local answers, err
-
+  
+  if (hosts_map[qname])
+  then
+    ngx.log(ngx.DEBUG, 'host is in /etc/hosts: ', hosts_map[qname])
+    answers = { new_answer(hosts_map[qname]) }
+    return answers, err
+  end
+  
   if is_ip(qname) then
     ngx.log(ngx.DEBUG, 'host is ip address: ', qname)
     answers = { new_answer(qname) }
