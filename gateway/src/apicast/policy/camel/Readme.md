@@ -1,14 +1,14 @@
 #  Camel proxy policy
 
-This policy allows users to define a camel proxy where the traffic will be send
-over the defined proxy, the example traffic flow is the following:
+You can use this policy to define an Apache Camel proxy where the traffic is sent 
+over the defined proxy. The example traffic flow is as follows:
 
 ```
    ,-.
    `-'
    /|\
     |            ,-------.          ,---------.          ,----------.
-   / \           |Apicast|          |  CAMEL  |          |APIBackend|
+   / \           |APIcast|          |  CAMEL  |          |APIBackend|
   User           `---+---'          `----+----'          `----------'
    |  GET /resource  |                   |                    |
    | --------------->|                   |                    |
@@ -28,7 +28,7 @@ over the defined proxy, the example traffic flow is the following:
    |                 |                   |                    |
    | <---------------|                   |                    |
   User           ,---+---.          ,----+----.          ,----------.
-   ,-.           |Apicast|          |  CAMEL  |          |APIBackend|
+   ,-.           |APIcast|          |  CAMEL  |          |APIBackend|
    `-'           `-------'          `---------'          `----------'
    /|\
     |
@@ -46,32 +46,31 @@ over the defined proxy, the example traffic flow is the following:
     {
       "name": "apicast.policy.camel",
       "configuration": {
-          "all_proxy": "http://192.168.15.103:8888/",
-          "https_proxy": "https://192.168.15.103:8888/",
-          "http_proxy": "https://192.168.15.103:8888/"
+          "http_proxy": "http://192.168.15.103:8080/",
+          "https_proxy": "http://192.168.15.103:8443/",
+          "all_proxy": "http://192.168.15.103:8080/"
       }
     }
 ]
 ```
 
-- If http_proxy or https_proxy is not defined the all_proxy will be taken. 
+- If `http_proxy` or `https_proxy` is not defined, the `all_proxy` setting is used. 
 
 ## Caveats
 
 - This policy will disable all load-balancing policies and traffic will be
-  always send to the proxy. 
-- In case of HTTP_PROXY, HTTPS_PROXY or ALL_PROXY parameters are defined, this
+  always sent to the proxy. 
+- If the `HTTP_PROXY`, `HTTPS_PROXY` or `ALL_PROXY` parameters are defined, this
   policy will overwrite those values. 
-- Proxy connection does not support authentication, if you need auth, please use
-  headers policy.
+- Proxy connection does not support authentication. If you need authentication, 
+please use the headers policy.
 
 
-## Example Use case
+## Example use case
 
-This policy was designed to be able to apply more fined grained policies and
-transformation using Apache Camel.
+This policy is designed to to apply more fined-grained policies and transformation 
+using Apache Camel.
 
-An example project can be found
-[here](https://github.com/zregvart/camel-netty-proxy). This project is an HTTP
-Proxy that transforms to uppercase all the response body given by the API
-backend.
+This [example project](https://github.com/zregvart/camel-netty-proxy) shows an 
+HTTP proxy that transforms the response body from the API
+backend to uppercase. 
