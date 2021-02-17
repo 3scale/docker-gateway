@@ -21,6 +21,8 @@ end
 function _M.select(_, rules, context)
   if not rules then return nil end
 
+  local service = context.service or ngx.ctx.service or {}
+
   for _, rule in ipairs(rules) do
     local cond_is_true = rule.condition:evaluate(context)
 
@@ -29,8 +31,9 @@ function _M.select(_, rules, context)
 
       local upstream = Upstream.new(rule.url)
 
-      if rule.host_header and rule.host_header ~= '' then
-        upstream:use_host_header(rule.host_header)
+      local host_header = rule.host_header or service and service.hostname_rewrite
+      if host_header and host_header ~= '' then
+        upstream:use_host_header(host_header)
       end
 
       if rule.owner_id then

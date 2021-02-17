@@ -2194,3 +2194,114 @@ GET /foo/test%20space?user_key=foo
 --- error_code: 200
 --- no_error_log
 [error]
+
+
+=== TEST 33: value of hostname_rewrite is honored
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "proxy": {
+        "policy_chain": [
+          {
+            "name": "apicast.policy.routing",
+            "configuration": {
+              "rules": [
+                {
+                  "url": "http://test:$TEST_NGINX_SERVER_PORT",
+                  "condition": {
+                    "operations": [
+                      {
+                        "match": "path",
+                        "op": "==",
+                        "value": "/a_path"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "apicast.policy.echo"
+          }
+        ],
+        "hostname_rewrite": "hostname_rewrite_value"
+      }
+    }
+  ]
+}
+--- upstream
+  server_name hostname_rewrite_value;
+
+  location /a_path {
+     content_by_lua_block {
+       local host_header = ngx.req.get_headers()['Host']
+       require('luassert').equals('hostname_rewrite_value', host_header)
+       ngx.say('yay, api backend');
+     }
+  }
+--- request
+GET /a_path
+--- response_body
+yay, api backend
+--- error_code: 200
+--- no_error_log
+[error]
+
+
+=== TEST 34: value of host_header takes precedence over hostname_rewrite
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "proxy": {
+        "policy_chain": [
+          {
+            "name": "apicast.policy.routing",
+            "configuration": {
+              "rules": [
+                {
+                  "url": "http://test:$TEST_NGINX_SERVER_PORT",
+                  "host_header": "routing_host_value",
+                  "condition": {
+                    "operations": [
+                      {
+                        "match": "path",
+                        "op": "==",
+                        "value": "/a_path"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "apicast.policy.echo"
+          }
+        ],
+        "hostname_rewrite": "hostname_rewrite_value"
+      }
+    }
+  ]
+}
+--- upstream
+  server_name routing_host_value;
+
+  location /a_path {
+     content_by_lua_block {
+       local host_header = ngx.req.get_headers()['Host']
+       require('luassert').equals('routing_host_value', host_header)
+       ngx.say('yay, api backend');
+     }
+  }
+--- request
+GET /a_path
+--- response_body
+yay, api backend
+--- error_code: 200
+--- no_error_log
+[error]

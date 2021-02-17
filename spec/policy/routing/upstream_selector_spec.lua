@@ -191,5 +191,38 @@ describe('UpstreamSelector', function()
         assert.spy(apicast_upstream.append_path).was.called_with(upstream, "bar")
       end)
     end)
+
+    describe('when hostname_rewrite is set ', function()
+      describe('and a rule that matches has a value in host_header', function()
+        it('sets the value of host_header for the host header', function()
+          ctx = { service = { hostname_rewrite = "hostname_rewrite_value" } }
+          local rule = {
+            url = 'http://example.com',
+            condition = true_condition,
+            host_header = 'some_host.com'
+          }
+
+          local upstream_selector = UpstreamSelector.new()
+          local upstream = upstream_selector:select({ rule }, ctx)
+
+          assert.equals(rule.host_header, upstream.host)
+        end)
+      end)
+      describe('and a rule that matches does not have a value in host_header', function()
+        it('sets the value of hostname_rewrite for the host header', function()
+          local hostname_rewrite_value = "hostname_rewrite_value"
+          ctx = { service = { hostname_rewrite = hostname_rewrite_value } }
+          local rule = {
+            url = 'http://example.com',
+            condition = true_condition
+          }
+
+          local upstream_selector = UpstreamSelector.new()
+          local upstream = upstream_selector:select({ rule }, ctx)
+
+          assert.equals(hostname_rewrite_value, upstream.host)
+        end)
+      end)
+    end)
   end)
 end)
