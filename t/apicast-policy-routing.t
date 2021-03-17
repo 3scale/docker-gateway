@@ -2305,3 +2305,55 @@ yay, api backend
 --- error_code: 200
 --- no_error_log
 [error]
+
+
+=== TEST 35: replace path does not use url encoding at all
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "proxy": {
+        "policy_chain": [
+          {
+            "name": "apicast.policy.routing",
+            "configuration": {
+              "rules": [
+                {
+                  "url": "http://test:$TEST_NGINX_SERVER_PORT",
+                  "replace_path": "{{uri | remove_first: '/foo'}}",
+                  "condition": {
+                    "operations": [
+                        {
+                            "op": "matches",
+                            "value": "^(/foo/.*|/foo/?)",
+                            "match": "path"
+                        }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "apicast.policy.echo"
+          }
+        ]
+      }
+    }
+  ]
+}
+--- upstream
+  location ^~ / {
+    content_by_lua_block {
+
+      ngx.say(ngx.var.request_uri);
+    }
+  }
+--- request
+GET /foo/test+test?one=foo
+--- response_body
+/test+test?one=foo
+--- error_code: 200
+--- no_error_log
+[error]
