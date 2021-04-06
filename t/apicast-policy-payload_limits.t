@@ -236,6 +236,8 @@ yay, api backend
 --- request
 POST /test
 --- error_code: 413
+--- response_headers
+Content-Length: 17
 --- response_body eval
 "Payload Too Large"
 --- no_error_log

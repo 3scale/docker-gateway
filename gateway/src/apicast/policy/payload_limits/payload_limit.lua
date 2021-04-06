@@ -4,6 +4,8 @@ local new = _M.new
 local ngx_exit = ngx.exit
 local ngx_say = ngx.say
 
+local PayloadErrMessage = "Payload Too Large"
+
 function _M.new(config)
   local self = new(config)
   self.request_limit = tonumber(config.request) or 0
@@ -24,7 +26,7 @@ function _M:access()
   if tonumber(ngx.var.content_length) > self.request_limit then
       ngx.log(ngx.INFO, "request rejected due to large body")
       ngx.status = 413
-      ngx_say("Payload Too Large")
+      ngx_say(PayloadErrMessage)
       return ngx_exit(413)
   end
 end
@@ -43,14 +45,16 @@ function _M:header_filter(context)
       ngx.log(ngx.INFO, "Response rejected due to large body")
       context.request_limited = true;
       ngx.status = 413
+      ngx.header["Content-Length"] = #PayloadErrMessage
       return ngx_exit(413)
   end
 end
 
 function _M:body_filter(context)
   if context.request_limited then
-    ngx.arg[1] = "Payload Too Large"
+    ngx.arg[1] = PayloadErrMessage
     ngx.arg[2] = true
+
     return
   end
 end
