@@ -408,7 +408,7 @@ Path to a file with the X.509 certificate secret key in the PEM format.
 **Values:** positive integers
 
 Defines the maximum length of the client certificate chain.
-If this parameter has 1 as its value, it implies that this length might include one additional certificate (eg. intermediate CA).
+If this parameter has `1` as its value, it is possible to include an additional certificate in the client certificate chain. For example, root certificate authority.
 
 ### `all_proxy`, `ALL_PROXY`
 
