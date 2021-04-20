@@ -15,6 +15,11 @@ local oidc_log_level = ngx[string.upper(resty_env.value('APICAST_OIDC_LOG_LEVEL'
 
 local cache_max_size = 100
 
+local json_content_types = {
+  ["application/json"] = true,
+  ["application/jwk-set+json"] = true
+}
+
 local _M = {
   _TYPE = "oidc_discovery"
 }
@@ -32,7 +37,7 @@ local function mime_type(content_type)
 end
 
 local function decode_json(response)
-    if mime_type(response.headers.content_type) == 'application/json' then
+    if json_content_types[mime_type(response.headers.content_type)] then
         return cjson.decode(response.body)
     else
         return nil, 'not json'
@@ -111,7 +116,7 @@ function _M:openid_configuration(issuer)
 
     local config = decode_json(res)
     if not config then
-        ngx.log(oidc_log_level, 'invalid OIDC Provider, expected application/json got:  ', res.headers.content_type, ' body: ', res.body)
+        ngx.log(oidc_log_level, 'invalid OIDC Provider, cannot decode the message::  ', res.headers.content_type, ' body: ', res.body)
         return nil, 'invalid JSON'
     end
     return config
@@ -140,7 +145,12 @@ function _M:jwks(configuration)
     local res = http_client.get(jwks_uri)
 
     if res.status == 200 then
-        return jwk.convert_keys(decode_json(res))
+        local val, err = jwk.convert_keys(decode_json(res))
+        if err then
+          ngx.log(oidc_log_level, 'invalid JWKS config, cannot decode the message: ', res.headers.content_type, ', error:', err ,', body: ', res.body)
+          return nil, "Cannot convert keys"
+        end
+        return val
     else
         return nil, 'invalid response'
     end

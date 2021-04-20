@@ -140,6 +140,35 @@ UwIDAQAB
             } }, keys)
         end)
 
+        it('can process jwk-set+json content type ', function()
+            local config = { jwks_uri = 'https://idp.example.com/auth/realms/foo/jwks' }
+            test_backend
+                .expect{ url = config.jwks_uri }
+                .respond_with{
+                    status = 200,
+                    headers = { content_type = 'application/jwk-set+json;charset=UTF-8' },
+                    body = fixture('oidc', 'jwk', 'forgerock.json')
+                }
+
+            local keys = assert(discovery:jwks(config))
+
+            assert.same(cjson.decode(fixture('oidc', 'jwk', 'forgerock.apicast.json')),
+                    keys)
+        end)
+
+        it('cannot process text content type ', function()
+            local config = { jwks_uri = 'https://idp.example.com/auth/realms/foo/jwks' }
+            test_backend
+                .expect{ url = config.jwks_uri }
+                .respond_with{
+                    status = 200,
+                    headers = { content_type = 'application/text' },
+                    body = fixture('oidc', 'jwk', 'forgerock.json')
+                }
+
+            assert.returns_error('Cannot convert keys', discovery:jwks(config))
+        end)
+
         it('can process ForgeRock response', function()
             local config = { jwks_uri = 'https://idp.example.com/auth/realms/foo/jwks' }
             test_backend
@@ -180,7 +209,7 @@ UwIDAQAB
                     .expect{ url = config.jwks_uri }
                     .respond_with{ status = 200, body = '' }
 
-            assert.returns_error('not json', discovery:jwks(config))
+            assert.returns_error('Cannot convert keys', discovery:jwks(config))
         end)
     end)
 end)

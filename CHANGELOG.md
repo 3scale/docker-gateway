@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed issues with URI when using Routing Policy [PR #1245](https://github.com/3scale/APIcast/pull/1245) [THREESCALE-6410](https://issues.redhat.com/browse/THREESCALE-6410)
 - Fixed typo on TLS jsonschema [PR #1260](https://github.com/3scale/APIcast/pull/1260) [THREESCALE-6390](https://issues.redhat.com/browse/THREESCALE-6390)
 - Fixed host header format on http_ng resty [PR #1264](https://github.com/3scale/APIcast/pull/1264) [THREESCALE-2235](https://issues.redhat.com/browse/THREESCALE-2235)
+- Fixed issues on OIDC jwk discovery [PR #1268](https://github.com/3scale/APIcast/pull/1268) [THREESCALE-6913](https://issues.redhat.com/browse/THREESCALE-6913)
 
 
 ### Added
