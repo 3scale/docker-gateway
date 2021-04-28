@@ -70,7 +70,8 @@ local DEFAULT_POLICIES = {
     'apicast.policy.load_configuration',
     'apicast.policy.find_service',
     'apicast.policy.local_chain',
-    'apicast.policy.nginx_metrics'
+    'apicast.policy.nginx_metrics',
+    'apicast.policy.gc'
 }
 
 --- Return new policy chain with default policies.
