@@ -30,6 +30,7 @@ server {
 
     set $ctx_ref -1;
     set $proxy_pass '';
+    set $upstream_keepalive_key '';
 
     location / {
         rewrite_by_lua_block {

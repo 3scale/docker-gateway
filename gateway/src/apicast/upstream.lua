@@ -196,6 +196,17 @@ end
 function _M:set_skip_https_connect_on_proxy()
   self.skip_https_connect = true
 end
+
+
+function _M:set_keepalive_key(context)
+  if self.uri.scheme == "https" or self.uri.scheme == "wss" then
+    local key = self.uri.host
+    local service_id = ((context or {}).service or {}).id or ""
+    ngx.var.upstream_keepalive_key= key .. "::".. service_id
+    ngx.log(ngx.DEBUG, "keepalive key for https connection set to: '", ngx.var.upstream_keepalive_key, "'")
+  end
+end
+
 --- Execute the upstream.
 --- @tparam table context any table (policy context, ngx.ctx) to store the upstream for later use by balancer
 function _M:call(context)
@@ -226,6 +237,7 @@ function _M:call(context)
         end
     end
 
+    self:set_keepalive_key(context or {})
     if not self.servers then self:resolve() end
     if context.upstream_location_name then
         self.location_name = context.upstream_location_name
