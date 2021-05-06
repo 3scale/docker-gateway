@@ -2,6 +2,8 @@ use lib 't';
 
 use Test::APIcast 'no_plan';
 
+require("policies.pl");
+
 run_tests();
 
 __DATA__
@@ -22,7 +24,7 @@ include $TEST_NGINX_MANAGEMENT_CONFIG;
 GET /status/ready
 --- response_headers
 Content-Type: application/json; charset=utf-8
---- response_body
+--- expected_json
 {"status":"ready","success":true}
 --- error_code: 200
 --- no_error_log
@@ -40,7 +42,7 @@ include $TEST_NGINX_MANAGEMENT_CONFIG;
 GET /status/ready
 --- response_headers
 Content-Type: application/json; charset=utf-8
---- response_body
+--- expected_json
 {"success":false,"status":"error","error":"not configured"}
 --- error_code: 412
 --- no_error_log
@@ -61,7 +63,7 @@ env APICAST_MANAGEMENT_API=status;
 GET /status/ready
 --- response_headers
 Content-Type: application/json; charset=utf-8
---- response_body
+--- expected_json
 {"success":true,"status":"warning","warning":"no services"}
 --- error_code: 200
 --- no_error_log
@@ -79,7 +81,7 @@ env APICAST_MANAGEMENT_API=status;
 GET /status/live
 --- response_headers
 Content-Type: application/json; charset=utf-8
---- response_body
+--- expected_json
 {"status":"live","success":true}
 --- error_code: 200
 --- no_error_log
@@ -101,7 +103,7 @@ include $TEST_NGINX_MANAGEMENT_CONFIG;
 GET /config
 --- response_headers
 Content-Type: application/json; charset=utf-8
---- response_body
+--- expected_json
 {"services":[{"id":42}]}
 --- error_code: 200
 --- no_error_log
@@ -123,14 +125,21 @@ env APICAST_MANAGEMENT_API=debug;
   }
 
   include $TEST_NGINX_MANAGEMENT_CONFIG;
---- request
-GET /test
---- response_body
-{"status":"ok","config":null}
-null
-{"services":1,"status":"ok","config":{"services":[{"id":42}]}}
-{"services":[{"id":42}]}
---- error_code: 200
+--- request eval
+[
+'DELETE /config', 
+'GET /config',
+'PUT /config
+{"services":[{"id":42}]}',
+'GET /config'
+]
+--- expected_json eval
+['{"status":"ok","config":null}',
+'',
+'{"services":1,"status":"ok","config":{"services":[{"id":42}]}}',
+'{"services":[{"id":42}]}']
+--- error_code eval
+[200, 200, 200, 200]
 --- no_error_log
 [error]
 
@@ -163,8 +172,8 @@ env APICAST_MANAGEMENT_API=debug;
 include $TEST_NGINX_MANAGEMENT_CONFIG;
 --- request
 POST /boot
---- response_body
-{"status":"ok","config":{"services":[{"id":42}],"oidc":[false]}}
+--- expected_json
+{"status":"ok","config":{"oidc":[false],"services":[{"id":42}]}}
 --- error_code: 200
 --- udp_listen random_port env chomp
 $TEST_NGINX_RANDOM_PORT
@@ -186,16 +195,13 @@ env APICAST_MANAGEMENT_API=debug;
   }
 --- config
 include $TEST_NGINX_MANAGEMENT_CONFIG;
-location = /test {
-    echo_subrequest POST /boot;
-    echo_subrequest POST /boot;
-  }
---- request
-POST /test
---- response_body
-{"status":"ok","config":{"services":[{"id":42}],"oidc":[false]}}
-{"status":"ok","config":{"services":[{"id":42}],"oidc":[false]}}
---- error_code: 200
+--- request eval
+['POST /boot', 'POST /boot']
+--- expected_json eval
+['{"status":"ok","config":{"services":[{"id":42}],"oidc":[false]}}',
+'{"status":"ok","config":{"services":[{"id":42}],"oidc":[false]}}']
+--- error_code eval
+[200, 200]
 --- udp_listen random_port env chomp
 $TEST_NGINX_RANDOM_PORT
 --- udp_reply dns
@@ -210,21 +216,21 @@ env APICAST_MANAGEMENT_API=debug;
 --- http_config
   lua_package_path "$TEST_NGINX_LUA_PATH";
 --- config
-
-  location = /test {
-    echo_subrequest PUT /config -b '{"services":[{"id":42}]}';
-    echo_subrequest DELETE /config;
-    echo_subrequest GET /config;
-  }
-
   include $TEST_NGINX_MANAGEMENT_CONFIG;
---- request
-GET /test
---- response_body
-{"services":1,"status":"ok","config":{"services":[{"id":42}]}}
-{"status":"ok","config":null}
-null
---- error_code: 200
+--- request eval
+[
+'PUT /config
+{"services":[{"id":42}]}',
+'DELETE /config',
+'GET /config']
+--- expected_json eval
+[
+'{"services":1,"status":"ok","config":{"services":[{"id":42}]}}',
+'{"status": "ok", "config": null}',
+''
+]
+--- error_code eval
+[200, 200, 200]
 --- no_error_log
 [error]
 
@@ -245,8 +251,8 @@ env APICAST_MANAGEMENT_API=debug;
   'Content-Type: application/json; charset=utf-8',
   'Content-Type: application/json; charset=utf-8', 
   'Content-Type: application/json; charset=utf-8' ]
---- response_body eval
-[ '{"status":"ok","config":null}'."\n",
+--- expected_json eval
+[ '{"status":"ok","config":null}',
   '{"services":1,"status":"ok","config":{"services":[{"id":42}]}}'."\n",
   '{"services":1,"status":"ok","config":{"services":[{"id":42}]}}'."\n",
   '{"services":[{"id":42}]}'."\n" ]  
@@ -329,7 +335,7 @@ include $TEST_NGINX_MANAGEMENT_CONFIG;
 --- request
 POST /config
 invalid json
---- response_body
+--- expected_json
 {"config":null,"status":"error","error":"Expected value but found invalid token at character 1"}
 --- error_code: 400
 --- no_error_log
@@ -347,7 +353,7 @@ include $TEST_NGINX_MANAGEMENT_CONFIG;
 --- request
 POST /config
 {"id":42}
---- response_body
+--- expected_json
 {"services":0,"config":{"id":42},"status":"not_configured"}
 --- error_code: 406
 --- no_error_log
@@ -363,7 +369,7 @@ env APICAST_MANAGEMENT_API=status;
 include $TEST_NGINX_MANAGEMENT_CONFIG;
 --- request
 GET /status/info
---- response_body
+--- expected_json
 {"timers":{"running":0,"pending":0},"worker":{"exiting":false,"count":1,"id":0}}
 --- error_code: 200
 --- no_error_log
