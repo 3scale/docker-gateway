@@ -55,18 +55,27 @@ our $policies = sub ($) {
 };
 
 our $expect_json = sub ($) {
-    my ($block, $body) = @_;
+    use Data::Dumper;
+    my ($block, $body, $req_idx, $repeated_req_idx, $dry_run) = @_;
 
-    use JSON;
-
-    my $expected_json = $block->expected_json;
-
-    if (!$expected_json) {
-      return
+    if (!$block->expected_json) {
+        return "";
     }
-    my $got = from_json($body);
-    my $expected = from_json($expected_json);
 
+    my @asserts = @{$block->{expected_json}};
+    my @val = shift @asserts;
+    my $expected_json = "";
+    if (ref(${val}[0]) eq 'ARRAY') {
+      $expected_json = ${val}[0]->[$req_idx];
+    }else{
+      $expected_json = ${val}[0];
+    }
+
+
+    # Because from_json can croak on invalid json, this will enable undef value
+    # on invalid body
+    my $got = eval { from_json($body) };
+    my $expected = eval {from_json($expected_json)};
     cmp_deeply(
         $got,
         $expected,

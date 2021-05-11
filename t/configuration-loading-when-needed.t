@@ -1,6 +1,8 @@
 use lib 't';
 use Test::APIcast::Blackbox 'no_plan';
 
+require("policies.pl");
+
 run_tests();
 
 __DATA__
@@ -42,12 +44,11 @@ location = /admin/api/services/proxy/configs/production.json {
 --- test
 content_by_lua_block {
   require('resty.env').set('APICAST_CONFIGURATION_LOADER', 'lazy')
-  local configuration = require('apicast.configuration_loader').load('localhost')
-  ngx.say(require('cjson').encode(configuration))
+  ngx.say(require('apicast.configuration_loader').load('localhost'))
 }
 
 --- error_code: 200
---- response_body
-"{\"services\":[{\"id\":42,\"backend_version\":1}],\"oidc\":[false]}"
+--- expected_json
+{"services":[{"id":42,"backend_version":1}],"oidc":[false]}
 --- no_error_log
 [error]

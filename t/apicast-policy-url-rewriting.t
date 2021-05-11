@@ -611,11 +611,13 @@ receives the correct values.
 }
 --- upstream
   location / {
-     content_by_lua_block {
-       require('luassert').are.equal('GET /?user_key=uk&new_arg=a_value HTTP/1.1',
-                                     ngx.var.request)
-       ngx.say('yay, api backend');
-     }
+    content_by_lua_block {
+      local assert = require("luassert")
+      local expected = "user_key=uk&new_arg=a_value"
+      assert.same(ngx.req.get_uri_args(0), ngx.decode_args(expected))
+      assert.same(ngx.var.uri, "/")
+      ngx.say('yay, api backend');
+    }
   }
 --- request
 GET /?user_key=uk
@@ -666,13 +668,15 @@ We are going to use "uri" in this case.
 }
 --- upstream
   location / {
-     content_by_lua_block {
-     ngx.log(ngx.WARN, 'request: ', ngx.var.request)
-
-       require('luassert').are.equal('GET /abc?user_key=uk&new_arg=%2Fabc HTTP/1.1',
-                                     ngx.var.request)
-       ngx.say('yay, api backend');
-     }
+    content_by_lua_block {
+      ngx.log(ngx.WARN, 'request: ', ngx.var.request)
+      local assert = require("luassert")
+      local args, err = ngx.req.get_uri_args()
+      assert.are.equal(err, nil)
+      assert.are.same(args, {new_arg = "/abc", user_key = "uk"})
+      assert.are.equal(ngx.var.uri, "/abc")
+      ngx.say('yay, api backend');
+    }
   }
 --- request
 GET /abc?user_key=uk

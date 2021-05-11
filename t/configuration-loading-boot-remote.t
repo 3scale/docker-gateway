@@ -8,6 +8,8 @@ env_to_nginx(
     'THREESCALE_PORTAL_ENDPOINT'
 );
 
+require("policies.pl");
+
 master_on();
 run_tests();
 
@@ -35,7 +37,7 @@ location = /admin/api/services.json {
 }
 --- request
 GET /t
---- response_body
+--- expected_json
 {"services":[],"oidc":[]}
 --- exit_code: 200
 
@@ -62,7 +64,7 @@ location = /admin/api/services.json {
 }
 --- request
 GET /t
---- response_body
+--- expected_json
 {"services":[],"oidc":[]}
 --- exit_code: 200
 

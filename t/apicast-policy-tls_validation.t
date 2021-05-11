@@ -20,6 +20,7 @@ use File::Slurp qw(read_file);
 to_json({
   services => [{
     proxy => {
+        hosts => ['test'],
         policy_chain => [
           { name => 'apicast.policy.tls_validation',
             configuration => {
@@ -58,6 +59,7 @@ use File::Slurp qw(read_file);
 to_json({
   services => [{
     proxy => {
+        hosts => ['test'],
         policy_chain => [
           { name => 'apicast.policy.tls_validation',
             configuration => {
@@ -96,6 +98,7 @@ use File::Slurp qw(read_file);
 to_json({
   services => [{
     proxy => {
+        hosts => ['test'],
         policy_chain => [
           { name => 'apicast.policy.tls_validation',
             configuration => {
@@ -132,6 +135,7 @@ use File::Slurp qw(read_file);
 to_json({
   services => [{
     proxy => {
+        hosts => ['test'],
         policy_chain => [
           { name => 'apicast.policy.tls_validation',
             configuration => {
@@ -169,6 +173,7 @@ use File::Slurp qw(read_file);
 to_json({
   services => [{
     proxy => {
+        hosts => ['test'],
         policy_chain => [
           { name => 'apicast.policy.tls_validation',
             configuration => {

@@ -6,6 +6,7 @@ $ENV{BACKEND_ENDPOINT_OVERRIDE} ||= "http://127.0.0.1:$Test::Nginx::Util::Server
 
 env_to_nginx('BACKEND_ENDPOINT_OVERRIDE');
 
+require("policies.pl");
 run_tests();
 
 __DATA__
@@ -345,8 +346,12 @@ Location: http://example.com/redirect\?code=\w+&state=clientstate
     }
 --- request
 GET /t
---- response_body_like
-{"token_type":"bearer","expires_in":123,"access_token":"\w+"}
+--- json_keys
+[
+  {"key": "token_type", "val": "bearer"},
+  {"key": "expires_in", "val": "123"},
+  {"key": "access_token", "val": "^\\w+", "op": "regexp"}
+]
 --- error_code: 200
 --- no_error_log
 [error]
@@ -740,8 +745,12 @@ GET /t
 --- more_headers
 X-Foo: application/json
 --- error_code: 200
---- response_body
-{"token_type":"bearer","expires_in":123,"access_token":"token"}
+--- json_keys
+[
+  {"key": "token_type", "val": "bearer"},
+  {"key": "expires_in", "val": "123"},
+  {"key": "access_token", "val": "token"}
+]
 --- no_error_log
 [error]
 
@@ -816,8 +825,12 @@ GET /t
 --- more_headers
 Content-Type: application/json
 --- error_code: 200
---- response_body
-{"token_type":"bearer","expires_in":604800,"access_token":"token"}
+--- json_keys
+[
+  {"key": "token_type", "val": "bearer"},
+  {"key": "expires_in", "val": "604800"},
+  {"key": "access_token", "val": "token"}
+]
 --- no_error_log
 [error]
 
@@ -893,8 +906,12 @@ GET /t
 --- more_headers
 Content-Type: application/json
 --- error_code: 200
---- response_body
-{"token_type":"bearer","expires_in":604800,"access_token":"token"}
+--- json_keys
+[
+  {"key": "token_type", "val": "bearer"},
+  {"key": "expires_in", "val": "604800"},
+  {"key": "access_token", "val": "token"}
+]
 --- no_error_log
 [error]
 

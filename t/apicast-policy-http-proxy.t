@@ -177,12 +177,14 @@ GET /test?user_key=test3
 --- more_headers
 User-Agent: Test::APIcast::Blackbox
 ETag: foobar
---- response_body env
-GET /test?user_key=test3 HTTP/1.1
-User-Agent: Test::APIcast::Blackbox
-ETag: foobar
-Connection: close
-Host: test:$TEST_NGINX_RANDOM_PORT
+--- expected_response_body_like_multiple eval
+[[
+    qr{GET \/test\?user_key=test3 HTTP\/1\.1},
+    qr{ETag\: foobar},
+    qr{Connection\: close},
+    qr{User\-Agent\: Test\:\:APIcast\:\:Blackbox},
+    qr{Host\: test\:\d+}
+]]
 --- error_code: 200
 --- error_log env
 proxy request: CONNECT 127.0.0.1:$TEST_NGINX_RANDOM_PORT HTTP/1.1

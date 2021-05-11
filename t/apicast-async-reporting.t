@@ -97,6 +97,8 @@ location /api/ {
 
 location /transactions/authrep.xml {
   content_by_lua_block {
+    local expected = "service_token=token-value&service_id=42&usage%5Bhits%5D=1&user_key=foo"
+    require('luassert').same(ngx.decode_args(expected), ngx.req.get_uri_args(0))
     ngx.exit(200)
   }
 }
@@ -129,8 +131,6 @@ GET /test?user_key=foo
 --- response_body
 api response
 --- error_code: 200
---- error_log env
-backend client uri: https://127.0.0.1:$TEST_NGINX_RANDOM_PORT/transactions/authrep.xml?service_token=token-value&service_id=42&usage%5Bhits%5D=1&user_key=foo ok: true status: 200
 --- wait: 3
 
 === TEST 3: uses endpoint host as Host header
@@ -192,6 +192,11 @@ $TEST_NGINX_RANDOM_PORT
 [ "localhost.example.com", "127.0.0.1", 60 ]
 --- no_error_log
 [error]
---- error_log env
-backend client uri: http://localhost.example.com:$TEST_NGINX_SERVER_PORT/transactions/authrep.xml?service_token=service-token&service_id=42&usage%5Bhits%5D=2&user_key=val ok: true status: 200
+--- error_log env eval
+[
+  qr/backend client uri\: http\:\/\/localhost\.example\.com\:$TEST_NGINX_SERVER_PORT\/transactions\/authrep.xml\?.*?(service_id=42).*? ok\: true status\: 200/,
+  qr/backend client uri\: http\:\/\/localhost\.example\.com\:$TEST_NGINX_SERVER_PORT\/transactions\/authrep.xml\?.*?(service_token=service\-token).*? ok\: true status\: 200/,
+  qr/backend client uri\: http\:\/\/localhost\.example\.com\:$TEST_NGINX_SERVER_PORT\/transactions\/authrep.xml\?.*?(user_key=val).*? ok\: true status\: 200/,
+  qr/backend client uri\: http\:\/\/localhost\.example\.com\:$TEST_NGINX_SERVER_PORT\/transactions\/authrep.xml\?.*?(usage%5Bhits%5D=2).*? ok\: true status\: 200/
+]
 --- wait: 3

@@ -1,12 +1,13 @@
 use lib 't';
 use Test::APIcast 'no_plan';
 
+require("policies.pl");
 run_tests();
+
 
 __DATA__
 
 === TEST 1: resolver
-
 --- http_config
 lua_package_path "$TEST_NGINX_LUA_PATH";
 --- config
@@ -37,7 +38,7 @@ $TEST_NGINX_RANDOM_PORT
 [ "localhost", "127.0.0.1" ]
 --- request
 GET /t
---- response_body
+--- expected_json
 [{"ttl":0,"address":"127.0.0.1"}]
 --- error_code: 200
 

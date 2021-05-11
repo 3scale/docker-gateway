@@ -13,6 +13,8 @@ sub large_body {
 
 $ENV{'LARGE_BODY'} = large_body();
 
+require("policies.pl");
+
 repeat_each(3);
 
 run_tests();
@@ -173,7 +175,7 @@ GET /?user_key=value
 yay, api backend: test:.*
 --- error_code: 200
 --- error_log env
-proxy request: GET http://127.0.0.1:$TEST_NGINX_SERVER_PORT/transactions/authrep.xml?service_token=token-value&service_id=42&usage%5Bhits%5D=2&user_key=value HTTP/1.1
+proxy request: GET http://127.0.0.1:$TEST_NGINX_SERVER_PORT/transactions/authrep.xml?
 --- no_error_log
 [error]
 
@@ -296,7 +298,7 @@ location /apicast {
 yay, api backend: test:.*
 --- error_code: 200
 --- error_log env
-proxy request: GET http://127.0.0.1:$TEST_NGINX_SERVER_PORT/transactions/authrep.xml?service_token=token-value&service_id=42&usage%5Bhits%5D=2&user_key=value HTTP/1.1
+proxy request: GET http://127.0.0.1:$TEST_NGINX_SERVER_PORT/transactions/authrep.xml?
 apicast cache write key: 42:value:usage%5Bhits%5D=2, ttl: nil, context: ngx.timer
 --- no_error_log
 [error]
@@ -469,12 +471,14 @@ GET /test?user_key=test3
 --- more_headers
 User-Agent: Test::APIcast::Blackbox
 ETag: foobar
---- response_body env
-GET /test?user_key=test3 HTTP/1.1
-User-Agent: Test::APIcast::Blackbox
-ETag: foobar
-Connection: close
-Host: test:$TEST_NGINX_RANDOM_PORT
+--- expected_response_body_like_multiple eval
+[[
+    qr{GET \/test\?user_key=test3 HTTP\/1\.1},
+    qr{ETag\: foobar},
+    qr{Connection\: close}, 
+    qr{User\-Agent\: Test\:\:APIcast\:\:Blackbox},
+    qr{Host\: test\:\d+}
+]]
 --- error_code: 200
 --- error_log env
 proxy request: CONNECT 127.0.0.1:$TEST_NGINX_RANDOM_PORT HTTP/1.1
@@ -615,12 +619,14 @@ GET /test?user_key=test3
 --- more_headers
 User-Agent: Test::APIcast::Blackbox
 ETag: foobar
---- response_body env
-GET /test?user_key=test3 HTTP/1.1
-User-Agent: Test::APIcast::Blackbox
-ETag: foobar
-Connection: close
-Host: test:$TEST_NGINX_RANDOM_PORT
+--- expected_response_body_like_multiple eval
+[[
+    qr{GET \/test\?user_key=test3 HTTP\/1\.1},
+    qr{ETag\: foobar},
+    qr{Connection\: close}, 
+    qr{User\-Agent\: Test\:\:APIcast\:\:Blackbox},
+    qr{Host\: test\:\d+}
+]]
 --- error_code: 200
 --- error_log env
 proxy request: CONNECT 127.0.0.1:$TEST_NGINX_RANDOM_PORT HTTP/1.1
@@ -724,14 +730,15 @@ POST /test?user_key=test3
 this-is-some-request-body
 --- more_headers
 User-Agent: Test::APIcast::Blackbox
---- response_body env
-POST /test?user_key=test3 HTTP/1.1
-User-Agent: Test::APIcast::Blackbox
-Content-Length: 25
-Connection: close
-Host: test:$TEST_NGINX_RANDOM_PORT
-
-this-is-some-request-body
+--- expected_response_body_like_multiple eval
+[[
+    qr{POST \/test\?user_key=test3 HTTP\/1\.1},
+    qr{Connection\: close}, 
+    qr{User\-Agent\: Test\:\:APIcast\:\:Blackbox},
+    qr{Host\: test\:\d+},
+    qr{Content\-Length\: 25},
+    qr{this\-is\-some\-request\-body},
+]]
 --- error_code: 200
 --- error_log env
 proxy request: CONNECT 127.0.0.1:$TEST_NGINX_RANDOM_PORT HTTP/1.1
@@ -950,12 +957,14 @@ GET /test
 --- more_headers
 User-Agent: Test::APIcast::Blackbox
 ETag: foobar
---- response_body env
-GET /test HTTP/1.1
-User-Agent: Test::APIcast::Blackbox
-ETag: foobar
-Connection: close
-Host: test:$TEST_NGINX_RANDOM_PORT
+--- expected_response_body_like_multiple eval
+[[
+    qr{GET \/test HTTP\/1\.1},
+    qr{ETag\: foobar},
+    qr{Connection\: close}, 
+    qr{User\-Agent\: Test\:\:APIcast\:\:Blackbox},
+    qr{Host\: test\:\d+}
+]]
 --- error_code: 200
 --- error_log env
 proxy request: CONNECT 127.0.0.1:$TEST_NGINX_RANDOM_PORT HTTP/1.1

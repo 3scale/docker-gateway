@@ -45,6 +45,7 @@ __DATA__
       "backend_authentication_type": "service_token",
       "backend_authentication_value": "token-value",
       "proxy": {
+        "hosts": ["test"],
         "authentication_method": "oidc",
         "oidc_issuer_endpoint": "https://example.com/auth/realms/apicast",
         "api_backend": "http://test_backend:$TEST_NGINX_RANDOM_PORT/",
@@ -114,6 +115,7 @@ yay, api backend
       "backend_authentication_type": "service_token",
       "backend_authentication_value": "token-value",
       "proxy": {
+        "hosts": ["test"],
         "authentication_method": "oidc",
         "oidc_issuer_endpoint": "https://example.com/auth/realms/apicast",
         "api_backend": "http://test_backend:$TEST_NGINX_RANDOM_PORT/",
@@ -183,6 +185,7 @@ log_by_lua_block { collectgarbage() }
       "backend_authentication_type": "service_token",
       "backend_authentication_value": "token-value",
       "proxy": {
+        "hosts": ["test"],
         "authentication_method": "oidc",
         "oidc_issuer_endpoint": "https://example.com/auth/realms/apicast",
         "api_backend": "http://test_backend:$TEST_NGINX_RANDOM_PORT/",
@@ -250,6 +253,7 @@ log_by_lua_block { collectgarbage() }
       "backend_authentication_type": "service_token",
       "backend_authentication_value": "token-value",
       "proxy": {
+        "hosts": ["test"],
         "authentication_method": "oidc",
         "oidc_issuer_endpoint": "https://example.com/auth/realms/apicast",
         "api_backend": "http://test_backend:$TEST_NGINX_RANDOM_PORT/",
