@@ -5,6 +5,27 @@ local http_ng_resty = require 'resty.http_ng.backend.resty'
 local ReportsBatch = require 'apicast.policy.3scale_batcher.reports_batch'
 local backend_calls_metrics = require 'apicast.metrics.3scale_backend_calls'
 
+function encode(data)
+  tablex = require "pl.tablex"
+
+  if tablex.size(data) == 0 then
+    return ""
+  end
+
+  local result = ""
+  local first = true
+
+  for k,v in tablex.sort(data) do
+    local prefix = "&"
+    if first then
+      prefix = ""
+      first = false
+    end
+    result = string.format("%s%s%s=%s",result, prefix, k, v)
+  end
+  return result
+end
+
 describe('backend client', function()
 
   local test_backend
@@ -12,6 +33,7 @@ describe('backend client', function()
   local options_header_no_oauth_native = 'rejection_reason_header=1&limit_headers=1&no_body=1'
 
   before_each(function()
+    stub(ngx, 'encode_args', encode)
     test_backend = http_ng.backend()
     stub(backend_calls_metrics, 'report')
   end)
@@ -48,8 +70,7 @@ describe('backend client', function()
       })
       test_backend.expect{
         url = 'http://example.com/transactions/authrep.xml?' ..
-            ngx.encode_args({ auth = service.backend_authentication.value, service_id = service.id }) ..
-            '&usage%5Bhits%5D=1&user_key=foobar',
+          string.format("auth=val&service_id=42&usage[hits]=1&user_key=foobar"),
         headers = { ['3scale-options'] = options_header_no_oauth_native }
       }.respond_with{ status = 200 }
       local backend_client = assert(_M:new(service, test_backend))
@@ -138,7 +159,7 @@ describe('backend client', function()
       })
       test_backend.expect{
         url = 'http://example.com/transactions/authorize.xml?' ..
-            ngx.encode_args({ auth = service.backend_authentication.value, service_id = service.id }),
+            ngx.encode_args({ service_id = service.id, auth = service.backend_authentication.value }),
         headers = { host = 'example.com',
                     ['3scale-options'] = options_header_no_oauth_native }
       }.respond_with{ status = 200 }
@@ -159,8 +180,7 @@ describe('backend client', function()
       })
       test_backend.expect{
         url = 'http://example.com/transactions/authorize.xml?' ..
-            ngx.encode_args({ auth = service.backend_authentication.value, service_id = service.id }) ..
-            '&usage%5Bhits%5D=1&user_key=foobar',
+        string.format("auth=%s&service_id=%s&usage[hits]=1&user_key=foobar",service.backend_authentication.value, service.id),
         headers = { ['3scale-options'] = options_header_no_oauth_native }
       }.respond_with{ status = 200 }
       local backend_client = assert(_M:new(service, test_backend))
@@ -273,8 +293,8 @@ describe('backend client', function()
 
         test_backend.expect{
           url = 'http://example.com/transactions.xml?' ..
-              ngx.encode_args({ auth = service.backend_authentication.value,
-                                service_id = service.id }),
+              ngx.encode_args({ service_id = service.id,
+                                auth = service.backend_authentication.value}),
           body = ngx.encode_args(transactions)
         }.respond_with{ status = 200 }
 
@@ -305,8 +325,8 @@ describe('backend client', function()
 
         test_backend.expect{
           url = 'http://example.com/transactions.xml?' ..
-              ngx.encode_args({ auth = service.backend_authentication.value,
-                                service_id = service.id }),
+              ngx.encode_args({ service_id = service.id,
+                                auth = service.backend_authentication.value}),
           body = ngx.encode_args(transactions)
         }.respond_with{ status = 200 }
 
@@ -337,8 +357,8 @@ describe('backend client', function()
 
         test_backend.expect{
           url = 'http://example.com/transactions.xml?' ..
-              ngx.encode_args({ auth = service.backend_authentication.value,
-                                service_id = service.id }),
+              ngx.encode_args({ service_id = service.id,
+                                auth = service.backend_authentication.value}),
           body = ngx.encode_args(transactions)
         }.respond_with{ status = 200 }
 
@@ -362,6 +382,8 @@ describe('backend client', function()
 
   describe('store_oauth_token', function()
     it('makes the right call to backend', function()
+
+
       local service_id = '42'
       local service = configuration.parse_service({
         id = service_id,
@@ -376,16 +398,17 @@ describe('backend client', function()
       test_backend.expect{
         -- Notice that the service_id appears twice, but it's not a problem.
         url = 'http://example.com/services/42/'..
-              'oauth_access_tokens.xml?service_token=123&service_id=42',
-        body = 'user_id=a_user_id&ttl=3600&token=my_token&app_id=an_app_id',
+              'oauth_access_tokens.xml?service_id=42&service_token=123',
+        body = 'app_id=an_app_id&token=my_token&ttl=3600&user_id=a_user_id'
       }.respond_with{ status = 200 }
 
       local backend_client = assert(_M:new(service, test_backend))
+
       local res = backend_client:store_oauth_token({
+        app_id = 'an_app_id',
         token = 'my_token',
         ttl = 3600,
-        app_id = 'an_app_id',
-        user_id = 'a_user_id'
+        user_id = 'a_user_id',
       })
 
       assert.equal(200, res.status)
