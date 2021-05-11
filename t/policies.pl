@@ -6,6 +6,7 @@ use File::Slurp qw(read_file);
 use JSON qw(from_json);
 use Test::Deep;
 
+
 our $policies = sub ($) {
     my $path = shift;
 
@@ -75,6 +76,8 @@ our $expect_json = sub ($) {
 
 add_response_body_check($expect_json);
 
+
+
 # This response body helper function check is like a response_body_like but it
 # can be used with multiple values for a single request.
 #
@@ -109,3 +112,55 @@ add_response_body_check(sub {
         }
     }
 });
+
+
+
+our $json_keys = sub ($) {
+    my ($block, $body, $req_idx, $repeated_req_idx, $dry_run) = @_;
+
+    use JSON;
+    use Data::Dumper;
+
+    my $expected_keys = $block->json_keys;
+
+    if (!$expected_keys) {
+      return
+    }
+
+    my $parsed_body = eval {from_json($body)};
+    if (!$parsed_body) {
+      fail(sprintf("INVALID response body json: %s", $body))
+    }
+
+    my $expected_keys_matches  = eval {from_json($expected_keys)};
+    if (!$expected_keys_matches) {
+      fail(sprintf("INVALID json: %s", $expected_keys))
+    }
+
+    if (! ref($expected_keys_matches) eq 'ARRAY') {
+      fail(sprintf("INVALID json, need to be an array: %s", $expected_keys))
+    }
+
+    foreach my $matcher(@{$expected_keys_matches}) {
+      my $key_to_check = $matcher->{'key'};
+      my $expected_val = $matcher->{'val'};
+      my $expected_operation = $matcher->{'op'} || '==';
+      my $val = $parsed_body->{$key_to_check};
+      # print(Dumper($matcher, $val, $expected_val));
+      if ( $expected_operation eq '==' ) {
+          cmp_deeply(
+              $val,
+              $expected_val,
+              sprintf("JsonResponse: Value for key '%s' matches correctly", $key_to_check)
+          );
+      } elsif ($expected_operation eq 'regexp' ) {
+          if (!($val =~ m/$expected_val/)) {
+              fail(sprintf("Regular expression: '%s' does not match with the value: \n %s", $expected_val, $val));
+          }
+      } else {
+          fail(sprintf("No valid matching operation: '%s'", $expected_operation));
+      }
+    }
+};
+
+add_response_body_check($json_keys);
