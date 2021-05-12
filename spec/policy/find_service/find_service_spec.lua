@@ -129,21 +129,11 @@ describe('find_service', function()
       describe("when path routing = " .. tostring(path_routing), function()
         ConfigurationStore.path_routing = path_routing
 
-        it('finds the service by host and stores it in the context', function()
-          local service = { id = '1' }
+        it('return nil because path is not accesible on ssl phase', function()
           local context = { configuration = ConfigurationStore.new(), host = 'example.com' }
-          stub(HostBasedFinder, 'find_service', function(config_store, host)
-            if config_store == context.configuration and host == context.host then
-              return service
-            end
-          end)
-          stub(PathBasedFinder, 'find_service')
           local find_service = FindService.new()
-
           find_service:ssl_certificate(context)
-
-          assert.stub(PathBasedFinder.find_service).was_not_called()
-          assert.equals(service, context.service)
+          assert.falsy(context.service)
         end)
 
         it('stores nil in the context if there is not a service for the host', function()

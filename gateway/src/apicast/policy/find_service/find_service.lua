@@ -57,8 +57,8 @@ function _M:ssl_certificate(context)
   if self.find_service ~= host_based_finder.find_service then
     ngx.log(ngx.WARN, 'Configured to do path-based routing, but it is not',
                       'compatible with TLS. Falling back to routing by host.')
+    return
   end
-
   context.service = context.service or
                     host_based_finder.find_service(context.configuration, context.host)
 end
