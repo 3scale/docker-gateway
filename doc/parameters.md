@@ -134,13 +134,6 @@ Allows to set the log level for the logs related to OpenID Connect integration
 The [Management API](./management-api.md) is powerful and can control the APIcast configuration.
 You should enable the debug level only for debugging.
 
-### `APICAST_MODULE`
-
-**Default:** apicast  
-**Deprecated:** Use [policies](./policies.md) instead.
-
-Specifies the name of the main Lua module that implements the API gateway logic. Custom modules can override the functionality of the default `apicast.lua` module. See [an example](../examples/custom-module) of how to use modules.
-
 ### `APICAST_OAUTH_TOKENS_TTL`
 
 **Values:** _a number_  

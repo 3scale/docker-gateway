@@ -16,32 +16,11 @@ end
 -- User-Agent: Mozilla/<version> (<system-information>) <platform> (<platform-details>) <extensions>
 
 function _M.call()
-  return format('APIcast/%s (%s) %s', _M._VERSION, _M.system_information(), _M.platform() or 'Unknown')
+  return format('APIcast/%s (%s)', _M._VERSION, _M.system_information())
 end
 
 function _M.system_information()
   return ffi.os .. '; ' .. ffi.arch .. '; env:' .. _M.deployment()
-end
-
-function _M.platform()
-  local module = require('apicast.module')
-
-  if not module then
-    return nil, 'invalid module'
-  end
-
-  local version = module._VERSION
-  local name = module._NAME
-
-  if not name then
-    return nil, 'missing module name'
-  end
-
-  if version then
-    return name ..'/'.. version
-  else
-    return name
-  end
 end
 
 local mt = {

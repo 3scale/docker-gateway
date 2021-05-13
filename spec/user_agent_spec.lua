@@ -36,10 +36,6 @@ describe('User Agent', function()
       assert.match('(' .. user_agent.system_information() .. ')', user_agent.call())
     end)
 
-    it('includes platform information', function()
-      assert.match(' ' .. user_agent.platform(), user_agent.call(), nil, true)
-    end)
-
     it('works as tostring', function()
       assert.equal(user_agent.call(), tostring(user_agent))
     end)
@@ -60,22 +56,6 @@ describe('User Agent', function()
     end)
   end)
 
-  describe('.platform', function()
-    it('includes os information', function()
-      local apicast = require('apicast.policy.apicast')
-
-      assert.same('APIcast/' .. apicast._VERSION, user_agent.platform())
-    end)
-
-    it('works when module fails to load', function()
-
-      local module = require('apicast.module')
-
-      stub(module, 'require').returns(42, 'failed to load')
-
-      assert.truthy(user_agent.platform())
-    end)
-  end)
 
   describe('.call', function()
     it('returns a string', function()
