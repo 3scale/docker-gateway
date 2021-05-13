@@ -5,11 +5,12 @@ local executor = require('apicast.executor')
 local router = require('router')
 local configuration_parser = require('apicast.configuration_parser')
 local configuration_loader = require('apicast.configuration_loader')
-local load_configuration = require('apicast.policy.load_configuration')
 local inspect = require('inspect')
 local resolver_cache = require('resty.resolver.cache')
 local env = require('resty.env')
 local policy_manifests_loader = require('apicast.policy_manifests_loader')
+
+local policy_loader = require('apicast.policy_loader')
 
 local live = { status = 'live', success = true }
 
@@ -30,7 +31,7 @@ function _M.live()
 end
 
 local function context_configuration()
-    return executor:context().configuration or load_configuration.configuration
+    return executor:context().configuration or policy_loader:pcall("load_configuration", version or 'builtin')
 end
 
 function _M.status(config)

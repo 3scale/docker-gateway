@@ -43,6 +43,6 @@ status info
 [ 200, 404]
 --- expected_json eval
 use JSON;
-encode_json $::policies->();
+[encode_json $::policies->(), ""]
 --- no_error_log
 [error]
