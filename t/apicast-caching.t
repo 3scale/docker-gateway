@@ -157,11 +157,10 @@ First call is done synchronously and the second out of band.
       services = {
         {
           id = 42,
-          backend_version = 'oauth',
+          backend_version = 1,
           backend_authentication_type = 'service_token',
           backend_authentication_value = 'token-value',
           proxy = {
-            credentials_location = "query",
             api_backend = "http://127.0.0.1:$TEST_NGINX_SERVER_PORT/api-backend/",
             proxy_rules = {
               { pattern = '/', http_method = 'GET', metric_system_name = 'hits', delta = 2 }
@@ -175,9 +174,10 @@ First call is done synchronously and the second out of band.
 --- config
   include $TEST_NGINX_APICAST_CONFIG;
 
-
-  location /transactions/oauth_authrep.xml {
-    content_by_lua_block { ngx.exit(200) }
+  location /transactions/authrep.xml {
+    content_by_lua_block {
+        ngx.exit(200)
+    }
   }
 
   location /api-backend/ {
@@ -190,8 +190,8 @@ First call is done synchronously and the second out of band.
   }
 
   location = /t {
-    echo_subrequest GET /test/one -q access_token=value;
-    echo_subrequest GET /test/two -q access_token=value;
+    echo_subrequest GET /test/one -q user_key=value;
+    echo_subrequest GET /test/two -q user_key=value;
   }
 --- request
 GET /t

@@ -170,14 +170,6 @@ describe('Service object', function()
         assert.equal('http://example.com', oauth.issuer)
       end)
 
-      it('returns APIcast OAuth object when there is no OIDC config', function()
-        local service = Service.new({backend_version = 'oauth', oidc = { }})
-
-        local oauth = service:oauth()
-
-        assert.truthy(oauth.router)
-      end)
-
     end)
   end)
 

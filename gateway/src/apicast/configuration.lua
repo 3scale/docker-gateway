@@ -107,7 +107,6 @@ function _M.parse_service(service)
       auth_failed_status = proxy.error_status_auth_failed or 403,
       limits_exceeded_status = proxy.error_status_limits_exceeded or 429,
       auth_missing_status = proxy.error_status_auth_missing or 401,
-      oauth_login_url = type(proxy.oauth_login_url) == 'string' and len(proxy.oauth_login_url) > 0 and proxy.oauth_login_url or nil,
       secret_token = proxy.secret_token,
       hostname_rewrite = type(proxy.hostname_rewrite) == 'string' and len(proxy.hostname_rewrite) > 0 and proxy.hostname_rewrite,
       backend_authentication = {
