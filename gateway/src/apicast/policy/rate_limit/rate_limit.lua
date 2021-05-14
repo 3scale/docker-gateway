@@ -256,7 +256,6 @@ local function checkin(_, ctx, time, semaphore, redis_url, error_settings)
   local limiters = ctx.limiters
   local keys = ctx.keys
   local latency = tonumber(time)
-
   local red
   if redis_url and redis_url ~= '' then
     local rederr
@@ -289,9 +288,20 @@ function _M:log()
   local ctx = ngx.ctx
   local limiters = ctx.limiters
   if limiters and next(limiters) ~= nil then
-    local semaphore = ngx_semaphore.new()
-    ngx.timer.at(0, checkin, ngx.ctx, ngx.var.request_time, semaphore, self.redis_url, self.error_settings)
-    return semaphore:wait(10)
+    -- If openrestu cannot connect to redis, or is hang, can lock the timers,
+    -- but to connect to redis, we need to use the timer due to not allow to
+    -- open a tcp connect on a thread or the log phase.
+    --
+    -- If this get hang, need to debug the following directives:
+    --   lua_max_pending_timers
+    --   lua_max_running_timers
+    -- Also, we need to check that the each timer is a new fake-request, and it
+    -- also consumes  memory
+    local ok, err = ngx.timer.at(0, checkin, ngx.ctx, ngx.var.request_time, semaphore, self.redis_url, self.error_settings)
+    if not ok then
+      ngx.log(ngx.ERR, "Failed to create timer for checkin limits, err='", err, "'")
+    end
+    return ok
   end
 end
 
