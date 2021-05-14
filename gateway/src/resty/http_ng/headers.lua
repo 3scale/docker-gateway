@@ -11,6 +11,8 @@ local lower = string.lower
 local upper = string.upper
 local ngx_re = ngx.re
 local re_gsub = ngx_re.gsub
+local tablex_pairmap = require('pl.tablex').pairmap
+local tablex_sort = require('pl.tablex').sort
 
 local normalize_exceptions = {
   etag = 'ETag'
@@ -54,7 +56,7 @@ local header_mt = {
   __tostring = function(t)
     local tmp = {}
 
-    for k,v in pairs(t) do
+    for k,v in tablex_sort(t) do
       if type(k) == 'string' then
         insert(tmp, k)
       elseif type(v) == 'string' then
@@ -76,13 +78,13 @@ end
 
 headers.normalize = function(http_headers)
   http_headers = http_headers or {}
-
-  local normalized = {}
-  for k,v in pairs(http_headers) do
-    normalized[headers.normalize_key(k)] = headers.normalize_value(v)
+  
+  local serialize = function(k,v)
+    return headers.normalize_value(v), headers.normalize_key(k)
   end
 
-  return normalized
+  -- Use tablex because it uses the same order as defined
+  return tablex_pairmap(serialize, http_headers)
 end
 
 headers.new = function(h)
