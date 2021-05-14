@@ -46,7 +46,6 @@ describe('OIDC Discovery', function()
       end)
 
       it('use the cache info if is in place', function()
-
         test_backend
                 .expect{ url =  issuer_config_url }
                 .respond_with{ status = 200, headers = { content_type = 'application/json' }, body = '{}' }
@@ -56,10 +55,10 @@ describe('OIDC Discovery', function()
         assert.spy(discovery.save_issuer_in_cache).was_called()
 
         spy.on(discovery, "issuer_in_cache")
-        discovery:call(issuer_url, 10)
+        local res = discovery:call(issuer_url, 10)
 
         assert.spy(discovery.issuer_in_cache).was_called()
-        assert.spy(discovery.issuer_in_cache).returned_with(result)
+        assert.are.same(result, res)
 
       end)
     end)

@@ -38,12 +38,10 @@ describe("token introspection policy", function()
         client_id = test_client_id,
         client_secret = test_client_secret
       }
-
       test_backend
         .expect{
           url = introspection_url,
           method = 'POST',
-          body = 'token='..test_access_token..'&token_type_hint=access_token',
           headers = {
             ['Authorization'] = test_basic_auth
           }
@@ -54,9 +52,13 @@ describe("token introspection policy", function()
               active = true
           })
         }
+
       local token_policy = TokenIntrospection.new(policy_config)
       token_policy.http_client.backend = test_backend
       token_policy:access(context)
+      assert.are.same(ngx.decode_args(test_backend.get_requests()[1].body),
+          { token = "test", token_type_hint = "access_token" })
+
     end)
 
     it('failed with invalid token', function()
@@ -72,7 +74,6 @@ describe("token introspection policy", function()
         .expect{
           url = introspection_url,
           method = 'POST',
-          body = 'token='..test_access_token..'&token_type_hint=access_token',
           headers = {
             ['Authorization'] = test_basic_auth
           }
@@ -90,6 +91,9 @@ describe("token introspection policy", function()
       token_policy.http_client.backend = test_backend
       token_policy:access(context)
       assert_authentication_failed()
+
+      assert.are.same(ngx.decode_args(test_backend.get_requests()[1].body),
+          { token = "test", token_type_hint = "access_token" })
     end)
 
     it('failed with bad status code', function()
@@ -105,7 +109,6 @@ describe("token introspection policy", function()
         .expect{
           url = introspection_url,
           method = 'POST',
-          body = 'token='..test_access_token..'&token_type_hint=access_token',
           headers = {
             ['Authorization'] = test_basic_auth
           }
@@ -120,6 +123,9 @@ describe("token introspection policy", function()
       token_policy.http_client.backend = test_backend
       token_policy:access(context)
       assert_authentication_failed()
+
+      assert.are.same(ngx.decode_args(test_backend.get_requests()[1].body),
+          { token = "test", token_type_hint = "access_token" })
     end)
 
     it('failed with null response', function()
@@ -135,7 +141,6 @@ describe("token introspection policy", function()
         .expect{
           url = introspection_url,
           method = 'POST',
-          body = 'token='..test_access_token..'&token_type_hint=access_token',
           headers = {
             ['Authorization'] = test_basic_auth
           }
@@ -151,6 +156,9 @@ describe("token introspection policy", function()
       token_policy.http_client.backend = test_backend
       token_policy:access(context)
       assert_authentication_failed()
+
+      assert.are.same(ngx.decode_args(test_backend.get_requests()[1].body),
+          { token = "test", token_type_hint = "access_token" })
     end)
 
     it('failed with bad contents type', function()
@@ -166,7 +174,6 @@ describe("token introspection policy", function()
         .expect{
           url = introspection_url,
           method = 'POST',
-          body = 'token='..test_access_token..'&token_type_hint=access_token',
           headers = {
             ['Authorization'] = test_basic_auth
           }
@@ -182,6 +189,9 @@ describe("token introspection policy", function()
       token_policy.http_client.backend = test_backend
       token_policy:access(context)
       assert_authentication_failed()
+
+      assert.are.same(ngx.decode_args(test_backend.get_requests()[1].body),
+          { token = "test", token_type_hint = "access_token" })
     end)
 
     describe('when caching is enabled', function()
@@ -227,7 +237,6 @@ describe("token introspection policy", function()
           .expect{
             url = introspection_url,
             method = 'POST',
-            body = 'token='..test_access_token..'&token_type_hint=access_token',
             headers = { ['Authorization'] = test_basic_auth }
           }
           .respond_with{ status = 200, body = cjson.encode(test_token_info) }
@@ -238,6 +247,8 @@ describe("token introspection policy", function()
           token_policy:access(context)
 
           assert.same(test_token_info, test_tokens_cache:get(test_access_token))
+          assert.are.same(ngx.decode_args(test_backend.get_requests()[1].body),
+              { token = "test", token_type_hint = "access_token" })
         end)
       end)
     end)

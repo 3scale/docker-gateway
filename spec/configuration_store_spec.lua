@@ -1,4 +1,5 @@
 local configuration = require('apicast.configuration_store')
+local tablex = require("pl.tablex")
 
 describe('Configuration Store', function()
 
@@ -255,10 +256,11 @@ describe('Configuration Store', function()
 
       local service1 = { id = '42' }
       local service2 = { id = '43' }
+
       store:add(service1)
       store:add(service2)
 
-      assert.same({ service1, service2 }, store:all())
+      assert.same({}, tablex.difference(store:all(), {service1, service2}, true))
     end)
   end)
 

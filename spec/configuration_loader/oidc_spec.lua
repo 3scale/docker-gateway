@@ -50,9 +50,32 @@ describe('OIDC Configuration loader', function()
           headers = { content_type = 'application/json' },
           body = [[{"keys":[]}]],
         }
-      local oidc = loader.call(cjson.encode(config))
 
-      assert.same([[{"services":[{"id":21,"proxy":{"oidc_issuer_endpoint":"https:\/\/user:pass@example.com"}}],"oidc":[{"service_id":21,"issuer":"https:\/\/example.com","config":{"jwks_uri":"http:\/\/example.com\/jwks","issuer":"https:\/\/example.com"},"keys":{}}]}]], oidc)
+      local oidc = loader.call(cjson.encode(config))
+      local expected_oidc = cjson.decode([[
+        {
+          "services": [
+            {
+              "id": 21,
+              "proxy": {
+                "oidc_issuer_endpoint": "https://user:pass@example.com"
+              }
+            }
+          ],
+          "oidc": [
+            {
+              "service_id": 21,
+              "issuer": "https://example.com",
+              "config": {
+                "jwks_uri": "http://example.com/jwks",
+                "issuer": "https://example.com"
+              },
+              "keys": {}
+            }
+          ]
+        }
+      ]])
+      assert.same(expected_oidc, cjson.decode(oidc))
     end)
 
     -- This is a regression test. cjson crashed when parsing a config where
