@@ -68,11 +68,11 @@ if ($rover && !$lua_path) {
     $lua_lib ||= ';';
 }
 
+
+
 $ENV{APICAST_DIR} = $apicast_conf;
-
-$ENV{LUA_PATH} = sprintf('%1$s/?.lua;', $apicast_src) . $lua_path;
+$ENV{LUA_PATH} = sprintf('%1$s/?.lua;', $apicast_src) . $lua_path . "/usr/local/openresty/lualib/?.lua;";
 $ENV{LUA_CPATH} = sprintf('%1$s/?.so;', $apicast_lib) . $lua_lib;
-
 $ENV{PWD} = $cwd;
 $ENV{ARGV0} = $0;
 
