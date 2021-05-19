@@ -358,3 +358,72 @@ is always the valid one.
 [ "A custom error message\n", "GET / HTTP/1.1\n"]
 --- error_code eval
 [403, 200]
+
+=== TEST 11: X-forwarded-for header with invalid data
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "proxy": {
+        "policy_chain": [
+          {
+            "name": "apicast.policy.ip_check",
+            "configuration": {
+              "ips": [ "9.9.9.9" ],
+              "client_ip_sources": [
+                "X-Forwarded-For"
+              ],
+              "check_type": "whitelist"
+            }
+          },
+          { "name": "apicast.policy.echo" }
+        ]
+      }
+    }
+  ]
+}
+--- request
+GET /
+--- response_body
+IP address not allowed
+--- more_headers eval
+X-forwarded-for: ,9.9.9.9
+--- error_code: 403
+--- no_error_log
+[error]
+
+
+=== TEST 12: X-forwarded-for header without data
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "proxy": {
+        "policy_chain": [
+          {
+            "name": "apicast.policy.ip_check",
+            "configuration": {
+              "ips": [ "9.9.9.9" ],
+              "client_ip_sources": [
+                "X-Forwarded-For"
+              ],
+              "check_type": "whitelist"
+            }
+          },
+          { "name": "apicast.policy.echo" }
+        ]
+      }
+    }
+  ]
+}
+--- request
+GET /
+--- response_body
+IP address not allowed
+--- more_headers eval
+X-forwarded-for: ,
+--- error_code: 403
+--- no_error_log
+[error]

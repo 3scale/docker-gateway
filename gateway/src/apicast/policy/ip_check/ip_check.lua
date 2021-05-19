@@ -60,9 +60,13 @@ end
 function _M:access()
   local client_ip = ClientIP.get_from(self.client_ip_sources)
 
-  if client_ip then
-    self:check_client_ip(client_ip)
-  end
+  if not client_ip then
+    ngx.log(ngx.INFO, "Rejecting request due to is invalid to retrieve the IP information")
+    deny_request(self.error_msg)
+    return
+  end 
+
+  self:check_client_ip(client_ip)
 end
 
 return _M

@@ -129,7 +129,7 @@ describe('IP Check policy', function()
     end)
 
     describe('when the client IP cannot be obtained', function()
-      it('does not deny the request', function()
+      it('denies the request', function()
         stub(ClientIP, 'get_from', function() return nil end)
         local ip_check = IpCheckPolicy.new(
           { ips = { '1.2.3.4' }, check_type = 'blacklist' }
@@ -137,7 +137,7 @@ describe('IP Check policy', function()
 
         ip_check:access()
 
-        assert.stub(ngx.exit).was_not_called()
+        assert.stub(ngx.exit).was_called()
       end)
     end)
   end)

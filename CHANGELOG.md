@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed host header format on http_ng resty [PR #1264](https://github.com/3scale/APIcast/pull/1264) [THREESCALE-2235](https://issues.redhat.com/browse/THREESCALE-2235)
 - Fixed issues on OIDC jwk discovery [PR #1268](https://github.com/3scale/APIcast/pull/1268) [THREESCALE-6913](https://issues.redhat.com/browse/THREESCALE-6913)
 - Fixed Payload limit content-length response header [PR #1266](https://github.com/3scale/APIcast/pull/1266) [THREESCALE-6736](https://issues.redhat.com/browse/THREESCALE-6736)
+- Fixed IPcheck policy issues with invalid IP [PR #1273](https://github.com/3scale/APIcast/pull/1273) [THREESCALE-7075](https://issues.redhat.com/browse/THREESCALE-7075)
+
 
 
 ### Added
