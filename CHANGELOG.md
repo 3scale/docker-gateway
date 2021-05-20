@@ -27,6 +27,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Added sendfile_max_chunk to the worker [PR #1250](https://github.com/3scale/APIcast/pull/1250) [THREESCALE-6570](https://issues.redhat.com/browse/THREESCALE-6570)
 - Increased api-keys shared memory size [PR #1250](https://github.com/3scale/APIcast/pull/1250) [THREESCALE-6570](https://issues.redhat.com/browse/THREESCALE-6570)
 - Add support to multiple Origin based on regexp [PR #1251](https://github.com/3scale/APIcast/pull/1251) [THREESCALE-6569](https://issues.redhat.com/browse/THREESCALE-6569)
+- Bump Openresty version to 1.19.3 [PR #1272](https://github.com/3scale/APIcast/pull/1272) [THREESCALE-6963](https://issues.redhat.com/browse/THREESCALE-6963)
+
 
 
 
