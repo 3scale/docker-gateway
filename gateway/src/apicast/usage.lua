@@ -7,7 +7,11 @@ local ipairs = ipairs
 local insert = table.insert
 local remove = table.remove
 local encode_args = ngx.encode_args
-
+local tconcat = table.concat
+local tinsert = table.insert
+local format = string.format
+local tablex = require('pl.tablex')
+local ngx_escape_uri = ngx.escape_uri
 local _M = {}
 
 local mt = { __index = _M }
@@ -104,7 +108,11 @@ end
 
 --- Return a string with the encoded format() output
 function _M:encoded_format()
-    return encode_args(self:format())
+    local res = {}
+    for key,val in tablex.sort(self:format()) do
+      tinsert(res, format("%s=%s", ngx_escape_uri(key), ngx_escape_uri(val)))
+    end
+    return tconcat(res, "&")
 end
 
 --- Return  the max delta in the usage, by default returns 0

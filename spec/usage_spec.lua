@@ -169,10 +169,39 @@ describe('usage', function()
     end)
   end)
 
-  it("encode_format", function()
-    local usage = Usage.new()
-    usage:add('hits', 0)
-    assert.are.same(usage:encoded_format(), "usage%5Bhits%5D=0")
+  describe("encode format", function()
+    it("works with a single metric", function()
+      local usage = Usage.new()
+      usage:add('hits', 0)
+      assert.are.same(usage:encoded_format(), "usage%5Bhits%5D=0")
+    end)
+
+    it("with multiple metrics return the same", function()
+      local usage = Usage.new()
+      usage:add('a', 1)
+      usage:add('c', 3)
+      usage:add('b', 2)
+      assert.are.same(usage:encoded_format(), "usage%5Ba%5D=1&usage%5Bb%5D=2&usage%5Bc%5D=3")
+      -- Multiple cases just in case
+      local usage = Usage.new()
+      usage:add('c', 3)
+      usage:add('a', 1)
+      usage:add('b', 2)
+      assert.are.same(usage:encoded_format(), "usage%5Ba%5D=1&usage%5Bb%5D=2&usage%5Bc%5D=3")
+
+    end)
+
+    it("integer metrics", function()
+      local usage = Usage.new()
+      usage:add(1, 10)
+      assert.are.same(usage:encoded_format(), "usage%5B1%5D=10")
+    end)
+
+    it("no metrics", function()
+      local usage = Usage.new()
+      assert.are.same(usage:encoded_format(), "")
+    end)
+
   end)
 
   describe("get_max_delta", function()
