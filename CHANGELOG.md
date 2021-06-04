@@ -35,7 +35,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Change how ngx.encode_args is made on usage [PR #1277](https://github.com/3scale/APIcast/pull/1277) [THREESCALE-7122](https://issues.redhat.com/browse/THREESCALE-7122)
 - Upstream pool key when is using HTTPs  connection [PR #1274](https://github.com/3scale/APIcast/pull/1274) [THREESCALE-6849](https://issues.redhat.com/browse/THREESCALE-6849)
 - Fix a warning message on invalid upstream [PR #1285](https://github.com/3scale/APIcast/pull/1285) [THREESCALE-5225](https://issues.redhat.com/browse/THREESCALE-5225)
-- Upstream MTLS server verify  [PR #1280](https://github.com/3scale/APIcast/pull/1280) [THREESCALE-7099](https://issues.redhat.com/browse/THREESCALE-7099)
+- Upstream MTLS server verify [PR #1280](https://github.com/3scale/APIcast/pull/1280) [THREESCALE-7099](https://issues.redhat.com/browse/THREESCALE-7099)
+- Add Nginx filter policy [PR #1279](https://github.com/3scale/APIcast/pull/1279) [THREESCALE-6704](https://issues.redhat.com/browse/THREESCALE-6704)
 
 
 

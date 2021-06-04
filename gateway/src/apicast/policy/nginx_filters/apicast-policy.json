@@ -1,0 +1,46 @@
+{
+  "$schema": "http://apicast.io/policy-v1.1/schema#manifest#",
+  "name": "Nginx Filter",
+  "summary": "Skip nginx filters on certain headers",
+  "description": [
+    "Nginx, by default, checks/validates some request headers. This policy allows the user to skips these checks and sends them to the upstream servers. "
+  ],
+  "version": "builtin",
+  "order": {
+    "before": [
+      {
+        "name": "apicast",
+        "version": "builtin"
+      }
+    ]
+  },
+  "configuration": {
+    "type": "object",
+    "properties": {
+      "headers": {
+        "type": "array",
+        "title": "Headers to filter",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "title": "Header Name"
+            },
+            "append": {
+              "type": "boolean",
+              "title": "Append header to upstream"
+            }
+          },
+          "required": [
+            "name",
+            "append"
+          ]
+        }
+      }
+    },
+    "required": [
+      "headers"
+    ]
+  }
+}
