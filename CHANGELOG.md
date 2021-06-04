@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed issues on OIDC jwk discovery [PR #1268](https://github.com/3scale/APIcast/pull/1268) [THREESCALE-6913](https://issues.redhat.com/browse/THREESCALE-6913)
 - Fixed Payload limit content-length response header [PR #1266](https://github.com/3scale/APIcast/pull/1266) [THREESCALE-6736](https://issues.redhat.com/browse/THREESCALE-6736)
 - Fixed IPcheck policy issues with invalid IP [PR #1273](https://github.com/3scale/APIcast/pull/1273) [THREESCALE-7075](https://issues.redhat.com/browse/THREESCALE-7075)
-
+- Disabled content-caching globally if no policy at all [PR #1278](https://github.com/3scale/APIcast/pull/1278) [THREESCALE-7016](https://issues.redhat.com/browse/THREESCALE-7016)
 
 
 ### Added
@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Bump Openresty version to 1.19.3 [PR #1272](https://github.com/3scale/APIcast/pull/1272) [THREESCALE-6963](https://issues.redhat.com/browse/THREESCALE-6963)
 - Change how ngx.encode_args is made on usage [PR #1277](https://github.com/3scale/APIcast/pull/1277) [THREESCALE-7122](https://issues.redhat.com/browse/THREESCALE-7122)
 - Upstream pool key when is using HTTPs  connection [PR #1274](https://github.com/3scale/APIcast/pull/1274) [THREESCALE-6849](https://issues.redhat.com/browse/THREESCALE-6849)
+
 
 
 

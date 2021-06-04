@@ -429,3 +429,107 @@ __DATA__
 ["X-Cache-Status: MISS", "X-Cache-Status: MISS"]
 --- no_error_log
 [error]
+
+
+
+=== TEST 8: HEAD request is enabled if no content-caching
+This is related to https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache_convert_head
+and THREESCALE-7016
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "proxy": {
+        "hosts": ["one"],
+        "policy_chain": [
+          {
+            "name": "apicast.policy.upstream",
+            "configuration":
+              {
+                "rules": [ { "regex": "/", "url": "http://test:$TEST_NGINX_SERVER_PORT/" } ]
+              }
+          }
+        ]
+      }
+    }
+  ]
+}
+--- upstream
+  location / {
+     content_by_lua_block {
+       local assert = require('luassert')
+       assert.same(ngx.var.request_method, "HEAD")
+     }
+  }
+--- request
+HEAD /foo
+--- more_headers
+Host: one
+--- expected_response_body_like_multiple eval
+yay, api backend
+--- error_code: 200
+--- no_error_log
+[error]
+
+=== TEST 9: HEAD request is disabled when using content-caching
+This is related to https://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache_convert_head
+and THREESCALE-7016
+--- configuration
+{
+  "services": [
+    {
+      "id": 42,
+      "proxy": {
+        "hosts": ["one"],
+        "policy_chain": [
+          {
+            "name": "apicast.policy.content_caching",
+            "version": "builtin",
+            "configuration": {
+              "rules": [
+                {
+                  "cache": true,
+                  "header": "X-Cache-Status",
+                  "condition": {
+                    "combine_op": "and",
+                    "operations": [
+                      {
+                        "left": "oo",
+                        "op": "==",
+                        "right": "oo"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "apicast.policy.upstream",
+            "configuration":
+              {
+                "rules": [ { "regex": "/", "url": "http://test:$TEST_NGINX_SERVER_PORT/" } ]
+              }
+          }
+        ]
+      }
+    }
+  ]
+}
+--- upstream
+  location / {
+     content_by_lua_block {
+       local assert = require('luassert')
+       assert.same(ngx.var.request_method, "GET")
+     }
+  }
+--- request
+HEAD /foo
+--- more_headers
+Host: one
+--- expected_response_body_like_multiple eval
+yay, api backend
+--- error_code: 200
+--- no_error_log
+[error]

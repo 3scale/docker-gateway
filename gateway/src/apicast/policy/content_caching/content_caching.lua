@@ -11,6 +11,8 @@ local metrics_updater = require('apicast.metrics.updater')
 
 local content_cache_metric = prometheus('counter', "content_caching", "Content caching status", {"status"})
 
+local cache_zone = "apicast_cache"
+
 local new = _M.new
 
 function _M.new(config)
@@ -30,7 +32,9 @@ function _M.new(config)
 end
 
 function _M:access(context)
+  ngx.var.cache_zone = cache_zone
   ngx.var.cache_request = "true"
+
   for _, rule in ipairs(self.rules or {}) do
     local cond_is_true = rule.condition:evaluate(context)
     if cond_is_true and rule.cache then
