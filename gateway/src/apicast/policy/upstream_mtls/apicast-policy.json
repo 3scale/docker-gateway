@@ -30,6 +30,19 @@
           "embedded"
         ],
         "default": "path"
+      },
+      "ca_certificates": {
+          "type": "array",
+          "title": "CA certificates",
+          "items": {
+            "type": "string",
+            "title": "PEM formatted certificate",
+            "description": "Certificate including the -----BEGIN CERTIFICATE----- and -----END CERTIFICATE-----"
+          }
+      },
+      "verify": {
+        "type": "boolean",
+        "description": "Verify upstream connection"
       }
     },
     "dependencies": {
