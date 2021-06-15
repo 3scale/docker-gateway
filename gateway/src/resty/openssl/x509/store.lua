@@ -49,48 +49,42 @@ local function X509_VERIFY_PARAM(flags)
 end
 
 local _M = {}
-local mt = {
-  __index = _M,
-  __new = function(ct)
-    local store = ffi_assert(C.X509_STORE_new())
-
-    -- enabling partial chains allows us to trust leaf certificates
-    local verify_param = X509_VERIFY_PARAM(X509_V_FLAG_PARTIAL_CHAIN)
-
-    ffi_assert(C.X509_STORE_set1_param(store, verify_param),1)
-
-    return ffi.new(ct, store)
-  end,
-  __gc = function(self)
-    C.X509_STORE_free(self.cdata)
-  end
-}
-
--- no changes to the metamethods possible from this point
-local X509_STORE = ffi.metatype('struct { X509_STORE *cdata; }', mt)
+local mt = { __index = _M }
 
 function _M:add_cert(x509)
-  return ffi_assert(C.X509_STORE_add_cert(tocdata(self), tocdata(x509)))
+  return ffi_assert(C.X509_STORE_add_cert(self.store, tocdata(x509)))
 end
 
 function _M:validate_cert(x509, chain)
-  local ctx = X509_STORE_CTX.new(self, x509, chain)
+  local ctx = X509_STORE_CTX.new(self.store, x509, chain)
 
   return ctx:validate()
 end
 
 function _M:set_time(seconds)
-  local verify_param = ffi_assert(C.X509_STORE_get0_param(tocdata((self))))
+  local verify_param = ffi_assert(C.X509_STORE_get0_param(self.store))
   C.X509_VERIFY_PARAM_set_time(verify_param, seconds)
 end
 
 function _M:time()
-  local verify_param = ffi_assert(C.X509_STORE_get0_param(tocdata((self))))
+  local verify_param = ffi_assert(C.X509_STORE_get0_param(self.store))
   return C.X509_VERIFY_PARAM_get_time(verify_param)
 end
 
 function _M.new()
-  return X509_STORE()
+  local store = ffi_assert(C.X509_STORE_new())
+
+  -- @TODO cleanup here
+  -- ffi_gc(store, C.X509_STORE_free)
+  -- enabling partial chains allows us to trust leaf certificates
+  local verify_param = X509_VERIFY_PARAM(X509_V_FLAG_PARTIAL_CHAIN)
+
+  ffi_assert(C.X509_STORE_set1_param(store, verify_param),1)
+  
+  local self = setmetatable({
+    store = store,
+  }, mt)
+  return self
 end
 
 return _M
