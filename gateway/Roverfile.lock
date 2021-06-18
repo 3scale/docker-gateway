@@ -10,7 +10,7 @@ fifo 0.2-0||development
 http 0.3-0||development
 inspect 3.1.1-0||production
 ldoc 1.4.6-2||development
-liquid 0.1.6-1||production
+liquid 0.1.7-1||production
 jsonschema 0.8-0|aa4740624cca4c10585bd7d086b42aa0b9ab14fa|testing
 lpeg 1.0.2-1||development
 lpeg_patterns 0.5-0||development

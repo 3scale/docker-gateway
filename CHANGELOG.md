@@ -17,7 +17,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed Payload limit content-length response header [PR #1266](https://github.com/3scale/APIcast/pull/1266) [THREESCALE-6736](https://issues.redhat.com/browse/THREESCALE-6736)
 - Fixed IPcheck policy issues with invalid IP [PR #1273](https://github.com/3scale/APIcast/pull/1273) [THREESCALE-7075](https://issues.redhat.com/browse/THREESCALE-7075)
 - Disabled content-caching globally if no policy at all [PR #1278](https://github.com/3scale/APIcast/pull/1278) [THREESCALE-7016](https://issues.redhat.com/browse/THREESCALE-7016)
-
+- Fixed warning messages [PR #1282](https://github.com/3scale/APIcast/pull/1282) [THREESCALE-5816](https://issues.redhat.com/browse/THREESCALE-5816)
 
 ### Added
 

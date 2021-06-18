@@ -2,6 +2,12 @@
 -- This module exposes functions that work with filesystem.
 -- So far exposes only function - to recursively traverse a filesystem path.
 -- Workaround for https://github.com/stevedonovan/Penlight/issues/265
+--
+
+--- These lines to avoid _G write guard issues, external depencies
+--  See https://github.com/openresty/lua-nginx-module/issues/1558 for more info
+rawset(_G, 'lfs', false)
+rawset(_G, 'warn', false)
 
 local pl_path = require('pl.path')
 local exists, isdir = pl_path.exists, pl_path.isdir
