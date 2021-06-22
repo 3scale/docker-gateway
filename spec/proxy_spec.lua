@@ -57,6 +57,19 @@ describe('Proxy', function()
       assert.same(80, get_upstream({ api_backend = 'http://example.com' }):port())
       assert.same(8080, get_upstream({ api_backend = 'http://example.com:8080' }):port())
     end)
+
+    it("on invalid api_backend return error", function()
+      local upstream, err = get_upstream({ api_backend = 'test.com' })
+      assert.falsy(upstream)
+      assert.same(err, "invalid upstream")
+    end)
+
+    it("on no api_backend return nil and no error", function()
+      local upstream, err = get_upstream({})
+      assert.falsy(upstream)
+      assert.falsy(err)
+    end)
+
   end)
 
   describe('.authorize', function()

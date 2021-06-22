@@ -172,6 +172,13 @@ function _M.get_upstream(service, context)
   if not service then
     return errors.service_not_found()
   end
+
+  -- Due to API as a product, the api_backend is no longer needed because this
+  -- can be handled by routing policy
+  if not service.api_backend then
+    return nil, nil
+  end
+
   local upstream, err = Upstream.new(service.api_backend)
   if not upstream then
     return nil, err
