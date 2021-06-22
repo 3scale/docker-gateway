@@ -26,6 +26,13 @@ function _M:instance(nameservers)
 
   if not resolver then
     resolver = self:new({ nameservers = nameservers })
+  end
+
+  -- This condition is a bit hacky, but when using UDP cosockets on ssl_cert
+  -- phase, it'll be closed for other phases, so skip to share on the ssl_cert
+  -- case.
+  -- Check THREESCALE-7230 for more info.
+  if ngx.get_phase() ~= "ssl_cert" then
     ctx.dns = resolver
   end
 

@@ -210,6 +210,13 @@ function _M:instance()
   if not resolver then
     local dns = dns_client:instance(self.nameservers())
     resolver = self.new(dns)
+  end
+
+  -- This condition is a bit hacky, but when using UDP cosockets on ssl_cert
+  -- phase, it'll be closed for other phases, so skip to share on the ssl_cert
+  -- case.
+  -- Check THREESCALE-7230 for more info.
+  if ngx.get_phase() ~= "ssl_cert" then
     ctx.resolver = resolver
   end
 
