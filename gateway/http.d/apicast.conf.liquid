@@ -1,4 +1,4 @@
-log_format time '[$time_local] $host:$server_port $remote_addr:$remote_port "$request" $status $body_bytes_sent ($request_time) $post_action_impact';
+log_format time '[$time_local] $target_host:$server_port $remote_addr:$remote_port "$request" $status $body_bytes_sent ($request_time) $post_action_impact';
 
 map $status $extended_access_log {
     default '';
