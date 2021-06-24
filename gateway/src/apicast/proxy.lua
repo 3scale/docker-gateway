@@ -129,7 +129,7 @@ function _M:authorize(context, service, usage, credentials, ttl)
   local cache = self.cache
   local is_known = cache:get(cached_key)
 
-  if is_known == 200 then
+  if is_known == 200 and context.cache_is_disabled == false then
     ngx.log(ngx.DEBUG, 'apicast cache hit key: ', cached_key)
     ngx.var.cached_key = cached_key
   else
