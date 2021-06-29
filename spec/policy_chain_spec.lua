@@ -221,4 +221,41 @@ describe('policy_chain', function()
       end)
     end)
   end)
+
+  describe("policy_error_callback", function()
+    local context = {}
+    before_each(function()
+      context = {
+        policy_error_callback = function(name, error_message)
+          return name
+        end
+      }
+      spy.on(context, 'policy_error_callback')
+    end)
+
+    it("trigger when fails on init", function()
+      local policy_chain = _M.new()
+      local res, err = policy_chain:add_policy("invalid", "builtin")
+      assert.falsy(res)
+      assert(err)
+
+      assert.truthy(policy_chain.init_failed)
+      assert.same(policy_chain.init_failed_policy.name, "invalid")
+      assert.truthy(policy_chain.init_failed_policy.err)
+
+      policy_chain:access(context)
+      assert.spy(context.policy_error_callback).was.called()
+    end)
+
+    it("trigger when fails on any phase", function()
+      local policy_chain = _M.new()
+      local res, err = policy_chain:add_policy("echo", "builtin")
+      assert.truthy(res)
+      assert.falsy(err)
+      policy_chain[1].access = function() error("invalid one") end
+
+      policy_chain:access(context)
+      assert.spy(context.policy_error_callback).was.called()
+    end)
+  end)
 end)

@@ -1,0 +1,26 @@
+{
+  "$schema": "http://apicast.io/policy-v1.1/schema#manifest#",
+  "name": "On fail",
+  "summary": "Block request if any policy fails",
+  "description": "When a policy fails, this policy allows to set an error message back to the user and stop processing the request to the upstream API.",
+  "version": "builtin",
+  "order": {
+    "before": [
+      {
+        "name": "apicast",
+        "version": "builtin"
+      }
+    ]
+  },
+  "configuration": {
+    "type": "object",
+    "properties": {
+      "error_status_code": {
+        "description": "Status code that will send to the user if any policy fails",
+        "type": "integer",
+        "minimum": 100,
+        "exclusiveMaximum": 700
+      }
+    }
+  }
+}

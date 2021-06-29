@@ -11,7 +11,15 @@ function _M.new(configuration)
     policy.message = configuration.message
   end
 
+  policy.fail_access = configuration.fail_access
+
   return policy
+end
+
+function _M:access()
+  if self.fail_access then
+    self.fail()
+  end
 end
 
 function _M:content()

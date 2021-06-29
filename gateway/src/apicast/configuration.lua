@@ -65,19 +65,14 @@ end
 local function build_policy_chain(policies)
   if not value(policies) then return nil, 'no policy chain' end
 
-  local chain = tab_new(#policies, 0)
-
+  local built_chain = policy_chain.new()
   for i=1, #policies do
-      local policy, err = policy_chain.load_policy(policies[i].name, policies[i].version, policies[i].configuration)
-
-      if policy then
-        insert(chain, policy)
-      elseif err then
-        ngx.log(ngx.WARN, 'failed to load policy: ', policies[i].name, ' version: ', policies[i].version, ' err: ', err)
-      end
+    local ok, err = built_chain:add_policy(policies[i].name, policies[i].version, policies[i].configuration)
+    if err then
+      ngx.log(ngx.WARN, 'failed to load policy: ', policies[i].name, ' version: ', policies[i].version, ' err: ', err)
+    end
   end
 
-  local built_chain = policy_chain.new(chain)
   built_chain:check_order()
   return built_chain
 end

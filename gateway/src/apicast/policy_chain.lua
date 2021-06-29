@@ -16,6 +16,7 @@ local sub = string.sub
 local format = string.format
 local pcall = pcall
 local noop = function() end
+local get_phase = ngx.get_phase
 
 require('apicast.loader')
 
@@ -26,7 +27,6 @@ local PolicyOrderChecker = require('apicast.policy_order_checker')
 local policy_manifests_loader = require('apicast.policy_manifests_loader')
 
 local _M = {
-
 }
 
 local mt = {
@@ -178,9 +178,16 @@ function _M:add_policy(name, version, ...)
         return self:insert(policy)
 
     elseif err then
+        -- This will only report the last one that failed, but at least users
+        -- can be aware of the issue
+        self.init_failed = true
+        self.init_failed_policy = {
+          name = name,
+          err = err
+        }
+        -- self.init_failed_err =  err
         ngx.log(ngx.WARN, 'failed to load policy: ', name, ' version: ', version)
         ngx.log(ngx.DEBUG, err)
-
         return false, err
     end
 end
@@ -195,9 +202,26 @@ end
 
 local function call_chain(phase_name)
     return function(self, context)
+
+        if self.init_failed then
+          if context.policy_error_callback then
+            context.policy_error_callback(self.init_failed_policy.name, self.init_failed_policy.err)
+          end
+        end
+
         for i=1, #self do
             ngx.log(ngx.DEBUG, 'policy chain execute phase: ', phase_name, ', policy: ', self[i]._NAME, ', i: ', i)
-            self[i][phase_name](self[i], context)
+            local status, return_val = pcall(self[i][phase_name], self[i], context)
+            if not status then
+              if context.policy_error_callback then
+                  context.policy_error_callback(self[i]._NAME, return_val)
+              end
+              -- This is important because Openresty just died on error on init
+              -- phase, and we should keep in this way.
+              if get_phase() == "init" then
+                error(return_val)
+              end
+            end
         end
 
         return ipairs(self)

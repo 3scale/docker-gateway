@@ -37,8 +37,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - Fix a warning message on invalid upstream [PR #1285](https://github.com/3scale/APIcast/pull/1285) [THREESCALE-5225](https://issues.redhat.com/browse/THREESCALE-5225)
 - Upstream MTLS server verify [PR #1280](https://github.com/3scale/APIcast/pull/1280) [THREESCALE-7099](https://issues.redhat.com/browse/THREESCALE-7099)
 - Add Nginx filter policy [PR #1279](https://github.com/3scale/APIcast/pull/1279) [THREESCALE-6704](https://issues.redhat.com/browse/THREESCALE-6704)
-
-
+- Added on_failed policy [PR#1286](https://github.com/3scale/APIcast/pull/1286) [THREESCALE-6705](https://issues.redhat.com/browse/THREESCALE-6705)
 
 
 ## [3.10.0] 2021-01-04
