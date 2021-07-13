@@ -1,0 +1,29 @@
+{
+  "services": [
+    {
+      "proxy": {
+        "policy_chain": [
+          {
+            "name": "hello_world",
+            "version": "builtin",
+            "configuration": {
+              "overwrite": true,
+              "secret": "mysecret"
+            }
+          },
+          {
+            "name": "apicast.policy.upstream",
+            "configuration": {
+              "rules": [
+                {
+                  "regex": "/",
+                  "url": "http://echo:8081"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

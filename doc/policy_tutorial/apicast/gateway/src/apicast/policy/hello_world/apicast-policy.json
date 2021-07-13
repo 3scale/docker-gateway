@@ -1,0 +1,22 @@
+{
+  "$schema": "http://apicast.io/policy-v1/schema#manifest#",
+  "name": "hello_world",
+  "summary": "Parameter converter and secret checker",
+  "description": [
+      "Modifies HTTP query parameters in a request to HTTP headers. And checks the existence of the secret header."
+  ],
+  "version": "builtin",
+  "configuration": {
+    "type": "object",
+    "properties": {
+      "overwrite": {
+        "description": "Overwrite flag used to indicate whether or not an existing header must be overwritten by this policy. The default is true.",
+        "type": "boolean"
+      },
+      "secret": {
+        "description": "The additional static secret used for verifying the request.",
+        "type": "string"
+      }
+    }
+  }
+}
