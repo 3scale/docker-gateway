@@ -146,7 +146,7 @@ end
 
 function _M.set_ca_cert(r, store)
   local val = C.ngx_http_apicast_ffi_set_proxy_ca_cert(r, store)
-  if val == ngx.OK then
+  if val ~= ngx.OK then
     ngx.log(ngx.WARN, "Cannot set a valid trusted CA store")
     return
   end
